@@ -10,8 +10,3 @@ public class Recipe
     public string StrMealThumb { get; set; } = string.Empty;
     public string StrYoutube { get; set; } = string.Empty;
 }
-
-public class RecipeResponse
-{
-    public List<Recipe>? Meals { get; set; }
-}

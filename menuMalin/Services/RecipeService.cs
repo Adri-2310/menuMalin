@@ -1,7 +1,8 @@
-﻿using System.Net.Http.Json;
-using menuMalin.Models;
+﻿namespace menuMalin.Services;
 
-namespace menuMalin.Services;
+using System.Net.Http.Json;
+using menuMalin.DTOs;
+using menuMalin.Models;
 
 public class RecipeService : IRecipeService
 {
