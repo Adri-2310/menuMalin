@@ -1,0 +1,117 @@
+﻿/* --- Variables spécifiques au composant --- */
+.hero-gradient {
+    --mm-green: #2d6a4f;
+    --mm-green-dark: #1b4332;
+    background: linear-gradient(135deg, var(--mm-green) 0%, var(--mm-green-dark) 100%);
+    min-height: 450px;
+    overflow: hidden;
+}
+
+/* --- Animations --- */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in { animation: fadeInUp 0.6s ease-out; }
+
+/* --- Typographie --- */
+.fw-black { font-weight: 900; letter-spacing: -2px; }
+
+/* --- Décorations Hero --- */
+.custom-shape-divider-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    line-height: 0;
+}
+
+/* --- Welcome Card (Connecté) --- */
+.welcome-card {
+    background: white;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.bg-pattern {
+    position: absolute;
+    top: 0; right: 0;
+    width: 300px; height: 300px;
+    background-image: radial-gradient(#d8f3dc 2px, transparent 2px);
+    background-size: 30px 30px;
+    opacity: 0.3;
+    transform: rotate(15deg) translate(50px, -50px);
+}
+
+.icon-blob {
+    width: 180px; height: 180px;
+    background: #d8f3dc;
+    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 6rem;
+}
+
+/* --- Feature Boxes --- */
+.feature-box {
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.feature-box:hover {
+    background: white;
+    border-color: #d8f3dc;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.05) !important;
+    transform: translateY(-10px);
+}
+
+.icon-circle {
+    width: 80px; height: 80px;
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem;
+    margin: 0 auto;
+}
+
+/* --- Couleurs Soft & États --- */
+.bg-success-soft { background-color: #e8f5e9; }
+.bg-danger-soft { background-color: #ffebee; }
+.bg-primary-soft { background-color: #e3f2fd; }
+.bg-success-light { background-color: #d8f3dc; }
+
+/* --- Effets de survol --- */
+.hover-scale:hover { transform: scale(1.05); transition: 0.2s; }
+.hover-lift:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important; }
+.skeleton-card { background: #f8f9fa; border: 1px dashed #dee2e6 !important; }
+
+/* --- Bouton Vert Logo --- */
+.btn-success {
+    background-color: #2d6a4f;
+    border-color: #2d6a4f;
+}
+.text-success { color: #2d6a4f !important; }
+
+/* Style de la bannière d'information */
+.info-banner {
+    background-color: #f8fdfa !important; /* Un blanc-vert très léger */
+    border-left: 5px solid #2d6a4f !important; /* Rappel du vert de ton logo */
+    transition: transform 0.3s ease;
+}
+
+.info-banner:hover {
+    transform: scale(1.01);
+}
+
+.info-banner h5 {
+    color: #2d6a4f;
+}
+
+/* Ajustement pour mobile */
+@media (max-width: 768px) {
+    .info-banner {
+        flex-direction: column;
+        text-align: center;
+    }
+    .info-banner .fs-1 {
+        margin-right: 0 !important;
+        margin-bottom: 10px;
+    }
+}

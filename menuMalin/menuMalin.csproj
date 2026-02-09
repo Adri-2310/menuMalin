@@ -17,4 +17,20 @@
         <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Components\Common\" />
+      <Folder Include="Components\Favorites\" />
+      <Folder Include="Components\Recipe\" />
+      <Folder Include="Components\Search\" />
+      <Folder Include="Components\Shopping\" />
+      <Folder Include="Models\" />
+      <Folder Include="Services\Api\" />
+      <Folder Include="Services\Business\" />
+      <Folder Include="Services\State\" />
+      <Folder Include="Services\Storage\" />
+      <Folder Include="Utilities\" />
+      <Folder Include="wwwroot\css\components\" />
+      <Folder Include="wwwroot\js\" />
+    </ItemGroup>
+
 </Project>

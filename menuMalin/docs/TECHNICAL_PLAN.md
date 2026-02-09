@@ -1433,7 +1433,7 @@ public class ShoppingListItem
 ## 7. Plan d'Implémentation par Phases
 
 ### Phase 1: Infrastructure de Base (Semaine 1)
-- [ ] Configuration du projet Blazor WebAssembly
+- [X] Configuration du projet Blazor WebAssembly
 - [ ] Configuration Auth0 OIDC
 - [ ] Mise en place de l'injection de dépendances
 - [ ] Configuration PWA de base
