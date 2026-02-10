@@ -1,3 +1,4 @@
+using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using menuMalin;
@@ -26,5 +27,9 @@ builder.Services.AddOidcAuthentication(options =>
     options.ProviderOptions.DefaultScopes.Add("profile");
     options.ProviderOptions.DefaultScopes.Add("email");
 });
+
+builder.Services.AddBlazoredLocalStorage();
+
+builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 
 await builder.Build().RunAsync();

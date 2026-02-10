@@ -28,11 +28,20 @@ public class RecipeService : IRecipeService
         return recipes;
     }
 
-    public async Task<List<Recipe>> SearchRecipesAsync(string term)
+    public async Task<List<Recipe>> SearchRecipesAsync(string searchTerm)
     {
-        var response = await _http.GetFromJsonAsync<RecipeResponse>($"search.php?s={term}");
-        return response?.Meals ?? new List<Recipe>();
+        try
+        {
+            var response = await _http.GetFromJsonAsync<RecipeResponse>($"search.php?s={searchTerm}");
+            return response?.Meals ?? new List<Recipe>();
+        }
+        catch
+        {
+            return new List<Recipe>();
+        }
+        
     }
+    
 
     public async Task<Recipe?> GetRecipeByIdAsync(string id)
     {
