@@ -3,3 +3,28 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+
+# IDE Files - JetBrains Rider
+.idea/
+*.sln.iml
+
+# IDE Files - Visual Studio
+.vs/
+.vscode/
+
+# Claude Code
+*.local.json
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Build & Runtime
+*.dll
+*.exe
+*.pdb
+*.log
+
+# NuGet
+*.nupkg
+*.snupkg
