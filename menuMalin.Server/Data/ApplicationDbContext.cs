@@ -30,7 +30,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.UserId).HasColumnType("varchar(36)");
             entity.Property(e => e.Auth0Id).HasMaxLength(255).IsRequired();
             entity.Property(e => e.Email).HasMaxLength(255).IsRequired();
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
 
             entity.HasIndex(e => e.Auth0Id).IsUnique();
             entity.HasIndex(e => e.Email).IsUnique();
@@ -58,9 +58,9 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.Category).HasMaxLength(100);
             entity.Property(e => e.Area).HasMaxLength(100);
             entity.Property(e => e.Tags).HasMaxLength(500);
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
             entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(6)")
                 .ValueGeneratedOnAddOrUpdate();
 
             entity.HasIndex(e => e.MealDBId).IsUnique();
@@ -81,7 +81,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.FavoriteId).HasColumnType("varchar(36)");
             entity.Property(e => e.UserId).HasColumnType("varchar(36)").IsRequired();
             entity.Property(e => e.RecipeId).HasColumnType("varchar(36)").IsRequired();
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
 
             entity.HasIndex(e => new { e.UserId, e.RecipeId }).IsUnique();
             entity.HasIndex(e => e.UserId);
@@ -98,9 +98,9 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.Subject).HasMaxLength(500).IsRequired();
             entity.Property(e => e.Message).IsRequired();
             entity.Property(e => e.Status).HasDefaultValue(ContactMessageStatus.New);
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
             entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(6)")
                 .ValueGeneratedOnAddOrUpdate();
 
             entity.HasIndex(e => e.UserId);
