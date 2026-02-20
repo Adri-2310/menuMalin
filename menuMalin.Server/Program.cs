@@ -1,11 +1,19 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using menuMalin.Server.Data;
+using menuMalin.Server.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ========================================
 // Configuration des Services
 // ========================================
+
+// Configuration Auth0Settings depuis appsettings.json
+var auth0Settings = new Auth0Settings();
+builder.Configuration.GetSection("Auth0").Bind(auth0Settings);
+builder.Services.AddSingleton(auth0Settings);
 
 // Ajouter Entity Framework Core avec MySQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
@@ -17,6 +25,20 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         ServerVersion.AutoDetect(connectionString)
     )
 );
+
+// Ajouter l'authentification JWT avec Auth0
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = $"https://{auth0Settings.Domain}";
+        options.Audience = auth0Settings.Audience;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            NameClaimType = System.Security.Claims.ClaimTypes.NameIdentifier,
+            RoleClaimType = System.Security.Claims.ClaimTypes.Role
+        };
+    });
 
 // Ajouter OpenApi pour la documentation
 builder.Services.AddOpenApi();
@@ -61,6 +83,8 @@ app.UseHttpsRedirection();
 // Utiliser CORS
 app.UseCors("AllowBlazor");
 
+// Ajouter l'authentification avant l'autorisation
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
