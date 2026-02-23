@@ -1,8 +1,8 @@
 # 📊 Progression du Projet menuMalin
 
-**Date de mise à jour:** 22 février 2026
-**Statut global:** Phase 2 en cours (7/19 sprints complétés)
-**Complétude:** 36.8% - Phase 1 ✅ + 2 sprints Phase 2 ✅
+**Date de mise à jour:** 23 février 2026
+**Statut global:** Phase 2 en cours (8/19 sprints complétés)
+**Complétude:** 42.1% - Phase 1 ✅ + 3 sprints Phase 2 ✅
 
 ---
 
@@ -11,7 +11,7 @@
 | Phase | Statut | Sprints | Complétude |
 |-------|--------|---------|-----------|
 | **Phase 1: Backend Setup** | ✅ Complétée | 5/5 | 100% |
-| **Phase 2: Frontend Blazor** | 🔄 En cours | 2/5 | 40% |
+| **Phase 2: Frontend Blazor** | 🔄 En cours | 3/5 | 60% |
 | Phase 3: Tests | ⏳ À venir | 0/5 | 0% |
 | Phase 4: Finalisation | ⏳ À venir | 0/5 | 0% |
 
@@ -172,17 +172,61 @@ GET /api/auth/health                 - Test API
 ✅ FavoriteServiceFrontend - Gestion des favoris
 ```
 
-### Sprints 8-10: Pages & Composants ⏳
+### Sprint 8: Pages d'accueil et recherche avec composants ✅
+**Statut:** COMPLÉTÉ
+**Date:** 23 février 2026
+
+**Checklist:**
+- [x] RecipeModal.razor créé (modal Bootstrap avec détails complets)
+- [x] RecipeGrid.razor créé (grille responsive 3 colonnes + pagination 6/page)
+- [x] Search.razor créé (page protégée [Authorize] avec filtres)
+- [x] CategoryResponse.cs et AreaResponse.cs DTOs créés
+- [x] IRecipeService étendu avec GetCategoriesAsync, GetAreasAsync
+- [x] RecipeService implémenté avec SearchByCategoryAsync, SearchByAreaAsync
+- [x] Index.razor modifié (RecipeGrid intégré + bouton "Tout explorer")
+- [x] launchSettings.json ajusté (ports 7777 frontend, 5266 backend)
+- [x] appsettings.json Auth0 URIs mises à jour
+- [x] Program.cs Backend URL corrigée (HTTP au lieu de HTTPS)
+- [x] Frontend compile sans erreurs
+- [x] Authentification Auth0 fonctionnelle
+
+**Composants créés:**
+```
+✅ RecipeModal - Affiche image, titre, catégorie, zone, ingrédients, instructions, YouTube
+✅ RecipeGrid - Grille 3 colonnes responsive avec pagination (6 recettes/page)
+✅ Search - Page protégée avec dropdown catégories + zones + recherche texte
+```
+
+**Services étendus:**
+```
+✅ GetCategoriesAsync() - Récupère les catégories TheMealDB
+✅ GetAreasAsync() - Récupère les zones/cuisines TheMealDB
+✅ SearchByCategoryAsync(category) - Filtre recettes par catégorie
+✅ SearchByAreaAsync(area) - Filtre recettes par zone
+```
+
+**Configuration corrigée:**
+```
+✅ Frontend: https://localhost:7777 (au lieu de 7216)
+✅ Backend API: http://localhost:5266 (HTTP au lieu de HTTPS 5001)
+✅ Auth0 URIs de redirection: localhost:7777
+```
+
+### Sprints 9-10: Favoris & Détails ⏳
 **Statut:** À FAIRE
 
 ---
 
-## ⏳ PHASE 2: FRONTEND BLAZOR (Sprints 6-10)
+## 🔄 PHASE 2: FRONTEND BLAZOR (Sprints 6-10)
 
-**Statut:** À FAIRE
-**Complétude:** 0%
+**Statut:** 60% complétée (3/5 sprints)
+**Complétude:** 60%
 
-Serà commencée après la fin de la Phase 1 (Sprint 5)
+- ✅ Sprint 6: Frontend Setup ✅
+- ✅ Sprint 7: Frontend Services ✅
+- ✅ Sprint 8: Pages d'accueil & Recherche ✅
+- ⏳ Sprint 9: Favoris & Détails (À FAIRE)
+- ⏳ Sprint 10: Finalisation UI (À FAIRE)
 
 ---
 
@@ -204,31 +248,60 @@ Sera commencée après la fin de la Phase 3 (Sprint 15)
 
 ---
 
-## 📝 Résumé des changements depuis le dernier sprint
+## 📝 Résumé des changements Sprint 8
 
-### Sprint 3 - 20 février 2026
+### Sprint 8 - 23 février 2026
 ```
-Fichiers modifiés: 5
-Fichiers créés: 2
-Commits: 1
+Fichiers modifiés: 3
+Fichiers créés: 5
+Commits: 2
 
-✅ menuMalin.Server/appsettings.json
-   - Ajout configuration Auth0 (Domain, ClientId, ClientSecret, Audience)
+✅ menuMalin/Components/Recipe/RecipeModal.razor (NOUVEAU)
+   - Modal Bootstrap pour affichage des détails complets
+   - Affiche ingrédients via réflexion
+   - Lien YouTube si disponible
 
-✅ menuMalin.Server/Auth/Auth0Settings.cs (NOUVEAU)
-   - Classe pour les paramètres Auth0
+✅ menuMalin/Components/Recipe/RecipeGrid.razor (NOUVEAU)
+   - Grille responsive 3 colonnes
+   - Pagination 6 recettes par page
+   - Boutons Précédent/Suivant avec numérotation
 
-✅ menuMalin.Server/Controllers/AuthController.cs (NOUVEAU)
-   - Endpoint GET /api/auth/me [Authorize]
-   - Endpoint GET /api/auth/health
+✅ menuMalin/Pages/Search.razor (NOUVEAU)
+   - Page protégée [Authorize]
+   - Filtres texte + dropdown catégories + zones
+   - Boutons "Rechercher" et "Réinitialiser"
 
-✅ menuMalin.Server/Program.cs
-   - Configuration JWT Bearer avec Auth0
-   - Ajout middleware Authentication
-   - Enregistrement Auth0Settings en DI
+✅ menuMalin/DTOs/CategoryResponse.cs (NOUVEAU)
+   - DTO pour réponse catégories TheMealDB
 
-✅ menuMalin.Server/menuMalin.Server.csproj
-   - Package Microsoft.AspNetCore.Authentication.JwtBearer 9.0.0
+✅ menuMalin/DTOs/AreaResponse.cs (NOUVEAU)
+   - DTO pour réponse zones/cuisines TheMealDB
+
+✅ menuMalin/Services/IRecipeService.cs
+   - Ajout GetCategoriesAsync()
+   - Ajout GetAreasAsync()
+   - Ajout SearchByCategoryAsync()
+   - Ajout SearchByAreaAsync()
+
+✅ menuMalin/Services/RecipeService.cs
+   - Implémentation 4 nouvelles méthodes
+   - Appels API TheMealDB list.php et filter.php
+
+✅ menuMalin/Pages/Index.razor
+   - RecipeGrid remplace grille manuelle
+   - Bouton "Tout explorer" redirige vers /search
+   - RecipeModal intégré au bas de la page
+
+✅ menuMalin/Program.cs
+   - Backend URL changée: https://localhost:5001 → http://localhost:5266
+
+✅ menuMalin/Properties/launchSettings.json
+   - Frontend port: 7216 → 7777
+   - HTTP port: 5149 → 5555
+
+✅ menuMalin/wwwroot/appsettings.json
+   - RedirectUri: localhost:7216 → localhost:7777
+   - PostLogoutRedirectUri: localhost:7216 → localhost:7777
 ```
 
 ---
@@ -252,10 +325,10 @@ Commits: 1
 
 | Métrique | Valeur |
 |----------|--------|
-| Sprints complétés | 7/19 |
-| Pourcentage complétude | 36.8% |
+| Sprints complétés | 8/19 |
+| Pourcentage complétude | 42.1% |
 | Phase 1 complétude | 100% ✅ |
-| Phase 2 complétude | 40% 🔄 |
+| Phase 2 complétude | 60% 🔄 |
 | Dépendances NuGet | 10 packages |
 | Tables BD | 4 |
 | Contrôleurs Backend | 4 |
@@ -288,4 +361,4 @@ Commits: 1
 
 ---
 
-**Dernière mise à jour:** 20 février 2026 à 23:45
+**Dernière mise à jour:** 23 février 2026 à 14:30
