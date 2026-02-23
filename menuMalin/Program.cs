@@ -18,7 +18,7 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 // 2. Client HTTP pour l'API Backend (menuMalin.Server)
 builder.Services.AddHttpClient<IHttpApiService, HttpApiService>(client =>
 {
-    client.BaseAddress = new Uri("https://localhost:5001/api/");
+    client.BaseAddress = new Uri("http://localhost:5266/api/");
     client.Timeout = TimeSpan.FromSeconds(30);
 });
 
