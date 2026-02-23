@@ -53,8 +53,10 @@ builder.Services.AddScoped<LocalStorageService>();
 // ThemeService (pour le thème dark/light)
 builder.Services.AddScoped<IThemeService, ThemeService>();
 
-// Services métier
+// Services métier (Frontend)
 builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 builder.Services.AddScoped<IContactService, ContactService>();
+builder.Services.AddScoped<IRecipeServiceFrontend, RecipeServiceFrontend>();
+builder.Services.AddScoped<IFavoriteServiceFrontend, FavoriteServiceFrontend>();
 
 await builder.Build().RunAsync();
