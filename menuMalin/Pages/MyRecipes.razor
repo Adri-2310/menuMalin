@@ -1,0 +1,150 @@
+@page "/my-recipes"
+@using Microsoft.AspNetCore.Authorization
+@using menuMalin.Models
+@using menuMalin.Services
+@using menuMalin.Components.Recipe
+@attribute [Authorize]
+@inject IFavoriteService FavoriteService
+@inject NavigationManager Nav
+
+<PageTitle>MenuMalin - Mes Favoris</PageTitle>
+
+<div class="container mt-4 mb-5 animate-fade-in">
+    @* Bouton Retour *@
+    <button class="btn btn-link text-dark text-decoration-none mb-4 ps-0" @onclick="GoBack">
+        <i class="bi bi-arrow-left me-2"></i>Retour à l'accueil
+    </button>
+
+    @* Titre Section *@
+    <div class="mb-5">
+        <h1 class="display-5 fw-bold mb-2">❤️ Mes Favoris</h1>
+        <p class="text-muted">Vos recettes préférées sauvegardées</p>
+    </div>
+
+    @* GESTION D'ÉTAT *@
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-success"></div>
+            <p class="mt-2 text-muted">Chargement de vos favoris...</p>
+        </div>
+    }
+    else if (favorites == null || !favorites.Any())
+    {
+        <div class="alert alert-info text-center rounded-4 py-5" role="alert">
+            <i class="bi bi-heart me-2"></i>
+            <h5>Aucun favori pour le moment</h5>
+            <p class="text-muted mb-3">Explorez les recettes et ajoutez-les à vos favoris !</p>
+            <a href="/search" class="btn btn-success rounded-pill px-4">
+                Découvrir les recettes
+            </a>
+        </div>
+    }
+    else
+    {
+        @* SECTION FILTRES *@
+        <div class="row mb-4 g-3">
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Filtrer par catégorie</label>
+                <select class="form-select shadow-sm rounded-pill" @bind="selectedCategory">
+                    <option value="">-- Toutes les catégories --</option>
+                    @foreach (var cat in GetCategories())
+                    {
+                        <option value="@cat">@cat</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Trier par</label>
+                <select class="form-select shadow-sm rounded-pill" @bind="sortOrder">
+                    <option value="name-asc">Nom (A→Z)</option>
+                    <option value="name-desc">Nom (Z→A)</option>
+                    <option value="category">Catégorie</option>
+                </select>
+            </div>
+        </div>
+
+        @* AFFICHAGE GRILLE *@
+        <RecipeGrid Recipes="GetFilteredAndSortedRecipes()" />
+
+        @* BOUTON RÉINITIALISER *@
+        <div class="text-center mt-4">
+            <button class="btn btn-outline-success rounded-pill px-4" @onclick="ResetFilters">
+                <i class="bi bi-arrow-clockwise me-2"></i>Réinitialiser filtres
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Recipe>? favorites;
+    private string selectedCategory = "";
+    private string sortOrder = "name-asc";
+    private bool isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadFavorites();
+    }
+
+    private async Task LoadFavorites()
+    {
+        try
+        {
+            isLoading = true;
+            favorites = await FavoriteService.GetFavoritesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur lors du chargement des favoris: {ex.Message}");
+            favorites = new List<Recipe>();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private List<string> GetCategories()
+    {
+        if (favorites == null) return new List<string>();
+        return favorites
+            .Select(r => r.StrCategory)
+            .Where(c => !string.IsNullOrEmpty(c))
+            .Distinct()
+            .OrderBy(c => c)
+            .ToList();
+    }
+
+    private List<Recipe> GetFilteredAndSortedRecipes()
+    {
+        if (favorites == null) return new List<Recipe>();
+
+        var filtered = favorites.AsEnumerable();
+
+        // Filtre par catégorie
+        if (!string.IsNullOrEmpty(selectedCategory))
+        {
+            filtered = filtered.Where(r => r.StrCategory == selectedCategory);
+        }
+
+        // Tri
+        filtered = sortOrder switch
+        {
+            "name-asc" => filtered.OrderBy(r => r.StrMeal),
+            "name-desc" => filtered.OrderByDescending(r => r.StrMeal),
+            "category" => filtered.OrderBy(r => r.StrCategory).ThenBy(r => r.StrMeal),
+            _ => filtered.OrderBy(r => r.StrMeal)
+        };
+
+        return filtered.ToList();
+    }
+
+    private void ResetFilters()
+    {
+        selectedCategory = "";
+        sortOrder = "name-asc";
+    }
+
+    private void GoBack() => Nav.NavigateTo("/");
+}

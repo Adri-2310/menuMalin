@@ -1,0 +1,222 @@
+@page "/contact"
+@using Microsoft.AspNetCore.Components.Authorization
+@using menuMalin.Services
+@inject IContactService ContactService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+
+<PageTitle>MenuMalin - Nous Contacter</PageTitle>
+
+<div class="container mt-4 mb-5 animate-fade-in">
+    @* Bouton Retour *@
+    <button class="btn btn-link text-dark text-decoration-none mb-4 ps-0" @onclick="GoBack">
+        <i class="bi bi-arrow-left me-2"></i>Retour à l'accueil
+    </button>
+
+    @* Titre Section *@
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold mb-2">📧 Nous Contacter</h1>
+        <p class="text-muted lead">Nous adorerions entendre parler de vous !</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            @if (isSubmitting)
+            {
+                <div class="text-center py-5">
+                    <div class="spinner-border text-success"></div>
+                    <p class="mt-2 text-muted">Envoi du message...</p>
+                </div>
+            }
+            else
+            {
+                <form @onsubmit="HandleSubmit" class="card border-0 shadow-sm rounded-4 p-5">
+                    @* Message de succès *@
+                    @if (showSuccess)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show rounded-4" role="alert">
+                            <i class="bi bi-check-circle me-2"></i>
+                            <strong>Succès !</strong> Votre message a été envoyé avec succès. Merci !
+                            <button type="button" class="btn-close" @onclick="() => showSuccess = false"></button>
+                        </div>
+                    }
+
+                    @* Message d'erreur *@
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show rounded-4" role="alert">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <strong>Erreur !</strong> @errorMessage
+                            <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+                        </div>
+                    }
+
+                    @* Email (pré-rempli si connecté) *@
+                    <div class="mb-3">
+                        <label for="email" class="form-label fw-bold">Email</label>
+                        <input
+                            type="email"
+                            class="form-control form-control-lg shadow-sm rounded-3"
+                            id="email"
+                            placeholder="Votre email"
+                            @bind="model.Email"
+                            required
+                            disabled="@isUserConnected" />
+                        <small class="text-muted">@(isUserConnected ? "✓ Auto-rempli depuis votre compte" : "Nous répondrons à cet email")</small>
+                    </div>
+
+                    @* Nom (optionnel, pré-rempli si connecté) *@
+                    @if (isUserConnected)
+                    {
+                        <div class="mb-3">
+                            <label for="name" class="form-label fw-bold">Nom</label>
+                            <input
+                                type="text"
+                                class="form-control form-control-lg shadow-sm rounded-3"
+                                id="name"
+                                placeholder="Votre nom"
+                                @bind="model.Name"
+                                disabled />
+                            <small class="text-muted">✓ Auto-rempli depuis votre compte</small>
+                        </div>
+                    }
+
+                    @* Sujet *@
+                    <div class="mb-3">
+                        <label for="subject" class="form-label fw-bold">Sujet</label>
+                        <select class="form-select form-select-lg shadow-sm rounded-3" id="subject" @bind="model.Subject" required>
+                            <option value="">-- Sélectionner un sujet --</option>
+                            <option value="bug">🐛 Signaler un bug</option>
+                            <option value="feature">✨ Demander une fonctionnalité</option>
+                            <option value="feedback">💬 Donner un avis</option>
+                            <option value="question">❓ Poser une question</option>
+                            <option value="other">📝 Autre</option>
+                        </select>
+                    </div>
+
+                    @* Message *@
+                    <div class="mb-3">
+                        <label for="message" class="form-label fw-bold">Message</label>
+                        <textarea
+                            class="form-control shadow-sm rounded-3"
+                            id="message"
+                            rows="5"
+                            placeholder="Écrivez votre message ici..."
+                            @bind="model.Message"
+                            required></textarea>
+                    </div>
+
+                    @* Checkbox Newsletter (seulement si connecté) *@
+                    @if (isUserConnected)
+                    {
+                        <div class="mb-4 form-check">
+                            <input
+                                type="checkbox"
+                                class="form-check-input shadow-sm"
+                                id="newsletter"
+                                @bind="model.SubscribeNewsletter" />
+                            <label class="form-check-label" for="newsletter">
+                                M'ajouter à la newsletter pour les nouveautés
+                            </label>
+                        </div>
+                    }
+
+                    @* Bouton Envoyer *@
+                    <button type="submit" class="btn btn-success btn-lg w-100 rounded-pill fw-bold shadow-sm">
+                        <i class="bi bi-send me-2"></i>Envoyer le message
+                    </button>
+
+                    <small class="text-muted d-block mt-3 text-center">
+                        Nous vous répondrons dans les 24h
+                    </small>
+                </form>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private ContactFormModel model = new();
+    private bool isUserConnected = false;
+    private bool isSubmitting = false;
+    private bool showSuccess = false;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckAuthenticationState();
+    }
+
+    private async Task CheckAuthenticationState()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        isUserConnected = authState.User.Identity?.IsAuthenticated ?? false;
+
+        if (isUserConnected)
+        {
+            model.Email = authState.User.FindFirst("email")?.Value ?? "";
+            model.Name = authState.User.FindFirst("name")?.Value ??
+                        authState.User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value ?? "";
+        }
+        else
+        {
+            model.Email = "admin@recipehub.com";
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            isSubmitting = true;
+            errorMessage = null;
+
+            bool success = await ContactService.SendMessageAsync(
+                model.Email,
+                model.Subject,
+                model.Message
+            );
+
+            if (success)
+            {
+                showSuccess = true;
+                // Réinitialiser le formulaire
+                model = new ContactFormModel();
+                if (isUserConnected)
+                {
+                    var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+                    model.Email = authState.User.FindFirst("email")?.Value ?? "";
+                    model.Name = authState.User.FindFirst("name")?.Value ?? "";
+                }
+                else
+                {
+                    model.Email = "admin@recipehub.com";
+                }
+            }
+            else
+            {
+                errorMessage = "Erreur lors de l'envoi du message. Veuillez réessayer.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur: {ex.Message}";
+            Console.WriteLine($"Erreur lors de l'envoi: {ex}");
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void GoBack() => Nav.NavigateTo("/");
+
+    private class ContactFormModel
+    {
+        public string Email { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Subject { get; set; } = "";
+        public string Message { get; set; } = "";
+        public bool SubscribeNewsletter { get; set; } = false;
+    }
+}
