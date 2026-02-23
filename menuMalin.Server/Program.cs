@@ -3,6 +3,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using menuMalin.Server.Data;
 using menuMalin.Server.Auth;
+using menuMalin.Server.Repositories;
+using menuMalin.Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,6 +47,14 @@ builder.Services.AddOpenApi();
 
 // Ajouter les contrôleurs
 builder.Services.AddControllers();
+
+// Enregistrer les Repositories (Scoped)
+builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
+builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();
+
+// Enregistrer les Services (Scoped)
+builder.Services.AddScoped<IRecipeService, RecipeService>();
+builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 
 // Ajouter CORS si nécessaire (pour le frontend Blazor)
 builder.Services.AddCors(options =>
