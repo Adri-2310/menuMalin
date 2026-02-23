@@ -48,6 +48,13 @@ builder.Services.AddOpenApi();
 // Ajouter les contrôleurs
 builder.Services.AddControllers();
 
+// Enregistrer TheMealDB HttpClient
+builder.Services.AddHttpClient<ITheMealDBService, TheMealDBService>()
+    .ConfigureHttpClient(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(10);
+    });
+
 // Enregistrer les Repositories (Scoped)
 builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
 builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();
