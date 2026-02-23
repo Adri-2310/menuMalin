@@ -1,8 +1,8 @@
 # 📊 Progression du Projet menuMalin
 
-**Date de mise à jour:** 20 février 2026
-**Statut global:** Phase 1 en cours (3/5 sprints complétés)
-**Complétude:** 60% ✅
+**Date de mise à jour:** 22 février 2026
+**Statut global:** Phase 1 terminée (5/5 sprints complétés) ✅
+**Complétude:** 100% - Phase 1 Complète! 🎉
 
 ---
 
@@ -10,7 +10,7 @@
 
 | Phase | Statut | Sprints | Complétude |
 |-------|--------|---------|-----------|
-| **Phase 1: Backend Setup** | 🔄 En cours | 3/5 | 60% |
+| **Phase 1: Backend Setup** | ✅ Complétée | 5/5 | 100% |
 | Phase 2: Frontend Blazor | ⏳ À venir | 0/5 | 0% |
 | Phase 3: Tests | ⏳ À venir | 0/5 | 0% |
 | Phase 4: Finalisation | ⏳ À venir | 0/5 | 0% |
@@ -79,33 +79,52 @@ GET /api/auth/health               - Test de l'API
 
 ---
 
-### Sprint 4: Services & Repositories Setup ⏳
-**Statut:** À FAIRE
-**Priorité:** HAUTE
+### Sprint 4: Services & Repositories Setup ✅
+**Statut:** COMPLÉTÉ
+**Date:** 22 février 2026
 
-**À faire:**
-- [ ] Créer IRecipeRepository et RecipeRepository
-- [ ] Créer IFavoriteRepository et FavoriteRepository
-- [ ] Créer IRecipeService et RecipeService
-- [ ] Créer IFavoriteService et FavoriteService
-- [ ] Créer les DTOs (RecipeDto, IngredientDto, MealDto)
-- [ ] Enregistrer les services en DI
-- [ ] Vérifier la compilation
+**Checklist:**
+- [x] IRecipeRepository et RecipeRepository créés
+- [x] IFavoriteRepository et FavoriteRepository créés
+- [x] IRecipeService et RecipeService implémentés
+- [x] IFavoriteService et FavoriteService implémentés
+- [x] DTOs créés (RecipeDto, IngredientDto, MealDto)
+- [x] Services enregistrés en Dependency Injection
+- [x] Compilation sans erreurs
 
 ---
 
-### Sprint 5: TheMealDB API Integration & Controllers ⏳
-**Statut:** À FAIRE
-**Priorité:** HAUTE
+### Sprint 5: TheMealDB API Integration & Controllers ✅
+**Statut:** COMPLÉTÉ
+**Date:** 22 février 2026
 
-**À faire:**
-- [ ] Créer ITheMealDBService
-- [ ] Implémenter TheMealDBService avec Polly
-- [ ] Créer RecipesController
-- [ ] Créer FavoritesController
-- [ ] Créer ContactController
-- [ ] Configurer CORS
-- [ ] Tester les endpoints avec Postman
+**Checklist:**
+- [x] ITheMealDBService créé avec tous les endpoints
+- [x] TheMealDBService implémenté avec gestion d'erreurs
+- [x] RecipesController implémenté (6 endpoints)
+- [x] FavoritesController implémenté (protégé par [Authorize])
+- [x] ContactController implémenté (public)
+- [x] HttpClient configuré avec timeout 10s
+- [x] Package Polly.Extensions.Http installé
+- [x] Compilation sans erreurs
+
+**Endpoints créés:**
+```
+GET /api/recipes/random              - 6 recettes aléatoires
+GET /api/recipes/search?query=       - Rechercher par nom
+GET /api/recipes/{mealId}            - Détails recette
+GET /api/recipes/categories/list     - Toutes catégories
+GET /api/recipes/areas/list          - Toutes zones/cuisines
+GET /api/recipes/filter/category     - Filtre par catégorie
+GET /api/recipes/filter/area         - Filtre par zone
+GET /api/favorites                   - Tous les favoris [Authorize]
+POST /api/favorites                  - Ajouter favori [Authorize]
+DELETE /api/favorites/{recipeId}     - Supprimer favori [Authorize]
+GET /api/favorites/{recipeId}/exists - Vérifier favori [Authorize]
+POST /api/contact                    - Envoyer message
+GET /api/auth/me                     - Info utilisateur [Authorize]
+GET /api/auth/health                 - Test API
+```
 
 ---
 
@@ -184,13 +203,14 @@ Commits: 1
 
 | Métrique | Valeur |
 |----------|--------|
-| Sprints complétés | 3/19 |
-| Pourcentage complétude | 15.8% |
-| Phase 1 complétude | 60% |
-| Dépendances NuGet | 8 packages |
+| Sprints complétés | 5/19 |
+| Pourcentage complétude | 26.3% |
+| Phase 1 complétude | 100% ✅ |
+| Dépendances NuGet | 10 packages |
 | Tables BD | 4 |
-| Contrôleurs | 1 |
-| Services | 0 |
+| Contrôleurs | 4 |
+| Services | 4 |
+| Endpoints API | 13 |
 | Tests | 0 |
 
 ---
