@@ -4,6 +4,7 @@
 @using menuMalin.Services
 @using menuMalin.Components.Recipe
 @inject IRecipeService RecipeService
+@inject NavigationManager Nav
 
 <PageTitle>MenuMalin - Accueil</PageTitle>
 
@@ -47,7 +48,7 @@
                     </div>
                     @if (featuredRecipes != null)
                     {
-                        <button class="btn btn-sm btn-link text-success fw-bold text-decoration-none hover-underline">
+                        <button class="btn btn-sm btn-link text-success fw-bold text-decoration-none hover-underline" @onclick="ExploreAll">
                             Tout explorer <i class="bi bi-arrow-right"></i>
                         </button>
                     }
@@ -80,14 +81,7 @@
                 else
                 {
                     @* VRAIES RECETTES *@
-                    <div class="row row-cols-1 row-cols-md-3 g-4">
-                        @foreach (var recipe in featuredRecipes)
-                        {
-                            <div class="col">
-                                <RecipeCard Recipe="recipe"/>
-                            </div>
-                        }
-                    </div>
+                    <RecipeGrid Recipes="featuredRecipes" />
                 }
             </div>
         </div>
@@ -164,10 +158,13 @@
     </NotAuthorized>
 </AuthorizeView>
 
+<RecipeModal Recipe="selectedRecipe" OnClose="@(() => selectedRecipe = null)" />
+
 @code {
     private List<Recipe>? featuredRecipes;
     private string? errorMessage;
-    private bool isSearching = false; // Pour afficher un état de chargement spécifique
+    private bool isSearching = false;
+    private Recipe? selectedRecipe;
 
     protected override async Task OnInitializedAsync()
     {
@@ -188,16 +185,15 @@
         }
     }
 
-    // LA MÉTHODE QUI REÇOIT LA RECHERCHE
     private async Task HandleSearch(string query)
     {
         try {
             isSearching = true;
             errorMessage = null;
-            featuredRecipes = null; // On vide l'écran pour montrer le chargement
-            
+            featuredRecipes = null;
+
             featuredRecipes = await RecipeService.SearchRecipesAsync(query);
-            
+
             if (featuredRecipes == null || !featuredRecipes.Any()) {
                 errorMessage = $"Aucune recette trouvée pour '{query}'.";
             }
@@ -208,5 +204,10 @@
         finally {
             isSearching = false;
         }
+    }
+
+    private void ExploreAll()
+    {
+        Nav.NavigateTo("/search");
     }
 }
