@@ -1,8 +1,8 @@
 # 📊 Progression du Projet menuMalin
 
 **Date de mise à jour:** 23 février 2026
-**Statut global:** Phase 2 en cours (8/19 sprints complétés)
-**Complétude:** 42.1% - Phase 1 ✅ + 3 sprints Phase 2 ✅
+**Statut global:** Phase 2 en cours (9/19 sprints complétés)
+**Complétude:** 47.4% - Phase 1 ✅ + 4 sprints Phase 2 ✅
 
 ---
 
@@ -11,7 +11,7 @@
 | Phase | Statut | Sprints | Complétude |
 |-------|--------|---------|-----------|
 | **Phase 1: Backend Setup** | ✅ Complétée | 5/5 | 100% |
-| **Phase 2: Frontend Blazor** | 🔄 En cours | 3/5 | 60% |
+| **Phase 2: Frontend Blazor** | 🔄 En cours | 4/5 | 80% |
 | Phase 3: Tests | ⏳ À venir | 0/5 | 0% |
 | Phase 4: Finalisation | ⏳ À venir | 0/5 | 0% |
 
@@ -212,20 +212,63 @@ GET /api/auth/health                 - Test API
 ✅ Auth0 URIs de redirection: localhost:7777
 ```
 
-### Sprints 9-10: Favoris & Détails ⏳
+### Sprint 9: Pages Favoris et Contact avec formulaires ✅
+**Statut:** COMPLÉTÉ
+**Date:** 23 février 2026
+
+**Checklist:**
+- [x] MyRecipes.razor créé (page des favoris avec filtres et tri)
+- [x] Contact.razor créé (formulaire contact public)
+- [x] ContactForm.razor créé (composant réutilisable)
+- [x] Lien Contact ajouté à la navbar
+- [x] Lien Mes Favoris corrigé (favorites → my-recipes)
+- [x] Frontend compile sans erreurs
+- [x] Pages testées et fonctionnelles
+
+**Pages créées:**
+```
+✅ /my-recipes - Page des favoris [Authorize]
+   - Filtres par catégorie
+   - Tri par nom/catégorie
+   - Pagination automatique via RecipeGrid
+   - Message si aucun favori
+
+✅ /contact - Page de contact (public)
+   - Deux modes: anonyme et connecté
+   - Email pré-rempli si connecté
+   - Sujet avec dropdown
+   - Message avec validation
+   - Checkbox newsletter (connecté)
+```
+
+**Composants créés:**
+```
+✅ ContactForm.razor - Formulaire réutilisable
+   - Gestion état utilisateur
+   - Messages de succès/erreur
+   - Validation complète
+```
+
+**Navigation mise à jour:**
+```
+✅ Navbar: Accueil, Mes Favoris, Liste de courses, Nous contacter
+✅ Routage: /my-recipes, /contact
+```
+
+### Sprint 10: Finalisation UI ⏳
 **Statut:** À FAIRE
 
 ---
 
 ## 🔄 PHASE 2: FRONTEND BLAZOR (Sprints 6-10)
 
-**Statut:** 60% complétée (3/5 sprints)
-**Complétude:** 60%
+**Statut:** 80% complétée (4/5 sprints)
+**Complétude:** 80%
 
 - ✅ Sprint 6: Frontend Setup ✅
 - ✅ Sprint 7: Frontend Services ✅
 - ✅ Sprint 8: Pages d'accueil & Recherche ✅
-- ⏳ Sprint 9: Favoris & Détails (À FAIRE)
+- ✅ Sprint 9: Pages Favoris & Contact ✅
 - ⏳ Sprint 10: Finalisation UI (À FAIRE)
 
 ---
@@ -245,6 +288,43 @@ Sera commencée après la fin de la Phase 2 (Sprint 10)
 **Complétude:** 0%
 
 Sera commencée après la fin de la Phase 3 (Sprint 15)
+
+---
+
+## 📝 Résumé des changements Sprint 9
+
+### Sprint 9 - 23 février 2026
+```
+Fichiers modifiés: 1
+Fichiers créés: 3
+Commits: 2
+
+✅ menuMalin/Pages/MyRecipes.razor (NOUVEAU)
+   - Page protégée [Authorize]
+   - Affiche favoris avec filtres et tri
+   - Intègre RecipeGrid pour pagination
+   - Message si aucun favori
+
+✅ menuMalin/Pages/Contact.razor (NOUVEAU)
+   - Page publique (pas d'authentification)
+   - Deux modes: anonyme et connecté
+   - Email pré-rempli si connecté (Auth0)
+   - Sujet dropdown avec 5 options
+   - Message textarea avec validation
+   - Checkbox newsletter pour utilisateurs connectés
+   - Messages de succès/erreur
+   - Appels à IContactService
+
+✅ menuMalin/Components/Contact/ContactForm.razor (NOUVEAU)
+   - Composant réutilisable du formulaire
+   - Même fonctionnalités que Contact.razor
+   - Prêt pour réutilisation dans d'autres pages
+
+✅ menuMalin/Layouts/MainLayout.razor
+   - Ajout lien "Nous contacter" dans navbar
+   - Correction lien "Mes Favoris": favorites → my-recipes
+   - Navigation maintenant complète
+```
 
 ---
 
@@ -325,10 +405,10 @@ Commits: 2
 
 | Métrique | Valeur |
 |----------|--------|
-| Sprints complétés | 8/19 |
-| Pourcentage complétude | 42.1% |
+| Sprints complétés | 9/19 |
+| Pourcentage complétude | 47.4% |
 | Phase 1 complétude | 100% ✅ |
-| Phase 2 complétude | 60% 🔄 |
+| Phase 2 complétude | 80% 🔄 |
 | Dépendances NuGet | 10 packages |
 | Tables BD | 4 |
 | Contrôleurs Backend | 4 |
@@ -361,4 +441,4 @@ Commits: 2
 
 ---
 
-**Dernière mise à jour:** 23 février 2026 à 14:30
+**Dernière mise à jour:** 23 février 2026 à 18:45
