@@ -1,8 +1,8 @@
 # 📊 Progression du Projet menuMalin
 
 **Date de mise à jour:** 22 février 2026
-**Statut global:** Phase 2 en cours (6/19 sprints complétés)
-**Complétude:** 31.6% - Phase 1 ✅ + Sprint 6 ✅
+**Statut global:** Phase 2 en cours (7/19 sprints complétés)
+**Complétude:** 36.8% - Phase 1 ✅ + 2 sprints Phase 2 ✅
 
 ---
 
@@ -11,7 +11,7 @@
 | Phase | Statut | Sprints | Complétude |
 |-------|--------|---------|-----------|
 | **Phase 1: Backend Setup** | ✅ Complétée | 5/5 | 100% |
-| **Phase 2: Frontend Blazor** | 🔄 En cours | 1/5 | 20% |
+| **Phase 2: Frontend Blazor** | 🔄 En cours | 2/5 | 40% |
 | Phase 3: Tests | ⏳ À venir | 0/5 | 0% |
 | Phase 4: Finalisation | ⏳ À venir | 0/5 | 0% |
 
@@ -154,15 +154,23 @@ GET /api/auth/health                 - Test API
 ✅ ContactService - Envoi messages
 ```
 
-### Sprint 7: Frontend Services & HTTP Client ⏳
-**Statut:** À FAIRE
-**Priorité:** HAUTE
+### Sprint 7: Frontend Services & HTTP Client ✅
+**Statut:** COMPLÉTÉ
+**Date:** 22 février 2026
 
-À faire:
-- [ ] Créer IRecipeService et RecipeService (Frontend)
-- [ ] Créer IFavoriteService et FavoriteService (Frontend)
-- [ ] Enregistrer les services en DI
-- [ ] Tester la compilation
+**Checklist:**
+- [x] IRecipeServiceFrontend et RecipeServiceFrontend créés
+- [x] IFavoriteServiceFrontend et FavoriteServiceFrontend créés
+- [x] Services communiquent avec le backend
+- [x] Services enregistrés en DI
+- [x] Référence Shared ajoutée au frontend
+- [x] Frontend compile sans erreurs
+
+**Services Frontend supplémentaires:**
+```
+✅ RecipeServiceFrontend - Accès aux recettes du backend
+✅ FavoriteServiceFrontend - Gestion des favoris
+```
 
 ### Sprints 8-10: Pages & Composants ⏳
 **Statut:** À FAIRE
@@ -244,10 +252,10 @@ Commits: 1
 
 | Métrique | Valeur |
 |----------|--------|
-| Sprints complétés | 6/19 |
-| Pourcentage complétude | 31.6% |
+| Sprints complétés | 7/19 |
+| Pourcentage complétude | 36.8% |
 | Phase 1 complétude | 100% ✅ |
-| Phase 2 complétude | 20% 🔄 |
+| Phase 2 complétude | 40% 🔄 |
 | Dépendances NuGet | 10 packages |
 | Tables BD | 4 |
 | Contrôleurs Backend | 4 |
