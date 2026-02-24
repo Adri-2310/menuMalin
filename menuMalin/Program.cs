@@ -58,5 +58,6 @@ builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 builder.Services.AddScoped<IContactService, ContactService>();
 builder.Services.AddScoped<IRecipeServiceFrontend, RecipeServiceFrontend>();
 builder.Services.AddScoped<IFavoriteServiceFrontend, FavoriteServiceFrontend>();
+builder.Services.AddScoped<IUserRecipeService, UserRecipeService>();
 
 await builder.Build().RunAsync();
