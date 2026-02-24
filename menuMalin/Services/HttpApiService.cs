@@ -70,6 +70,36 @@ public class HttpApiService : IHttpApiService
         }
     }
 
+    public async Task<T?> PatchAsync<T>(string url, object? data = null)
+    {
+        try
+        {
+            HttpResponseMessage response;
+
+            if (data != null)
+            {
+                var content = JsonSerializer.Serialize(data);
+                var httpContent = new StringContent(content, System.Text.Encoding.UTF8, "application/json");
+                response = await _httpClient.PatchAsync(url, httpContent);
+            }
+            else
+            {
+                response = await _httpClient.PatchAsync(url, null);
+            }
+
+            if (!response.IsSuccessStatusCode)
+                return default;
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<T>(responseContent);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur PATCH {url}: {ex.Message}");
+            return default;
+        }
+    }
+
     public void SetAuthToken(string token)
     {
         _httpClient.DefaultRequestHeaders.Authorization =

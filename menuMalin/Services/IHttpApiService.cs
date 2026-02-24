@@ -21,6 +21,11 @@ public interface IHttpApiService
     Task<bool> DeleteAsync(string url);
 
     /// <summary>
+    /// Effectue une requête PATCH
+    /// </summary>
+    Task<T?> PatchAsync<T>(string url, object? data = null);
+
+    /// <summary>
     /// Définit le token JWT
     /// </summary>
     void SetAuthToken(string token);
