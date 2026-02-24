@@ -576,23 +576,70 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## Upcoming (Sprints 17-19)
+### [Unreleased] Sprint 17: Polish & Bug Fixes
+**Date:** 24 février 2026
 
-### Sprint 17: Polish & Bug Fixes
-**Planned Features:**
-- Manual testing all scenarios
-- UI/UX improvements
-- Responsive design verification
-- Performance optimization
+#### Fixed
+- **RecipeDetails.razor:**
+  - Bug spinner infini remplacé par message "Recette introuvable"
+  - Réflexion C# (`GetType().GetProperty()`) extracte vers `OnParametersSetAsync`
+  - PageTitle dynamique: affiche le nom de la recette dans l'onglet
+  - Parameter `string Id` changé en `string? Id`
+- **Contact.razor:**
+  - Email hardcodé `admin@recipehub.com` remplacé par `string.Empty`
+  - Formulaire plus flexible pour utilisateurs non-connectés
+- **RecipeCard.razor:**
+  - Null-check ajouté: `authState.User.Identity?.IsAuthenticated == true`
+  - Protection double-clic avec `isToggling` flag
+  - Try/catch ajouté dans `ToggleFavorite()`
+  - Attribut `onerror` sur image pour fallback
+- **MainLayout.razor:**
+  - Menu hamburger se ferme automatiquement après navigation
+  - Event `LocationChanged` abonné en `OnInitialized`
+  - `IAsyncDisposable` implémenté pour nettoyage
+- **MyRecipes.razor:**
+  - Extraction calculs du template: champs `filteredRecipes` + `categoryList`
+  - Méthodes `UpdateFilteredList()` + `UpdateCategories()`
+  - Erreur distincte si chargement favoris échoue
+  - Spinner et alerte d'erreur séparés
+- **RecipeModal.razor:**
+  - Réflexion C# extracte vers `OnParametersSet()`
+  - Champs `modalIngredients` + `instructionSteps` pré-calculés
+  - Instructions formattées en étapes
+- **Search.razor:**
+  - États d'erreur distincts: `searchError` vs `filterError`
+  - État initial: message "Prêt à explorer ?"
+  - Distinction: erreur réseau (rouge) vs résultats vides (jaune)
+  - Filter error pour dropdowns non chargés
+- **RecipeGrid.razor:**
+  - Pagination avec ellipsis (max 7 boutons)
+  - Compteur "Affichage X-Y sur Z résultats"
+  - Responsive: `row-cols-xl-4` pour 4 colonnes sur écrans ≥1200px
+  - Gestion grâce pages > 7
+- **index.html:**
+  - Messages Blazor localisés en français
+  - "An unhandled error has occurred." → "Une erreur non gérée s'est produite."
+  - "Reload" → "Recharger"
 
-### Sprint 18: Final Testing & Release Build
+#### Performance
+- Réflexion C# maintenant appelée une seule fois au lieu de chaque rendu
+- Calculs filtrage/tri maintenant en mémoire au lieu de template
+- Réduction rendus Blazor grâce extraction champs
+
+#### Compilation
+- ✅ 0 erreurs
+- ✅ 0 warnings liés au sprint
+
+---
+
+### Sprint 18: Final Testing & Release Build (À venir)
 **Planned Features:**
 - Full regression testing
 - Release mode build verification
 - Production configuration
 - Deployment documentation
 
-### Sprint 19: Final Release & Project Completion
+### Sprint 19: Final Release & Project Completion (À venir)
 **Planned Features:**
 - Final phase 4 items
 - Project completion
@@ -637,6 +684,6 @@ chore:   Maintenance
 ---
 
 **Dernière mise à jour:** 24 février 2026
-**Version Actuelle:** 1.0.0
+**Version Actuelle:** 1.0.0-beta (17/19 sprints)
 **Phase Actuelle:** Phase 4 (Finalisation)
-**Statut:** En cours (Sprints 16-19)
+**Statut:** En cours (Sprints 18-19 restants)

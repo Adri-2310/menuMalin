@@ -1,8 +1,8 @@
 # 📊 Progression du Projet menuMalin
 
 **Date de mise à jour:** 24 février 2026
-**Statut global:** Phase 3 complétée! (15/19 sprints complétés)
-**Complétude:** 78.9% - Phase 1 ✅ + Phase 2 ✅ + Phase 3 ✅
+**Statut global:** Phase 4 en cours (17/19 sprints complétés)
+**Complétude:** 89.5% - Phase 1 ✅ + Phase 2 ✅ + Phase 3 ✅ + Phase 4 (2/4)
 
 ---
 
@@ -13,7 +13,7 @@
 | **Phase 1: Backend Setup** | ✅ Complétée | 5/5 | 100% |
 | **Phase 2: Frontend Blazor** | ✅ Complétée | 5/5 | 100% |
 | **Phase 3: Tests** | ✅ Complétée | 5/5 | 100% |
-| Phase 4: Finalisation | ⏳ En cours | 0/4 | 0% |
+| Phase 4: Finalisation | ⏳ En cours | 2/4 | 50% |
 
 ---
 
@@ -328,10 +328,68 @@ GET /api/auth/health                 - Test API
 
 ## 🔄 PHASE 4: FINALISATION (Sprints 16-19)
 
-**Statut:** En cours (Prochaine)
-**Complétude:** 0%
+**Statut:** En cours (Sprint 17 complété)
+**Complétude:** 50% (2/4)
 
-À commencer après Phase 3 (Sprint 15)
+### Sprint 16: Documentation et XML comments ✅
+**Statut:** COMPLÉTÉ
+**Date:** 24 février 2026
+
+**Checklist:**
+- [x] Documentation centralisée créée (README.md, ARCHITECTURE.md, etc.)
+- [x] XML comments ajoutés aux services
+- [x] Contributing guide complet
+- [x] API documentation
+- [x] Testing report généré (41 tests)
+- [x] Code comments et méthode documentation
+
+---
+
+### Sprint 17: Polish & Bug Fixes ✅
+**Statut:** COMPLÉTÉ
+**Date:** 24 février 2026
+
+**Problèmes corrigés (9 changements):**
+1. RecipeDetails.razor
+   - [x] Bug spinner infini si recette introuvable → message "Recette introuvable"
+   - [x] Performance: réflexion C# extracte vers OnParametersSetAsync
+   - [x] PageTitle dynamique (onglet affiche le nom de la recette)
+   - [x] string Id → string? Id
+
+2. Contact.razor
+   - [x] Email hardcodé `admin@recipehub.com` → `string.Empty`
+
+3. RecipeCard.razor
+   - [x] Null-check: `authState.User.Identity.IsAuthenticated` → `authState.User.Identity?.IsAuthenticated == true`
+   - [x] Protection double-clic: bouton désactivé pendant le traitement
+   - [x] Try/catch ajouté dans ToggleFavorite
+   - [x] onerror sur image pour fallback
+
+4. MainLayout.razor
+   - [x] Menu hamburger qui reste ouvert → se ferme automatiquement après navigation
+
+5. MyRecipes.razor
+   - [x] Performance: extraction calculs du template en champs (filteredRecipes, categoryList)
+   - [x] Erreur distincte si chargement échoue
+
+6. RecipeModal.razor
+   - [x] Performance: réflexion extracte vers OnParametersSet
+
+7. Search.razor
+   - [x] États d'erreur distincts (searchError vs filterError)
+   - [x] État initial avec message "Prêt à explorer ?"
+   - [x] Distinction erreur réseau vs résultats vides
+
+8. RecipeGrid.razor
+   - [x] Pagination avec ellipsis (max 7 boutons: 1, ..., p-1, p, p+1, ..., N)
+   - [x] Compteur "Affichage X-Y sur Z résultats"
+   - [x] row-cols-xl-4 pour 4 colonnes sur très grands écrans
+
+9. index.html
+   - [x] Messages Blazor localisés en français
+   - [x] "An unhandled error has occurred." → "Une erreur non gérée s'est produite."
+
+**Compilation:** ✅ 0 erreurs, 0 warnings liés au sprint
 
 ---
 
@@ -449,18 +507,22 @@ Commits: 2
 
 | Métrique | Valeur |
 |----------|--------|
-| Sprints complétés | 10/19 |
-| Pourcentage complétude | 52.6% |
+| Sprints complétés | 17/19 |
+| Pourcentage complétude | 89.5% |
 | Phase 1 complétude | 100% ✅ |
 | Phase 2 complétude | 100% ✅ |
-| Phase 3 complétude | 0% ⏳ |
+| Phase 3 complétude | 100% ✅ |
+| Phase 4 complétude | 50% ⏳ |
 | Dépendances NuGet | 10 packages |
 | Tables BD | 4 |
 | Contrôleurs Backend | 4 |
 | Services Backend | 4 |
 | Services Frontend | 4 |
 | Endpoints API | 13 |
-| Tests | 0 |
+| Tests | 41 (100% pass rate) |
+| Pages Razorenres | 8 |
+| Composants Blazor | 7 |
+| Fichiers Documentation | 7 |
 
 ---
 
@@ -486,7 +548,7 @@ Commits: 2
 
 ---
 
-**Dernière mise à jour:** 23 février 2026 à 19:15
+**Dernière mise à jour:** 24 février 2026 à 23:45
 
 ---
 
