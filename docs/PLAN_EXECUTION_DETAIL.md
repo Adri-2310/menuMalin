@@ -1920,7 +1920,7 @@ PATCH  /api/user-recipes/{id}/visibility [Authorize] Toggle public/privé
 | 1 | Créer DTOs Shared | ✅ | UserRecipeDto, CreateUserRecipeRequest |
 | 2 | Créer Entity UserRecipe | ✅ | Avec FK vers User.Auth0Id |
 | 3 | Modifier ApplicationDbContext.cs | ✅ | DbSet + config EF |
-| 4 | Migrations EF | 🔄 | Migration créée, update en attente |
+| 4 | Migrations EF | ✅ | Commit: d2a84a7 - Table UserRecipes créée |
 | 5 | Repository IUserRecipeRepository | ✅ | Commit: 06952e9 |
 | 6 | Service IUserRecipeService (backend) | ⏳ | À implémenter |
 | 7 | Controller UserRecipesController | ⏳ | À implémenter |
