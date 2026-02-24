@@ -1,0 +1,267 @@
+@page "/create-recipe"
+@using Microsoft.AspNetCore.Components.Authorization
+@using menuMalin.Services
+@using menuMalin.Shared.Models.Requests
+@attribute [Authorize]
+@inject IUserRecipeService UserRecipeService
+@inject NavigationManager Nav
+
+<PageTitle>MenuMalin - Créer une Recette</PageTitle>
+
+<div class="container mt-4 mb-5 animate-fade-in">
+    @* Bouton Retour *@
+    <button class="btn btn-link text-dark text-decoration-none mb-4 ps-0" @onclick="GoBack">
+        <i class="bi bi-arrow-left me-2"></i>Retour à mes recettes
+    </button>
+
+    @* Titre Section *@
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold mb-2">🍳 Créer une Recette</h1>
+        <p class="text-muted lead">Partagez votre création avec la communauté</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            @if (isSubmitting)
+            {
+                <div class="text-center py-5">
+                    <div class="spinner-border text-success"></div>
+                    <p class="mt-2 text-muted">Création de la recette en cours...</p>
+                </div>
+            }
+            else
+            {
+                <form @onsubmit="HandleSubmit" class="card border-0 shadow-sm rounded-4 p-5">
+                    @* Message de succès *@
+                    @if (showSuccess)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show rounded-4" role="alert">
+                            <i class="bi bi-check-circle me-2"></i>
+                            <strong>Succès !</strong> Votre recette a été créée avec succès.
+                            <button type="button" class="btn-close" @onclick="() => showSuccess = false"></button>
+                        </div>
+                    }
+
+                    @* Message d'erreur *@
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show rounded-4" role="alert">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <strong>Erreur !</strong> @errorMessage
+                            <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+                        </div>
+                    }
+
+                    @* Titre (requis) *@
+                    <div class="mb-4">
+                        <label for="title" class="form-label fw-bold">Titre <span class="text-danger">*</span></label>
+                        <input
+                            type="text"
+                            class="form-control form-control-lg shadow-sm rounded-3"
+                            id="title"
+                            placeholder="Nom de votre recette"
+                            @bind="model.Title"
+                            required />
+                        <small class="text-muted">Ex: Coq au vin, Tarte aux pommes, etc.</small>
+                    </div>
+
+                    @* Catégorie *@
+                    <div class="mb-4">
+                        <label for="category" class="form-label fw-bold">Catégorie</label>
+                        <input
+                            type="text"
+                            class="form-control form-control-lg shadow-sm rounded-3"
+                            id="category"
+                            placeholder="Ex: Plat principal, Dessert, Entrée"
+                            @bind="model.Category" />
+                    </div>
+
+                    @* Cuisine/Area *@
+                    <div class="mb-4">
+                        <label for="area" class="form-label fw-bold">Cuisine / Région</label>
+                        <input
+                            type="text"
+                            class="form-control form-control-lg shadow-sm rounded-3"
+                            id="area"
+                            placeholder="Ex: Française, Italienne, Asiatique"
+                            @bind="model.Area" />
+                    </div>
+
+                    @* Instructions (requis) *@
+                    <div class="mb-4">
+                        <label for="instructions" class="form-label fw-bold">Instructions <span class="text-danger">*</span></label>
+                        <textarea
+                            class="form-control shadow-sm rounded-3"
+                            id="instructions"
+                            rows="6"
+                            placeholder="Décrivez les étapes de préparation..."
+                            @bind="model.Instructions"
+                            required></textarea>
+                        <small class="text-muted">Détaillez chaque étape pour que la recette soit facile à suivre</small>
+                    </div>
+
+                    @* Image URL *@
+                    <div class="mb-4">
+                        <label for="imageUrl" class="form-label fw-bold">URL de l'image</label>
+                        <input
+                            type="url"
+                            class="form-control form-control-lg shadow-sm rounded-3"
+                            id="imageUrl"
+                            placeholder="https://example.com/image.jpg"
+                            @bind="model.ImageUrl" />
+                        @if (!string.IsNullOrEmpty(model.ImageUrl))
+                        {
+                            <small class="d-block mt-2 text-muted">
+                                <i class="bi bi-image me-1"></i>Aperçu : <img src="@model.ImageUrl" alt="Aperçu" style="max-height: 100px; margin-top: 8px;" />
+                            </small>
+                        }
+                    </div>
+
+                    @* Ingrédients dynamiques *@
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Ingrédients</label>
+                        <div class="card border-light bg-light rounded-3 p-3">
+                            @if (model.Ingredients == null || model.Ingredients.Count == 0)
+                            {
+                                <p class="text-muted mb-3"><i class="bi bi-info-circle me-2"></i>Aucun ingrédient ajouté. Cliquez sur "Ajouter" pour commencer.</p>
+                            }
+                            else
+                            {
+                                @foreach (var (ingredient, index) in model.Ingredients.Select((item, i) => (item, i)))
+                                {
+                                    <div class="input-group mb-2">
+                                        <input
+                                            type="text"
+                                            class="form-control shadow-sm rounded-start-3"
+                                            placeholder="Ex: 200g farine"
+                                            @bind="model.Ingredients[index]" />
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-danger rounded-end-3"
+                                            @onclick="() => RemoveIngredient(index)"
+                                            title="Supprimer cet ingrédient">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </div>
+                                }
+                            }
+                            <button
+                                type="button"
+                                class="btn btn-outline-success btn-sm rounded-pill mt-2"
+                                @onclick="AddIngredient">
+                                <i class="bi bi-plus-circle me-1"></i>Ajouter un ingrédient
+                            </button>
+                        </div>
+                    </div>
+
+                    @* Toggle Public/Privé *@
+                    <div class="mb-5">
+                        <div class="form-check form-switch">
+                            <input
+                                class="form-check-input"
+                                type="checkbox"
+                                id="isPublic"
+                                @bind="model.IsPublic" />
+                            <label class="form-check-label fw-bold" for="isPublic">
+                                <i class="bi bi-globe me-2"></i>Rendre ma recette publique (visible à tous)
+                            </label>
+                        </div>
+                        <small class="text-muted d-block mt-2">
+                            @if (model.IsPublic)
+                            {
+                                <span><i class="bi bi-check-circle text-success me-1"></i><strong>Public :</strong> Votre recette sera visible partout</span>
+                            }
+                            else
+                            {
+                                <span><i class="bi bi-lock text-secondary me-1"></i><strong>Privé :</strong> Vous seul pouvez la voir</span>
+                            }
+                        </small>
+                    </div>
+
+                    @* Buttons *@
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-outline-secondary btn-lg rounded-pill" @onclick="GoBack">
+                            <i class="bi bi-x-circle me-2"></i>Annuler
+                        </button>
+                        <button type="submit" class="btn btn-success btn-lg rounded-pill fw-bold shadow-sm">
+                            <i class="bi bi-plus-circle me-2"></i>Créer la recette
+                        </button>
+                    </div>
+                </form>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private CreateUserRecipeRequest model = new();
+    private bool isSubmitting = false;
+    private bool showSuccess = false;
+    private string? errorMessage;
+
+    private void AddIngredient()
+    {
+        model.Ingredients.Add("");
+    }
+
+    private void RemoveIngredient(int index)
+    {
+        if (index >= 0 && index < model.Ingredients.Count)
+        {
+            model.Ingredients.RemoveAt(index);
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            // Validation basique
+            if (string.IsNullOrWhiteSpace(model.Title))
+            {
+                errorMessage = "Le titre est requis";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(model.Instructions))
+            {
+                errorMessage = "Les instructions sont requises";
+                return;
+            }
+
+            // Filtrer les ingrédients vides
+            model.Ingredients = model.Ingredients.Where(i => !string.IsNullOrWhiteSpace(i)).ToList();
+
+            isSubmitting = true;
+            errorMessage = null;
+
+            var result = await UserRecipeService.CreateAsync(model);
+
+            if (result != null)
+            {
+                showSuccess = true;
+                // Réinitialiser le formulaire
+                model = new CreateUserRecipeRequest();
+
+                // Redirection après 2 secondes
+                await Task.Delay(2000);
+                Nav.NavigateTo("/my-created-recipes");
+            }
+            else
+            {
+                errorMessage = "Erreur lors de la création de la recette. Veuillez réessayer.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur: {ex.Message}";
+            Console.WriteLine($"Erreur lors de la création: {ex}");
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void GoBack() => Nav.NavigateTo("/my-created-recipes");
+}
