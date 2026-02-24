@@ -1867,14 +1867,6 @@ Inclure: Cleanup, Documentation, Presentation materials
 
 ---
 
-## VOUS ÊTES PRÊT! 🚀
-
-Suivez ce plan étape par étape, et vous aurez un projet professionnel prêt à présenter.
-
-**Bonne chance!**
-
----
-
 # 🚀 EXTENSIONS POST-1.0.0
 
 ## Sprint 20 : User Recipes (Créer ses propres recettes)
