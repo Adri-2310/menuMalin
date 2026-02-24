@@ -14,14 +14,20 @@ public class ContactController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
 
+    /// <summary>
+    /// Initialise une nouvelle instance de ContactController
+    /// </summary>
+    /// <param name="context">Le contexte de base de données</param>
     public ContactController(ApplicationDbContext context)
     {
         _context = context;
     }
 
     /// <summary>
-    /// Envoie un message de contact
+    /// Envoie un message de contact (endpoint public)
     /// </summary>
+    /// <param name="request">Contient l'email, le sujet et le message à envoyer</param>
+    /// <returns>Objet JSON avec l'ID du message et un message de confirmation</returns>
     [HttpPost]
     public async Task<IActionResult> SendMessage([FromBody] SendMessageRequest request)
     {

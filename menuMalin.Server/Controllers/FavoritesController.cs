@@ -15,6 +15,10 @@ public class FavoritesController : ControllerBase
 {
     private readonly IFavoriteService _favoriteService;
 
+    /// <summary>
+    /// Initialise une nouvelle instance de FavoritesController
+    /// </summary>
+    /// <param name="favoriteService">Le service de gestion des favoris</param>
     public FavoritesController(IFavoriteService favoriteService)
     {
         _favoriteService = favoriteService;
@@ -23,6 +27,7 @@ public class FavoritesController : ControllerBase
     /// <summary>
     /// Récupère tous les favoris de l'utilisateur connecté
     /// </summary>
+    /// <returns>Liste complète des favoris de l'utilisateur</returns>
     [HttpGet]
     public async Task<IActionResult> GetUserFavorites()
     {
@@ -35,8 +40,10 @@ public class FavoritesController : ControllerBase
     }
 
     /// <summary>
-    /// Ajoute un favori
+    /// Ajoute une recette aux favoris de l'utilisateur connecté
     /// </summary>
+    /// <param name="request">Contient l'ID de la recette à ajouter</param>
+    /// <returns>La recette ajoutée aux favoris</returns>
     [HttpPost]
     public async Task<IActionResult> AddFavorite([FromBody] AddFavoriteRequest request)
     {
@@ -52,8 +59,10 @@ public class FavoritesController : ControllerBase
     }
 
     /// <summary>
-    /// Supprime un favori
+    /// Supprime une recette des favoris de l'utilisateur connecté
     /// </summary>
+    /// <param name="recipeId">L'ID de la recette à supprimer</param>
+    /// <returns>Message de confirmation de suppression</returns>
     [HttpDelete("{recipeId}")]
     public async Task<IActionResult> RemoveFavorite(string recipeId)
     {
@@ -69,8 +78,10 @@ public class FavoritesController : ControllerBase
     }
 
     /// <summary>
-    /// Vérifie si une recette est favorite
+    /// Vérifie si une recette figure dans les favoris de l'utilisateur connecté
     /// </summary>
+    /// <param name="recipeId">L'ID de la recette à vérifier</param>
+    /// <returns>Objet JSON contenant le booléen 'isFavorite'</returns>
     [HttpGet("{recipeId}/exists")]
     public async Task<IActionResult> IsFavorite(string recipeId)
     {

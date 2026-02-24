@@ -13,6 +13,11 @@ public class RecipesController : ControllerBase
     private readonly ITheMealDBService _mealDbService;
     private readonly IRecipeService _recipeService;
 
+    /// <summary>
+    /// Initialise une nouvelle instance de RecipesController
+    /// </summary>
+    /// <param name="mealDbService">Le service TheMealDB pour les données externes</param>
+    /// <param name="recipeService">Le service de gestion des recettes</param>
     public RecipesController(ITheMealDBService mealDbService, IRecipeService recipeService)
     {
         _mealDbService = mealDbService;
@@ -22,6 +27,7 @@ public class RecipesController : ControllerBase
     /// <summary>
     /// Récupère 6 recettes aléatoires
     /// </summary>
+    /// <returns>Liste de 6 recettes aléatoires</returns>
     [HttpGet("random")]
     public async Task<IActionResult> GetRandomRecipes()
     {
@@ -44,6 +50,8 @@ public class RecipesController : ControllerBase
     /// <summary>
     /// Recherche des recettes par nom
     /// </summary>
+    /// <param name="query">Le terme de recherche</param>
+    /// <returns>Liste des recettes correspondant au terme de recherche</returns>
     [HttpGet("search")]
     public async Task<IActionResult> SearchRecipes([FromQuery] string query)
     {
@@ -63,8 +71,10 @@ public class RecipesController : ControllerBase
     }
 
     /// <summary>
-    /// Récupère les détails d'une recette
+    /// Récupère les détails complets d'une recette
     /// </summary>
+    /// <param name="mealId">L'ID TheMealDB de la recette</param>
+    /// <returns>Les détails complets de la recette</returns>
     [HttpGet("{mealId}")]
     public async Task<IActionResult> GetRecipeDetails(string mealId)
     {
@@ -80,8 +90,9 @@ public class RecipesController : ControllerBase
     }
 
     /// <summary>
-    /// Récupère toutes les catégories
+    /// Récupère la liste de toutes les catégories disponibles
     /// </summary>
+    /// <returns>Liste des noms de catégories</returns>
     [HttpGet("categories/list")]
     public async Task<IActionResult> GetCategories()
     {
@@ -90,8 +101,9 @@ public class RecipesController : ControllerBase
     }
 
     /// <summary>
-    /// Récupère toutes les zones/cuisines
+    /// Récupère la liste de toutes les zones/cuisines disponibles
     /// </summary>
+    /// <returns>Liste des noms de zones/cuisines</returns>
     [HttpGet("areas/list")]
     public async Task<IActionResult> GetAreas()
     {
@@ -102,6 +114,8 @@ public class RecipesController : ControllerBase
     /// <summary>
     /// Filtre les recettes par catégorie
     /// </summary>
+    /// <param name="category">Le nom de la catégorie pour le filtrage</param>
+    /// <returns>Liste des recettes de la catégorie spécifiée</returns>
     [HttpGet("filter/category")]
     public async Task<IActionResult> FilterByCategory([FromQuery] string category)
     {
@@ -123,6 +137,8 @@ public class RecipesController : ControllerBase
     /// <summary>
     /// Filtre les recettes par zone/cuisine
     /// </summary>
+    /// <param name="area">Le nom de la zone/cuisine pour le filtrage</param>
+    /// <returns>Liste des recettes de la zone/cuisine spécifiée</returns>
     [HttpGet("filter/area")]
     public async Task<IActionResult> FilterByArea([FromQuery] string area)
     {
