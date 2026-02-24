@@ -552,6 +552,72 @@ Commits: 2
 
 ---
 
+### Sprint 18: Final Testing & Release Build ⏳
+**Statut:** À commencer
+**Date:** 24 février 2026
+
+**Checklist:**
+- [ ] Tests de régression complets
+- [ ] Build mode Release vérifié
+- [ ] Configuration production finalisée
+- [ ] Documentation déploiement créée
+- [ ] Tous les endpoints testés
+- [ ] Performance benchmarking
+
+---
+
+### Sprint 19: Final Release & Project Completion ⏳
+**Statut:** À commencer (après Sprint 18)
+**Date:** TBD
+
+**Checklist:**
+- [ ] Derniers ajustements Phase 4
+- [ ] Finalisation complète
+- [ ] Release 1.0.0 créée
+- [ ] Projet marqué COMPLÉTÉ
+
+---
+
+## 🚀 PHASE 5: NEW FEATURES (Sprints 20-21) ⏳
+
+### Sprint 20: User Recipes (Créer ses propres recettes) ⏳
+**Statut:** Planifié
+**Priorité:** HAUTE
+
+**Features:**
+- [ ] Table UserRecipes créée (BD)
+- [ ] RecipeController: POST endpoint créer recette
+- [ ] Page CreateRecipe.razor
+- [ ] Formulaire: titre, catégorie, ingrédients, instructions
+- [ ] Toggle "Rendre public" (visibility flag)
+- [ ] Page MyRecipesCreated.razor - Mes recettes créées
+- [ ] Intégration Search pour afficher recettes publiques
+- [ ] Tests complets
+
+**Components à créer:**
+- RecipeForm.razor (formulaire création)
+- MyRecipesCreated.razor (liste créées)
+
+---
+
+### Sprint 21: Dark/Light Mode Toggle ⏳
+**Statut:** Planifié
+**Priorité:** MOYENNE
+
+**Features:**
+- [ ] Bouton toggle dans navbar (MainLayout)
+- [ ] ThemeService amélioré (dark/light)
+- [ ] CSS dark mode complètes
+- [ ] Sauvegarde localStorage
+- [ ] Transition smooth entre thèmes
+- [ ] Tests BUnit
+
+**Components à modifier:**
+- MainLayout.razor (ajout bouton toggle)
+- app.css (dark mode styles)
+
+---
+
 ## 🎉 PHASE 2 COMPLÉTÉE!
 
 La totalité du frontend Blazor est maintenant fonctionnelle:

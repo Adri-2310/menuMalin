@@ -632,18 +632,131 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-### Sprint 18: Final Testing & Release Build (À venir)
-**Planned Features:**
-- Full regression testing
-- Release mode build verification
-- Production configuration
-- Deployment documentation
+### [Unreleased] Sprint 18: Final Testing & Release Build
+**Date:** 24 février 2026 (À commencer)
 
-### Sprint 19: Final Release & Project Completion (À venir)
-**Planned Features:**
-- Final phase 4 items
-- Project completion
-- Release 1.0.0 finalization
+#### Testing
+- Full regression testing de tous les endpoints
+- Tests manuels des scénarios critiques
+- Vérification build mode Release
+- Performance benchmarking
+
+#### Configuration
+- appsettings.production.json créé
+- CORS configuration pour production
+- Database connection strings sécurisées
+- Environment variables documentation
+
+#### Documentation
+- Deployment guide créé
+- Production setup instructions
+- Troubleshooting guide
+- Monitoring recommendations
+
+---
+
+### [Unreleased] Sprint 19: Final Release & Project Completion
+**Date:** TBD (Après Sprint 18)
+
+#### Release
+- Version 1.0.0 finalisée
+- Release notes créés
+- Final bug fixes
+- Project completion checklist
+
+---
+
+## Phase 5: New Features (Sprints 20-21)
+
+### [Planned] Sprint 20: User Recipes (Créer ses propres recettes)
+**Date:** TBD
+
+#### Features
+- **Database:**
+  - Table `UserRecipes` créée
+  - Fields: RecipeId, UserId, Title, Category, Ingredients, Instructions, IsPublic, CreatedAt
+  - Foreign keys vers Users
+
+- **Backend:**
+  - `UserRecipe` Entity créée
+  - `UserRecipeService` + interface implémentés
+  - `UserRecipeRepository` créé
+  - Endpoints:
+    - `POST /api/user-recipes` [Authorize] - Créer recette
+    - `GET /api/user-recipes` [Authorize] - Mes recettes
+    - `GET /api/user-recipes/public` - Recettes publiques
+    - `PUT /api/user-recipes/{id}` [Authorize] - Modifier
+    - `DELETE /api/user-recipes/{id}` [Authorize] - Supprimer
+
+- **Frontend:**
+  - Page `CreateRecipe.razor` [Authorize]
+    - Formulaire complet (titre, catégorie, ingrédients, instructions)
+    - Toggle "Rendre public"
+    - Validation côté client
+    - Messages succès/erreur
+
+  - Page `MyRecipesCreated.razor` [Authorize]
+    - Affiche ses propres recettes créées
+    - Boutons Edit/Delete
+    - Toggle visibility
+
+  - Page `Search.razor` modifiée
+    - Affiche aussi les recettes publiques créées par utilisateurs
+    - Filtre "Type: Official/Community"
+
+  - Component `RecipeForm.razor`
+    - Formulaire réutilisable
+    - Édition et création
+
+- **Testing:**
+  - 12+ tests unitaires
+  - Integration tests
+  - Edge cases (recettes vides, très longues, etc.)
+
+---
+
+### [Planned] Sprint 21: Dark/Light Mode Toggle
+**Date:** TBD
+
+#### Features
+- **Frontend:**
+  - Bouton toggle dans `MainLayout.razor`
+    - 🌙 / ☀️ icons
+    - Position navbar (top-right)
+
+  - `ThemeService` amélioré
+    - getCurrentTheme()
+    - toggleTheme()
+    - getThemeColors()
+
+  - CSS dark mode
+    - Variables CSS pour tous les composants
+    - Smooth transitions (0.3s)
+    - Préservation de la lisibilité
+
+  - localStorage persistence
+    - Sauvegarde choix utilisateur
+    - Chargement au démarrage
+    - Synchronisation entre onglets
+
+- **Styling:**
+  - Dark theme complet:
+    - Backgrounds sombres (#1a1a1a, #2d2d2d)
+    - Texte clair (#f0f0f0)
+    - Accents maintenus (green #2d6a4f)
+    - Cards, modals, inputs adaptés
+
+  - Light theme (existant):
+    - Vérifié et maintenu
+    - Contraste suffisant (WCAG AA)
+
+- **Testing:**
+  - BUnit tests (toggle functionality)
+  - localStorage persistence tests
+  - Visibility/readability tests
+  - Cross-browser compatibility
+
+---
 
 ---
 
@@ -685,5 +798,5 @@ chore:   Maintenance
 
 **Dernière mise à jour:** 24 février 2026 à 12:40 CET (Belgique)
 **Version Actuelle:** 1.0.0-beta (17/19 sprints)
-**Phase Actuelle:** Phase 4 (Finalisation)
-**Statut:** En cours (Sprints 18-19 restants)
+**Phase Actuelle:** Phase 4 (Finalisation) + Phase 5 (New Features en planning)
+**Statut:** Sprint 18 à commencer | Phase 5 planifiée (Sprints 20-21)
