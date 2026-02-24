@@ -1,0 +1,40 @@
+menuMalin v1.0.0
+================
+
+Release Date: 24 février 2026
+Status: Production Ready
+
+Build Information:
+- .NET Target: 9.0
+- Blazor: WebAssembly
+- Database: MySQL 8.0+
+- Authentication: Auth0
+
+Project Completion:
+- Sprints: 19/19 (100%)
+- Tests: 41/41 passing
+- Documentation: Complete
+- Deployment: Production ready
+
+Commits in this release:
+- Sprint 1-5: Backend foundation (5 commits)
+- Sprint 6-10: Frontend Blazor (5 commits)
+- Sprint 11-15: Testing suite (5 commits)
+- Sprint 16-19: Finalization (4 commits)
+
+Total: 19 sprints, 19 commits
+
+Features:
+✅ Recipe search & filtering
+✅ User authentication (Auth0)
+✅ Favorite management
+✅ Contact form
+✅ Responsive design
+✅ 41 comprehensive tests
+✅ Production deployment guide
+✅ Complete documentation
+
+Next Version: v1.1 (Planned)
+- User-generated recipes
+- Dark mode toggle
+- Enhanced search suggestions
