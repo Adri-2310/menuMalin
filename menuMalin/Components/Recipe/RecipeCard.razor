@@ -8,7 +8,8 @@
 <div class="card h-100 border-0 shadow-sm recipe-card transition-all">
     @* Image de la recette *@
     <div class="position-relative overflow-hidden rounded-4">
-        <img src="@Recipe.StrMealThumb" class="card-img-top hover-zoom" alt="@Recipe.StrMeal">
+        <img src="@Recipe.StrMealThumb" class="card-img-top hover-zoom" alt="@Recipe.StrMeal"
+             onerror="this.src='images/placeholder.png'">
         
         <div class="category-badge">
             <span class="badge rounded-pill bg-success-blur px-3 py-2">
@@ -26,7 +27,7 @@
             </a>
 
             @* BOUTON COEUR ACTIF *@
-            <button class="btn btn-favorite rounded-circle shadow-sm" @onclick="ToggleFavorite">
+            <button class="btn btn-favorite rounded-circle shadow-sm" @onclick="ToggleFavorite" disabled="@isToggling">
                 @if (isFavorite)
                 {
                     <i class="bi bi-heart-fill text-danger animate-pop"></i>
@@ -41,10 +42,11 @@
 </div>
 
 @code {
-    [Parameter] 
+    [Parameter]
     public Recipe Recipe { get; set; } = new();
 
     private bool isFavorite = false;
+    private bool isToggling = false;
 
     // Au chargement du composant, on vérifie si c'est déjà un favori
     protected override async Task OnInitializedAsync()
@@ -57,25 +59,38 @@
 
     private async Task ToggleFavorite()
     {
-        // Optionnel : Forcer la connexion pour mettre en favori
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        if (!authState.User.Identity.IsAuthenticated)
+        try
         {
-            Nav.NavigateTo("authentication/login");
-            return;
-        }
+            isToggling = true;
 
-        if (isFavorite)
-        {
-            // On retire
-            await FavoriteService.RemoveFavoriteAsync(Recipe.IdMeal);
-            isFavorite = false;
+            // Optionnel : Forcer la connexion pour mettre en favori
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            if (authState.User.Identity?.IsAuthenticated != true)
+            {
+                Nav.NavigateTo("authentication/login");
+                return;
+            }
+
+            if (isFavorite)
+            {
+                // On retire
+                await FavoriteService.RemoveFavoriteAsync(Recipe.IdMeal);
+                isFavorite = false;
+            }
+            else
+            {
+                // On ajoute
+                await FavoriteService.AddFavoriteAsync(Recipe);
+                isFavorite = true;
+            }
         }
-        else
+        catch (Exception ex)
         {
-            // On ajoute
-            await FavoriteService.AddFavoriteAsync(Recipe);
-            isFavorite = true;
+            Console.WriteLine($"Erreur lors du toggle favori: {ex.Message}");
+        }
+        finally
+        {
+            isToggling = false;
         }
     }
 }

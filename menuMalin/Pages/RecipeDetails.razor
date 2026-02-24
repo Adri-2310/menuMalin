@@ -5,15 +5,25 @@
 @inject IFavoriteService FavoriteService
 @inject NavigationManager Nav
 
+<PageTitle>@(recipe?.StrMeal ?? "Recette") - menuMalin</PageTitle>
+
 <div class="container mt-4 mb-5 animate-fade-in">
-    @if (recipe == null)
+    @if (recipe == null && !recipeNotFound)
     {
         <div class="text-center py-5">
             <div class="spinner-border text-success"></div>
             <p class="mt-2 text-muted">Récupération de la recette...</p>
         </div>
     }
-    else
+    else if (recipeNotFound)
+    {
+        <div class="text-center py-5">
+            <h2 class="text-danger">❌ Recette introuvable</h2>
+            <p class="text-muted mb-4">La recette que vous recherchez n'existe pas ou a été supprimée.</p>
+            <button class="btn btn-success" @onclick="GoBack">Retour aux recettes</button>
+        </div>
+    }
+    else if (recipe != null)
     {
         @* Bouton Retour *@
         <button class="btn btn-link text-dark text-decoration-none mb-4 ps-0" @onclick="GoBack">
@@ -38,7 +48,7 @@
                     <div class="card border-0 bg-light rounded-4 p-3">
                         <h5 class="fw-bold mb-3 text-success"><i class="bi bi-cart-check me-2"></i>Ingrédients</h5>
                         <ul class="list-group list-group-flush bg-transparent">
-                            @foreach (var ing in GetIngredientsList())
+                            @foreach (var ing in parsedIngredients)
                             {
                                 <li class="list-group-item bg-transparent border-0 px-0 py-1 d-flex justify-content-between">
                                     <span class="text-dark">@ing.Name</span>
@@ -64,20 +74,15 @@
                 <h4 class="fw-bold mb-4 text-success">
                     <i class="bi bi-journal-text me-2"></i>Instructions de préparation
                 </h4>
-                
-                @* On sépare les étapes par les points pour un affichage plus propre *@
-                @{
-                    var steps = recipe.StrInstructions?.Split(new[] { ". ", "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
-                }
 
-                @if (steps != null)
+                @if (instructionSteps.Count > 0)
                 {
                     <div class="instruction-list">
-                        @for (int i = 0; i < steps.Length; i++)
+                        @for (int i = 0; i < instructionSteps.Count; i++)
                         {
                             <div class="d-flex mb-4">
                                 <div class="step-number me-3 text-success fw-bold fs-4">@(i + 1)</div>
-                                <div class="step-text pt-1 border-bottom pb-3 w-100">@steps[i]</div>
+                                <div class="step-text pt-1 border-bottom pb-3 w-100">@instructionSteps[i]</div>
                             </div>
                         }
                     </div>
@@ -88,50 +93,77 @@
 </div>
 
 @code {
-    [Parameter] public string Id { get; set; }
+    [Parameter] public string? Id { get; set; }
     private Recipe? recipe;
     private bool isFavorite = false;
+    private bool recipeNotFound = false;
+    private List<(string Name, string Measure)> parsedIngredients = new();
+    private List<string> instructionSteps = new();
 
     protected override async Task OnParametersSetAsync()
     {
-        recipe = await RecipeService.GetRecipeByIdAsync(Id);
-        if (recipe != null)
+        recipeNotFound = false;
+        parsedIngredients.Clear();
+        instructionSteps.Clear();
+
+        if (string.IsNullOrEmpty(Id))
         {
-            isFavorite = await FavoriteService.IsFavoriteAsync(recipe.IdMeal);
+            recipeNotFound = true;
+            return;
         }
+
+        recipe = await RecipeService.GetRecipeByIdAsync(Id);
+
+        if (recipe == null)
+        {
+            recipeNotFound = true;
+            return;
+        }
+
+        // Parser les ingrédients
+        ParseIngredients();
+
+        // Parser les instructions
+        ParseInstructions();
+
+        isFavorite = await FavoriteService.IsFavoriteAsync(recipe.IdMeal);
     }
 
-    private async Task ToggleFavorite()
+    private void ParseIngredients()
     {
         if (recipe == null) return;
-        
-        if (isFavorite)
-            await FavoriteService.RemoveFavoriteAsync(recipe.IdMeal);
-        else
-            await FavoriteService.AddFavoriteAsync(recipe);
-            
-        isFavorite = !isFavorite;
-    }
-
-    private void GoBack() => Nav.NavigateTo("/");
-
-    // MÉTHODE MALINE : Extrait les ingrédients dynamiquement
-    private List<(string Name, string Measure)> GetIngredientsList()
-    {
-        var list = new List<(string Name, string Measure)>();
-        if (recipe == null) return list;
 
         for (int i = 1; i <= 20; i++)
         {
-            // On utilise la "Réflexion" ou plus simple ici, on récupère les propriétés par leur nom
             var ingredient = recipe.GetType().GetProperty($"StrIngredient{i}")?.GetValue(recipe) as string;
             var measure = recipe.GetType().GetProperty($"StrMeasure{i}")?.GetValue(recipe) as string;
 
             if (!string.IsNullOrWhiteSpace(ingredient))
             {
-                list.Add((ingredient, measure ?? ""));
+                parsedIngredients.Add((ingredient, measure ?? ""));
             }
         }
-        return list;
     }
+
+    private void ParseInstructions()
+    {
+        if (recipe == null || string.IsNullOrEmpty(recipe.StrInstructions)) return;
+
+        var steps = recipe.StrInstructions.Split(new[] { ". ", "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+        instructionSteps = steps.ToList();
+    }
+
+    private async Task ToggleFavorite()
+    {
+        if (recipe == null) return;
+
+        if (isFavorite)
+            await FavoriteService.RemoveFavoriteAsync(recipe.IdMeal);
+        else
+            await FavoriteService.AddFavoriteAsync(recipe);
+
+        isFavorite = !isFavorite;
+    }
+
+    private void GoBack() => Nav.NavigateTo("/");
 }

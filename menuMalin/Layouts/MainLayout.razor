@@ -1,6 +1,8 @@
 ﻿@inherits LayoutComponentBase
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using System
 @inject NavigationManager Navigation
+@implements IAsyncDisposable
 
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm border-bottom">
     <div class="container">
@@ -78,6 +80,16 @@
     private bool collapseNavMenu = true;
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 
+    protected override void OnInitialized()
+    {
+        Navigation.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        collapseNavMenu = true;
+    }
+
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
@@ -86,8 +98,14 @@
     // MÉTHODE POUR DÉLOGUER PROPREMENT
     private void BeginLogOut()
     {
-        // Cette commande demande à Auth0 de déconnecter l'utilisateur 
+        // Cette commande demande à Auth0 de déconnecter l'utilisateur
         // puis de le renvoyer vers l'URL 'logout-callback' configurée.
         Navigation.NavigateToLogout("authentication/logout");
+    }
+
+    ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+        return ValueTask.CompletedTask;
     }
 }

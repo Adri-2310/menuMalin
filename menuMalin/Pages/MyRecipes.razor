@@ -29,6 +29,14 @@
             <p class="mt-2 text-muted">Chargement de vos favoris...</p>
         </div>
     }
+    else if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible fade show rounded-4" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong>Erreur !</strong> @errorMessage
+            <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+        </div>
+    }
     else if (favorites == null || !favorites.Any())
     {
         <div class="alert alert-info text-center rounded-4 py-5" role="alert">
@@ -46,9 +54,9 @@
         <div class="row mb-4 g-3">
             <div class="col-md-6">
                 <label class="form-label fw-bold">Filtrer par catégorie</label>
-                <select class="form-select shadow-sm rounded-pill" @bind="selectedCategory">
+                <select class="form-select shadow-sm rounded-pill" @bind="selectedCategory" @bind:after="UpdateFilteredList">
                     <option value="">-- Toutes les catégories --</option>
-                    @foreach (var cat in GetCategories())
+                    @foreach (var cat in categoryList)
                     {
                         <option value="@cat">@cat</option>
                     }
@@ -56,7 +64,7 @@
             </div>
             <div class="col-md-6">
                 <label class="form-label fw-bold">Trier par</label>
-                <select class="form-select shadow-sm rounded-pill" @bind="sortOrder">
+                <select class="form-select shadow-sm rounded-pill" @bind="sortOrder" @bind:after="UpdateFilteredList">
                     <option value="name-asc">Nom (A→Z)</option>
                     <option value="name-desc">Nom (Z→A)</option>
                     <option value="category">Catégorie</option>
@@ -65,7 +73,7 @@
         </div>
 
         @* AFFICHAGE GRILLE *@
-        <RecipeGrid Recipes="GetFilteredAndSortedRecipes()" />
+        <RecipeGrid Recipes="filteredRecipes" />
 
         @* BOUTON RÉINITIALISER *@
         <div class="text-center mt-4">
@@ -78,9 +86,12 @@
 
 @code {
     private List<Recipe>? favorites;
+    private List<Recipe> filteredRecipes = new();
+    private List<string> categoryList = new();
     private string selectedCategory = "";
     private string sortOrder = "name-asc";
     private bool isLoading = false;
+    private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -92,12 +103,20 @@
         try
         {
             isLoading = true;
+            errorMessage = null;
             favorites = await FavoriteService.GetFavoritesAsync();
+
+            if (favorites != null && favorites.Any())
+            {
+                UpdateCategories();
+                UpdateFilteredList();
+            }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Erreur lors du chargement des favoris: {ex.Message}");
-            favorites = new List<Recipe>();
+            errorMessage = "Impossible de charger vos favoris. Veuillez réessayer.";
+            favorites = null;
         }
         finally
         {
@@ -105,10 +124,15 @@
         }
     }
 
-    private List<string> GetCategories()
+    private void UpdateCategories()
     {
-        if (favorites == null) return new List<string>();
-        return favorites
+        if (favorites == null)
+        {
+            categoryList = new List<string>();
+            return;
+        }
+
+        categoryList = favorites
             .Select(r => r.StrCategory)
             .Where(c => !string.IsNullOrEmpty(c))
             .Distinct()
@@ -116,9 +140,13 @@
             .ToList();
     }
 
-    private List<Recipe> GetFilteredAndSortedRecipes()
+    private void UpdateFilteredList()
     {
-        if (favorites == null) return new List<Recipe>();
+        if (favorites == null)
+        {
+            filteredRecipes = new List<Recipe>();
+            return;
+        }
 
         var filtered = favorites.AsEnumerable();
 
@@ -137,13 +165,14 @@
             _ => filtered.OrderBy(r => r.StrMeal)
         };
 
-        return filtered.ToList();
+        filteredRecipes = filtered.ToList();
     }
 
     private void ResetFilters()
     {
         selectedCategory = "";
         sortOrder = "name-asc";
+        UpdateFilteredList();
     }
 
     private void GoBack() => Nav.NavigateTo("/");

@@ -36,7 +36,7 @@
                         <i class="bi bi-cart-check me-2"></i>Ingrédients
                     </h6>
                     <ul class="list-group list-group-flush mb-4">
-                        @foreach (var ing in GetIngredientsList())
+                        @foreach (var ing in modalIngredients)
                         {
                             <li class="list-group-item bg-transparent border-0 d-flex justify-content-between py-1">
                                 <span>@ing.Name</span>
@@ -49,7 +49,12 @@
                     <h6 class="fw-bold mb-3 text-success">
                         <i class="bi bi-journal-text me-2"></i>Instructions
                     </h6>
-                    <p class="text-muted lh-lg">@Recipe.StrInstructions</p>
+                    <div class="instruction-steps text-muted lh-lg">
+                        @foreach (var step in instructionSteps)
+                        {
+                            <p>@step</p>
+                        }
+                    </div>
                 </div>
 
                 @* Modal Footer *@
@@ -78,6 +83,15 @@
 
     public bool IsOpen { get; set; } = false;
 
+    private List<(string Name, string Measure)> modalIngredients = new();
+    private List<string> instructionSteps = new();
+
+    protected override void OnParametersSet()
+    {
+        ParseIngredients();
+        ParseInstructions();
+    }
+
     public async Task Open()
     {
         IsOpen = true;
@@ -91,10 +105,10 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private List<(string Name, string Measure)> GetIngredientsList()
+    private void ParseIngredients()
     {
-        var list = new List<(string Name, string Measure)>();
-        if (Recipe == null) return list;
+        modalIngredients.Clear();
+        if (Recipe == null) return;
 
         for (int i = 1; i <= 20; i++)
         {
@@ -103,9 +117,17 @@
 
             if (!string.IsNullOrWhiteSpace(ingredient))
             {
-                list.Add((ingredient, measure ?? ""));
+                modalIngredients.Add((ingredient, measure ?? ""));
             }
         }
-        return list;
+    }
+
+    private void ParseInstructions()
+    {
+        instructionSteps.Clear();
+        if (Recipe == null || string.IsNullOrEmpty(Recipe.StrInstructions)) return;
+
+        var steps = Recipe.StrInstructions.Split(new[] { ". ", "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+        instructionSteps = steps.ToList();
     }
 }
