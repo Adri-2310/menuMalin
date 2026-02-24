@@ -17,6 +17,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<User> Users { get; set; } = null!;
     public DbSet<Recipe> Recipes { get; set; } = null!;
     public DbSet<Favorite> Favorites { get; set; } = null!;
+    public DbSet<UserRecipe> UserRecipes { get; set; } = null!;
     public DbSet<ContactMessage> ContactMessages { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -86,6 +87,30 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(e => new { e.UserId, e.RecipeId }).IsUnique();
             entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => e.RecipeId);
+        });
+
+        // Configuration UserRecipe
+        modelBuilder.Entity<UserRecipe>(entity =>
+        {
+            entity.HasKey(e => e.UserRecipeId);
+            entity.Property(e => e.UserRecipeId).HasColumnType("varchar(36)");
+            entity.Property(e => e.UserId).HasColumnType("varchar(36)").IsRequired();
+            entity.Property(e => e.Title).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.IngredientsJson).HasColumnType("varchar(2000)");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(6)")
+                .ValueGeneratedOnAddOrUpdate();
+
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.IsPublic);
+
+            // Relations
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .HasPrincipalKey(u => u.Auth0Id)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // Configuration ContactMessage

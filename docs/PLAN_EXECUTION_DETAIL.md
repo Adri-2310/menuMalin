@@ -1873,3 +1873,254 @@ Suivez ce plan étape par étape, et vous aurez un projet professionnel prêt à
 
 **Bonne chance!**
 
+---
+
+# 🚀 EXTENSIONS POST-1.0.0
+
+## Sprint 20 : User Recipes (Créer ses propres recettes)
+
+**Objectif** : Permettre aux utilisateurs authentifiés de créer et partager leurs propres recettes
+
+**État** : 🔄 En cours (Tâche 4/16)
+
+### Résumé du Sprint
+
+Ajout de la fonctionnalité **User Recipes** permettant :
+- ✅ Créer des recettes personnalisées (titre, instructions, ingrédients, etc.)
+- ✅ Toggle public/privé pour partager avec la communauté
+- ✅ Voir ses propres recettes créées
+- ✅ Supprimer ses recettes (propriétaire seulement)
+- ✅ Découvrir les recettes de la communauté dans Search
+
+### Architecture
+
+**Pattern maintenu** :
+- Entity → Repository → Service → Controller (backend)
+- IHttpApiService → ServiceFrontend → Page (frontend)
+
+**Nouvelles entités** :
+- `UserRecipe` : Entité stockant les recettes utilisateur
+- `UserRecipeDto` : DTO pour les transferts
+- `CreateUserRecipeRequest` : DTO pour la création
+
+### Endpoints API
+
+```
+POST   /api/user-recipes              [Authorize]  Créer une recette
+GET    /api/user-recipes/my           [Authorize]  Mes recettes créées
+GET    /api/user-recipes/public       [Authorize]  Toutes les recettes publiques
+DELETE /api/user-recipes/{id}         [Authorize]  Supprimer (propriétaire seulement)
+PATCH  /api/user-recipes/{id}/visibility [Authorize] Toggle public/privé
+```
+
+### Tâches et Progress
+
+| Tâche # | Description | Statut | Notes |
+|---------|-------------|--------|-------|
+| 1 | Créer DTOs Shared | ✅ | UserRecipeDto, CreateUserRecipeRequest |
+| 2 | Créer Entity UserRecipe | ✅ | Avec FK vers User.Auth0Id |
+| 3 | Modifier ApplicationDbContext.cs | ✅ | DbSet + config EF |
+| 4 | Migrations EF | 🔄 | Migration créée, update en attente |
+| 5 | Repository IUserRecipeRepository | ✅ | Commit: 06952e9 |
+| 6 | Service IUserRecipeService (backend) | ⏳ | À implémenter |
+| 7 | Controller UserRecipesController | ⏳ | À implémenter |
+| 8 | DI Program.cs (backend) | ⏳ | À enregistrer |
+| 9 | Service IUserRecipeService (frontend) | ⏳ | HTTP client |
+| 10 | DI Program.cs (frontend) | ⏳ | À enregistrer |
+| 11 | Page CreateRecipe.razor | ⏳ | Formulaire création |
+| 12 | Page MyCreatedRecipes.razor | ⏳ | Liste et gestion |
+| 13 | Modifier MainLayout.razor | ⏳ | Ajouter liens nav |
+| 14 | Modifier Search.razor | ⏳ | Section communauté |
+| 15 | Vérification et tests manuels | ⏳ | 6 scénarios |
+| 16 | Commit Sprint 20 | ⏳ | Message: "Sprint 20 : User Recipes..." |
+
+### Détails des fichiers complétés
+
+#### ✅ Tâche 1 : DTOs Shared
+
+**`menuMalin.Shared/Models/Dtos/UserRecipeDto.cs`**
+```csharp
+public class UserRecipeDto
+{
+    public string UserRecipeId { get; set; } = string.Empty;
+    public string UserId { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public string? Category { get; set; }
+    public string? Area { get; set; }
+    public string Instructions { get; set; } = string.Empty;
+    public string? ImageUrl { get; set; }
+    public List<string> Ingredients { get; set; } = new();
+    public bool IsPublic { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+```
+
+**`menuMalin.Shared/Models/Requests/CreateUserRecipeRequest.cs`**
+```csharp
+public class CreateUserRecipeRequest
+{
+    public string Title { get; set; } = string.Empty;
+    public string? Category { get; set; }
+    public string? Area { get; set; }
+    public string Instructions { get; set; } = string.Empty;
+    public string? ImageUrl { get; set; }
+    public List<string> Ingredients { get; set; } = new();
+    public bool IsPublic { get; set; } = false;
+}
+```
+
+#### ✅ Tâche 2 : Entity UserRecipe
+
+**`menuMalin.Server/Models/Entities/UserRecipe.cs`**
+- PK : UserRecipeId (UUID varchar(36))
+- FK : UserId → User.Auth0Id (cascade delete)
+- Champs : Title*, Instructions*, Category?, Area?, ImageUrl?, IngredientsJson (JSON)
+- Métadonnées : IsPublic (bool), CreatedAt, UpdatedAt
+
+#### ✅ Tâche 3 : DbContext
+
+**Modifications à ApplicationDbContext.cs** :
+1. Ajout `DbSet<UserRecipe> UserRecipes`
+2. Configuration EF dans OnModelCreating :
+   - Clé primaire et types de colonnes
+   - Indexes sur UserId et IsPublic
+   - Relation HasOne(User) avec FK sur Auth0Id
+
+---
+
+### Tâches restantes à compléter
+
+#### ⏳ Tâche 4-8 : Backend (Repository, Service, Controller)
+
+**À faire** :
+1. `IUserRecipeRepository.cs` avec méthodes CRUD
+2. `UserRecipeRepository.cs` avec logique EF
+3. `IUserRecipeService.cs` + `UserRecipeService.cs`
+4. `UserRecipesController.cs` avec les 5 endpoints
+5. Enregistrement DI dans `Program.cs`
+
+**Référence pattern** : Calqué sur FavoriteRepository/FavoriteService
+
+#### ⏳ Tâche 9-10 : Frontend HTTP Service
+
+**À faire** :
+1. `menuMalin/Services/IUserRecipeService.cs` (HTTP client)
+2. `menuMalin/Services/UserRecipeService.cs`
+3. Enregistrement DI dans `Program.cs`
+
+**Appels HTTP** :
+- POST `/api/user-recipes`
+- GET `/api/user-recipes/my`
+- GET `/api/user-recipes/public`
+- DELETE `/api/user-recipes/{id}`
+- PATCH `/api/user-recipes/{id}/visibility`
+
+#### ⏳ Tâche 11-14 : Pages Frontend
+
+**CreateRecipe.razor** :
+- Route: `/create-recipe`
+- `@attribute [Authorize]`
+- Formulaire : titre*, catégorie, cuisine, instructions*, image URL
+- Ingrédients dynamiques (liste avec +/× buttons)
+- Toggle Bootstrap : "Rendre ma recette publique"
+- Submit → POST `/api/user-recipes` → redirect `/my-created-recipes`
+
+**MyCreatedRecipes.razor** :
+- Route: `/my-created-recipes`
+- `@attribute [Authorize]`
+- GET `/api/user-recipes/my`
+- Affiche : titre, catégorie, badge "Public 🌍" / "Privé 🔒"
+- Boutons : toggle visibilité, supprimer
+- Message si aucune recette
+
+**MainLayout.razor** (modifications) :
+- Ajouter dans `<Authorized>` :
+  ```razor
+  <NavLink href="my-created-recipes">Mes Recettes</NavLink>
+  <NavLink href="create-recipe">Créer une Recette</NavLink>
+  ```
+
+**Search.razor** (ajout en bas) :
+- Section "Recettes de la communauté"
+- GET `/api/user-recipes/public`
+- Filtre côté frontend par searchTerm
+- Affichage en grille (RecipeCard-like)
+
+#### ⏳ Tâche 15 : Tests manuels
+
+**6 scénarios à valider** :
+
+1. **Create Recipe**
+   - [ ] Formulaire visible et accessible
+   - [ ] Validation des champs requis
+   - [ ] Soumission crée une recette
+   - [ ] Redirection vers `/my-created-recipes`
+
+2. **My Created Recipes**
+   - [ ] Liste les recettes créées
+   - [ ] Badge "Public/Privé" correct
+   - [ ] Bouton toggle change le badge
+   - [ ] Bouton supprimer fonctionne
+
+3. **Visibility Toggle**
+   - [ ] Recette privée n'apparaît pas en public
+   - [ ] Recette publique apparaît dans Search
+   - [ ] Toggle change l'état
+
+4. **Community Search**
+   - [ ] Section "Communauté" dans Search
+   - [ ] Affiche recettes publiques
+   - [ ] Filtre par searchTerm fonctionne
+
+5. **Authorization**
+   - [ ] Non-propriétaire ne peut pas supprimer (403)
+   - [ ] Non-propriétaire ne peut pas modifier visibilité (403)
+   - [ ] Pages protégées par `[Authorize]`
+
+6. **Navigation**
+   - [ ] Liens visibles quand authentifié
+   - [ ] Liens cachés quand anonyme
+
+#### ⏳ Tâche 16 : Commit final
+
+```bash
+git add .
+git commit -m "Sprint 20 : User Recipes - Création et partage de recettes personnalisées"
+```
+
+---
+
+### Commandes clés
+
+```bash
+# Migration EF
+dotnet ef migrations add AddUserRecipes --project menuMalin.Server
+
+# Appliquer migration
+dotnet ef database update --project menuMalin.Server
+
+# Build verification
+dotnet build menuMalin.Server
+dotnet build menuMalin
+
+# Tests
+dotnet test
+
+# Run projects
+dotnet run --project menuMalin.Server
+dotnet run --project menuMalin
+```
+
+---
+
+### Important à retenir
+
+⚠️ **UserId** fonctionne avec `User.Auth0Id` (pas UUID)
+⚠️ **Ingrédients** stockés en JSON dans `IngredientsJson`, sérialisés/désérialisés au niveau du service
+⚠️ **Visibilité** contrôlée par le booléen `IsPublic`
+⚠️ **Autorisation** : Vérifier que seul le propriétaire peut modifier/supprimer
+
+---
+
+**Dernière mise à jour** : 2026-02-24 | Tâche 4 en progress
+
