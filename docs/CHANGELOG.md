@@ -683,7 +683,7 @@ chore:   Maintenance
 
 ---
 
-**Dernière mise à jour:** 24 février 2026
+**Dernière mise à jour:** 24 février 2026 à 12:40 CET (Belgique)
 **Version Actuelle:** 1.0.0-beta (17/19 sprints)
 **Phase Actuelle:** Phase 4 (Finalisation)
 **Statut:** En cours (Sprints 18-19 restants)

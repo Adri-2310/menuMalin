@@ -548,7 +548,7 @@ Commits: 2
 
 ---
 
-**Dernière mise à jour:** 24 février 2026 à 23:45
+**Dernière mise à jour:** 24 février 2026 à 12:40 CET (Belgique)
 
 ---
 
