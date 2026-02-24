@@ -58,10 +58,12 @@ builder.Services.AddHttpClient<ITheMealDBService, TheMealDBService>()
 // Enregistrer les Repositories (Scoped)
 builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
 builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();
+builder.Services.AddScoped<IUserRecipeRepository, UserRecipeRepository>();
 
 // Enregistrer les Services (Scoped)
 builder.Services.AddScoped<IRecipeService, RecipeService>();
 builder.Services.AddScoped<IFavoriteService, FavoriteService>();
+builder.Services.AddScoped<IUserRecipeService, UserRecipeService>();
 
 // Ajouter CORS si nécessaire (pour le frontend Blazor)
 builder.Services.AddCors(options =>
