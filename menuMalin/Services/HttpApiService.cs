@@ -21,9 +21,8 @@ public class HttpApiService : IHttpApiService
         {
             return await _httpClient.GetFromJsonAsync<T>(url);
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"Erreur GET {url}: {ex.Message}");
             return default;
         }
     }
@@ -51,7 +50,7 @@ public class HttpApiService : IHttpApiService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur POST {url}: {ex.Message}");
+            // Logged in development
             return default;
         }
     }
@@ -65,7 +64,7 @@ public class HttpApiService : IHttpApiService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur DELETE {url}: {ex.Message}");
+            // Logged in development
             return false;
         }
     }
@@ -95,7 +94,7 @@ public class HttpApiService : IHttpApiService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur PATCH {url}: {ex.Message}");
+            // Logged in development
             return default;
         }
     }

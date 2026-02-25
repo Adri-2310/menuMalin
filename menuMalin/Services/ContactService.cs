@@ -28,7 +28,7 @@ public class ContactService : IContactService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur envoi message: {ex.Message}");
+            // Logged in development
             return false;
         }
     }

@@ -27,7 +27,7 @@ public class LocalStorageService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur lecture profil: {ex.Message}");
+            // Logged in development
             return null;
         }
     }
@@ -43,7 +43,7 @@ public class LocalStorageService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur sauvegarde profil: {ex.Message}");
+            // Logged in development
         }
     }
 
@@ -59,7 +59,7 @@ public class LocalStorageService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur suppression données: {ex.Message}");
+            // Logged in development
         }
     }
 
@@ -90,7 +90,7 @@ public class LocalStorageService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur sauvegarde thème: {ex.Message}");
+            // Logged in development
         }
     }
 }

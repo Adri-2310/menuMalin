@@ -6,7 +6,8 @@ using menuMalin.Server.Services;
 namespace menuMalin.Server.Controllers;
 
 /// <summary>
-/// Contrôleur pour les favoris
+/// Contrôleur pour les favoris (protégé par Auth0)
+/// Toutes les routes nécessitent une authentification JWT valide
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -14,14 +15,17 @@ namespace menuMalin.Server.Controllers;
 public class FavoritesController : ControllerBase
 {
     private readonly IFavoriteService _favoriteService;
+    private readonly ILogger<FavoritesController> _logger;
 
     /// <summary>
     /// Initialise une nouvelle instance de FavoritesController
     /// </summary>
     /// <param name="favoriteService">Le service de gestion des favoris</param>
-    public FavoritesController(IFavoriteService favoriteService)
+    /// <param name="logger">Service de logging</param>
+    public FavoritesController(IFavoriteService favoriteService, ILogger<FavoritesController> logger)
     {
         _favoriteService = favoriteService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -31,12 +35,25 @@ public class FavoritesController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetUserFavorites()
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = GetUserIdFromClaims();
         if (string.IsNullOrEmpty(userId))
+        {
+            _logger.LogWarning("Impossible d'extraire l'ID utilisateur des claims JWT");
             return Unauthorized();
+        }
 
-        var favorites = await _favoriteService.GetUserFavoritesAsync(userId);
-        return Ok(favorites);
+        _logger.LogInformation("Récupération des favoris pour l'utilisateur: {UserId}", userId);
+
+        try
+        {
+            var favorites = await _favoriteService.GetUserFavoritesAsync(userId);
+            return Ok(favorites);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la récupération des favoris pour {UserId}", userId);
+            return StatusCode(500, "Internal server error");
+        }
     }
 
     /// <summary>
@@ -47,15 +64,33 @@ public class FavoritesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> AddFavorite([FromBody] AddFavoriteRequest request)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = GetUserIdFromClaims();
         if (string.IsNullOrEmpty(userId))
+        {
+            _logger.LogWarning("Impossible d'extraire l'ID utilisateur pour ajouter un favori");
             return Unauthorized();
+        }
 
         if (string.IsNullOrWhiteSpace(request.RecipeId))
             return BadRequest("L'ID de la recette est requis");
 
-        var recipe = await _favoriteService.AddFavoriteAsync(userId, request.RecipeId);
-        return Ok(recipe);
+        _logger.LogInformation("Ajout du favori {RecipeId} pour l'utilisateur {UserId}", request.RecipeId, userId);
+
+        try
+        {
+            var recipe = await _favoriteService.AddFavoriteAsync(userId, request.RecipeId);
+            return Ok(recipe);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Erreur lors de l'ajout du favori");
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur serveur lors de l'ajout du favori");
+            return StatusCode(500, "Internal server error");
+        }
     }
 
     /// <summary>
@@ -66,15 +101,28 @@ public class FavoritesController : ControllerBase
     [HttpDelete("{recipeId}")]
     public async Task<IActionResult> RemoveFavorite(string recipeId)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = GetUserIdFromClaims();
         if (string.IsNullOrEmpty(userId))
+        {
+            _logger.LogWarning("Impossible d'extraire l'ID utilisateur pour supprimer un favori");
             return Unauthorized();
+        }
 
-        var result = await _favoriteService.RemoveFavoriteAsync(userId, recipeId);
-        if (!result)
-            return NotFound();
+        _logger.LogInformation("Suppression du favori {RecipeId} pour l'utilisateur {UserId}", recipeId, userId);
 
-        return Ok(new { message = "Favori supprimé avec succès" });
+        try
+        {
+            var result = await _favoriteService.RemoveFavoriteAsync(userId, recipeId);
+            if (!result)
+                return NotFound();
+
+            return Ok(new { message = "Favori supprimé avec succès" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la suppression du favori");
+            return StatusCode(500, "Internal server error");
+        }
     }
 
     /// <summary>
@@ -85,12 +133,44 @@ public class FavoritesController : ControllerBase
     [HttpGet("{recipeId}/exists")]
     public async Task<IActionResult> IsFavorite(string recipeId)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = GetUserIdFromClaims();
         if (string.IsNullOrEmpty(userId))
+        {
+            _logger.LogWarning("Impossible d'extraire l'ID utilisateur pour vérifier un favori");
             return Unauthorized();
+        }
 
-        var isFavorite = await _favoriteService.IsFavoriteAsync(userId, recipeId);
-        return Ok(new { isFavorite });
+        try
+        {
+            var isFavorite = await _favoriteService.IsFavoriteAsync(userId, recipeId);
+            return Ok(new { isFavorite });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la vérification du favori");
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
+    /// Extrait l'ID utilisateur des claims JWT
+    /// </summary>
+    /// <returns>L'ID utilisateur (sub claim d'Auth0) ou null si absent</returns>
+    private string? GetUserIdFromClaims()
+    {
+        // Auth0 utilise "sub" comme claim principal pour l'ID utilisateur
+        // Essayer plusieurs sources possibles pour la compatibilité
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
+                     User.FindFirst("sub")?.Value ??
+                     User.FindFirst("user_id")?.Value;
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            var availableClaims = string.Join(", ", User.Claims.Select(c => c.Type));
+            _logger.LogWarning("Aucun claim d'ID utilisateur trouvé. Claims disponibles: {Claims}", availableClaims);
+        }
+
+        return userId;
     }
 }
 

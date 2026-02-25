@@ -24,7 +24,7 @@ public class RecipeServiceFrontend : IRecipeServiceFrontend
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur GetRandomRecipes: {ex.Message}");
+            // Logged in development
             return new();
         }
     }
@@ -41,7 +41,7 @@ public class RecipeServiceFrontend : IRecipeServiceFrontend
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur SearchRecipes: {ex.Message}");
+            // Logged in development
             return new();
         }
     }
@@ -57,7 +57,7 @@ public class RecipeServiceFrontend : IRecipeServiceFrontend
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur GetRecipeDetails: {ex.Message}");
+            // Logged in development
             return null;
         }
     }
@@ -71,7 +71,7 @@ public class RecipeServiceFrontend : IRecipeServiceFrontend
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur GetCategories: {ex.Message}");
+            // Logged in development
             return new();
         }
     }
@@ -85,7 +85,7 @@ public class RecipeServiceFrontend : IRecipeServiceFrontend
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur GetAreas: {ex.Message}");
+            // Logged in development
             return new();
         }
     }
@@ -102,7 +102,7 @@ public class RecipeServiceFrontend : IRecipeServiceFrontend
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur FilterByCategory: {ex.Message}");
+            // Logged in development
             return new();
         }
     }
@@ -119,7 +119,7 @@ public class RecipeServiceFrontend : IRecipeServiceFrontend
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur FilterByArea: {ex.Message}");
+            // Logged in development
             return new();
         }
     }

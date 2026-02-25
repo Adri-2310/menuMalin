@@ -1,4 +1,4 @@
-# 🍳 RecipeHub - Application de Recettes
+# 🍳 MenuMalin - Application de Recettes
 
 ![Status](https://img.shields.io/badge/Status-Development-blue)
 ![C#](https://img.shields.io/badge/C%23-9-blue)
@@ -27,7 +27,7 @@
 
 ## 🎯 À propos
 
-**RecipeHub** est une application web moderne qui permet aux utilisateurs de:
+**MenuMalin** est une application web moderne qui permet aux utilisateurs de:
 - 🔍 Découvrir des recettes aléatoires gratuitement
 - ❤️ Créer et gérer leurs favoris personnels (authentification requise)
 - 🔎 Rechercher par nom, catégorie ou cuisine

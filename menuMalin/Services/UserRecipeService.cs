@@ -9,7 +9,7 @@ namespace menuMalin.Services;
 public class UserRecipeService : IUserRecipeService
 {
     private readonly IHttpApiService _httpApiService;
-    private const string BaseUrl = "user-recipes";
+    private const string BaseUrl = "userrecipes";
 
     /// <summary>
     /// Initialise une nouvelle instance de UserRecipeService
@@ -36,9 +36,8 @@ public class UserRecipeService : IUserRecipeService
             var result = await _httpApiService.PostAsync<UserRecipeDto>(BaseUrl, request);
             return result;
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"Erreur CreateRecipe: {ex.Message}");
             return null;
         }
     }
@@ -50,9 +49,8 @@ public class UserRecipeService : IUserRecipeService
             var recipes = await _httpApiService.GetAsync<List<UserRecipeDto>>($"{BaseUrl}/my");
             return recipes ?? new();
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"Erreur GetMyRecipes: {ex.Message}");
             return new();
         }
     }
@@ -66,7 +64,7 @@ public class UserRecipeService : IUserRecipeService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur GetPublicRecipes: {ex.Message}");
+            // Error handled silently
             return new();
         }
     }
@@ -83,7 +81,7 @@ public class UserRecipeService : IUserRecipeService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur GetById: {ex.Message}");
+            // Error handled silently
             return null;
         }
     }
@@ -99,7 +97,7 @@ public class UserRecipeService : IUserRecipeService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur DeleteRecipe: {ex.Message}");
+            // Error handled silently
             return false;
         }
     }
@@ -117,7 +115,7 @@ public class UserRecipeService : IUserRecipeService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur UpdateVisibility: {ex.Message}");
+            // Error handled silently
             return false;
         }
     }

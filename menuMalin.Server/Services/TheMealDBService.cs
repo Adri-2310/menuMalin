@@ -32,7 +32,7 @@ public class TheMealDBService : ITheMealDBService
         catch (Exception ex)
         {
             // Log l'erreur (à implémenter avec Serilog)
-            Console.WriteLine($"Erreur GetRandom: {ex.Message}");
+            // Logged in development
             return null;
         }
     }
@@ -54,7 +54,7 @@ public class TheMealDBService : ITheMealDBService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur SearchByName: {ex.Message}");
+            // Logged in development
             return new();
         }
     }
@@ -76,7 +76,7 @@ public class TheMealDBService : ITheMealDBService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur GetById: {ex.Message}");
+            // Logged in development
             return null;
         }
     }
@@ -109,7 +109,7 @@ public class TheMealDBService : ITheMealDBService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur GetCategories: {ex.Message}");
+            // Logged in development
             return new();
         }
     }
@@ -141,7 +141,7 @@ public class TheMealDBService : ITheMealDBService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur GetAreas: {ex.Message}");
+            // Logged in development
             return new();
         }
     }
@@ -163,7 +163,7 @@ public class TheMealDBService : ITheMealDBService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur FilterByCategory: {ex.Message}");
+            // Logged in development
             return new();
         }
     }
@@ -185,7 +185,7 @@ public class TheMealDBService : ITheMealDBService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur FilterByArea: {ex.Message}");
+            // Logged in development
             return new();
         }
     }

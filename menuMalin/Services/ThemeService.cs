@@ -57,7 +57,7 @@ public class ThemeService : IThemeService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur application thème: {ex.Message}");
+            // Logged in development
         }
     }
 

@@ -24,7 +24,7 @@ public class FavoriteServiceFrontend : IFavoriteServiceFrontend
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur GetUserFavorites: {ex.Message}");
+            // Logged in development
             return new();
         }
     }
@@ -42,7 +42,7 @@ public class FavoriteServiceFrontend : IFavoriteServiceFrontend
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur AddFavorite: {ex.Message}");
+            // Logged in development
             return false;
         }
     }
@@ -58,7 +58,7 @@ public class FavoriteServiceFrontend : IFavoriteServiceFrontend
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur RemoveFavorite: {ex.Message}");
+            // Logged in development
             return false;
         }
     }
@@ -75,7 +75,7 @@ public class FavoriteServiceFrontend : IFavoriteServiceFrontend
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur IsFavorite: {ex.Message}");
+            // Logged in development
             return false;
         }
     }

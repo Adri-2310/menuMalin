@@ -9,27 +9,7 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 // ========================================
-// Configuration HTTP Clients
-// ========================================
-
-// 1. Client HTTP de base
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
-
-// 2. Client HTTP pour l'API Backend (menuMalin.Server)
-builder.Services.AddHttpClient<IHttpApiService, HttpApiService>(client =>
-{
-    client.BaseAddress = new Uri("http://localhost:5266/api/");
-    client.Timeout = TimeSpan.FromSeconds(30);
-});
-
-// 3. Client HTTP pour l'API TheMealDB
-builder.Services.AddHttpClient<IRecipeService, RecipeService>(client =>
-{
-    client.BaseAddress = new Uri("https://www.themealdb.com/api/json/v1/1/");
-});
-
-// ========================================
-// Configuration Auth0 (OIDC)
+// Configuration Auth0 (OIDC) - À FAIRE EN PREMIER
 // ========================================
 
 builder.Services.AddOidcAuthentication(options =>
@@ -38,6 +18,29 @@ builder.Services.AddOidcAuthentication(options =>
     options.ProviderOptions.ResponseType = "code";
     options.ProviderOptions.DefaultScopes.Add("profile");
     options.ProviderOptions.DefaultScopes.Add("email");
+    options.ProviderOptions.DefaultScopes.Add("https://menumalin-api");
+});
+
+// ========================================
+// Configuration HTTP Clients
+// ========================================
+
+// 1. Client HTTP de base
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+
+// 2. Client HTTP pour l'API Backend (menuMalin.Server) avec authentification
+builder.Services.AddScoped<AuthenticationDelegatingHandler>();
+builder.Services.AddHttpClient<IHttpApiService, HttpApiService>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5266/api/");
+    client.Timeout = TimeSpan.FromSeconds(30);
+})
+.AddHttpMessageHandler<AuthenticationDelegatingHandler>();
+
+// 3. Client HTTP pour l'API TheMealDB
+builder.Services.AddHttpClient<IRecipeService, RecipeService>(client =>
+{
+    client.BaseAddress = new Uri("https://www.themealdb.com/api/json/v1/1/");
 });
 
 // ========================================
