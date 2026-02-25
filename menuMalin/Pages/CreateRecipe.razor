@@ -168,12 +168,19 @@ else
                                 </h2>
                                 <div id="urlCollapse" class="accordion-collapse collapse" data-bs-parent="#urlAccordion">
                                     <div class="accordion-body">
-                                        <input
-                                            type="url"
-                                            class="form-control form-control-lg shadow-sm rounded-3"
-                                            placeholder="https://example.com/image.jpg"
-                                            @bind="urlInput"
-                                            @onchange="() => SetImageFromUrl(urlInput)" />
+                                        <div class="input-group">
+                                            <input
+                                                type="url"
+                                                class="form-control form-control-lg shadow-sm rounded-start-3"
+                                                placeholder="https://example.com/image.jpg"
+                                                @bind="urlInput" />
+                                            <button
+                                                type="button"
+                                                class="btn btn-outline-primary rounded-end-3"
+                                                @onclick="() => SetImageFromUrl(urlInput)">
+                                                <i class="bi bi-check-lg me-1"></i>Appliquer
+                                            </button>
+                                        </div>
                                         <small class="text-muted d-block mt-2">Collez l'URL d'une image publique</small>
                                     </div>
                                 </div>
