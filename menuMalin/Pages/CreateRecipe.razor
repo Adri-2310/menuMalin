@@ -1,6 +1,7 @@
 @page "/create-recipe"
 @using menuMalin.Services
 @using menuMalin.Shared.Models.Requests
+@using Microsoft.AspNetCore.Components.Forms
 @inject IUserRecipeService UserRecipeService
 @inject IAuthService AuthService
 @inject NavigationManager Nav
@@ -119,21 +120,65 @@ else
                         <small class="text-muted">Détaillez chaque étape pour que la recette soit facile à suivre</small>
                     </div>
 
-                    @* Image URL *@
+                    @* Image *@
                     <div class="mb-4">
-                        <label for="imageUrl" class="form-label fw-bold">URL de l'image</label>
-                        <input
-                            type="url"
-                            class="form-control form-control-lg shadow-sm rounded-3"
-                            id="imageUrl"
-                            placeholder="https://example.com/image.jpg"
-                            @bind="model.ImageUrl" />
+                        <label class="form-label fw-bold mb-3">Image de la recette</label>
+
+                        @* Upload d'image *@
+                        <div class="mb-3">
+                            <label for="imageFile" class="form-label">Choisir une image depuis votre ordinateur</label>
+                            <InputFile
+                                class="form-control form-control-lg shadow-sm rounded-3"
+                                id="imageFile"
+                                accept="image/*"
+                                OnChange="HandleImageUpload" />
+                            <small class="text-muted d-block">Formats supportés : JPG, PNG, GIF, WebP (max 5MB)</small>
+                        </div>
+
+                        @* Aperçu de l'image *@
                         @if (!string.IsNullOrEmpty(model.ImageUrl))
                         {
-                            <small class="d-block mt-2 text-muted">
-                                <i class="bi bi-image me-1"></i>Aperçu : <img src="@model.ImageUrl" alt="Aperçu" style="max-height: 100px; margin-top: 8px;" />
-                            </small>
+                            <div class="card border-light bg-light rounded-3 p-3 mb-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <img src="@model.ImageUrl" alt="Aperçu" style="max-height: 150px; max-width: 150px; object-fit: cover; border-radius: 8px;" />
+                                    <div>
+                                        <p class="mb-2"><strong>Aperçu :</strong></p>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" @onclick="ClearImage">
+                                            <i class="bi bi-x-circle me-1"></i>Supprimer l'image
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         }
+                        else
+                        {
+                            <div class="card border-light bg-light rounded-3 p-5 text-center text-muted mb-3">
+                                <i class="bi bi-image" style="font-size: 2rem;"></i>
+                                <p class="mt-2">Aucune image sélectionnée</p>
+                            </div>
+                        }
+
+                        @* Option : URL alternative *@
+                        <div class="accordion mb-3" id="urlAccordion">
+                            <div class="accordion-item border-light">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#urlCollapse">
+                                        <i class="bi bi-link-45deg me-2"></i>Ou entrer une URL d'image
+                                    </button>
+                                </h2>
+                                <div id="urlCollapse" class="accordion-collapse collapse" data-bs-parent="#urlAccordion">
+                                    <div class="accordion-body">
+                                        <input
+                                            type="url"
+                                            class="form-control form-control-lg shadow-sm rounded-3"
+                                            placeholder="https://example.com/image.jpg"
+                                            @bind="urlInput"
+                                            @onchange="() => SetImageFromUrl(urlInput)" />
+                                        <small class="text-muted d-block mt-2">Collez l'URL d'une image publique</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     @* Ingrédients dynamiques *@
@@ -220,6 +265,7 @@ else
     private string? errorMessage;
     private bool isAuthenticated = false;
     private bool isCheckingAuth = true;
+    private string? urlInput;
 
     protected override async Task OnInitializedAsync()
     {
@@ -307,4 +353,61 @@ else
     }
 
     private void GoBack() => Nav.NavigateTo("/my-created-recipes");
+
+    private async Task HandleImageUpload(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            var file = e.File;
+
+            if (file != null)
+            {
+                // Vérifier la taille du fichier (max 5MB)
+                const long maxFileSize = 5 * 1024 * 1024; // 5MB
+                if (file.Size > maxFileSize)
+                {
+                    errorMessage = "L'image est trop grande (max 5MB)";
+                    return;
+                }
+
+                // Vérifier le type MIME
+                var validTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
+                if (!validTypes.Contains(file.ContentType))
+                {
+                    errorMessage = "Format d'image non supporté";
+                    return;
+                }
+
+                // Convertir en base64
+                using var stream = file.OpenReadStream(maxFileSize);
+                var buffer = new byte[stream.Length];
+                await stream.ReadAsync(buffer, 0, (int)stream.Length);
+                var base64String = Convert.ToBase64String(buffer);
+                var mimeType = file.ContentType;
+
+                // Stocker l'image en base64
+                model.ImageUrl = $"data:{mimeType};base64,{base64String}";
+                errorMessage = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur lors du chargement de l'image : {ex.Message}";
+        }
+    }
+
+    private void SetImageFromUrl(string? url)
+    {
+        if (!string.IsNullOrWhiteSpace(url))
+        {
+            model.ImageUrl = url;
+            errorMessage = null;
+        }
+    }
+
+    private void ClearImage()
+    {
+        model.ImageUrl = null;
+        urlInput = null;
+    }
 }
