@@ -79,14 +79,23 @@ public class UserRecipeService : IUserRecipeService
         // Récupérer la recette pour vérifier le propriétaire
         var recipe = await _userRecipeRepository.GetByIdAsync(userRecipeId);
         if (recipe == null)
+        {
+            System.Console.WriteLine($"❌ Recette {userRecipeId} non trouvée");
             return false;
+        }
 
         // Vérifier que l'utilisateur est le propriétaire
         if (recipe.UserId != userId)
+        {
+            System.Console.WriteLine($"❌ Propriétaire invalide. Recipe.UserId: {recipe.UserId}, UserId: {userId}");
             throw new UnauthorizedAccessException("Vous n'êtes pas autorisé à supprimer cette recette");
+        }
 
         // Supprimer la recette
-        return await _userRecipeRepository.DeleteAsync(userRecipeId);
+        System.Console.WriteLine($"🗑️ Suppression de la recette {userRecipeId}");
+        var result = await _userRecipeRepository.DeleteAsync(userRecipeId);
+        System.Console.WriteLine($"✅ Recette supprimée: {result}");
+        return result;
     }
 
     public async Task<bool> UpdateVisibilityAsync(string userRecipeId, string userId, bool isPublic)

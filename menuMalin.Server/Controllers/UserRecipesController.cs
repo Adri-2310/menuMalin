@@ -129,15 +129,27 @@ public class UserRecipesController : ControllerBase
 
         try
         {
+            System.Console.WriteLine($"🗑️ DELETE /api/userrecipes/{id} - UserId: {userId}");
             var result = await _userRecipeService.DeleteAsync(id, userId);
             if (!result)
+            {
+                System.Console.WriteLine($"❌ Recette non trouvée ou erreur lors de la suppression");
                 return NotFound();
+            }
 
+            System.Console.WriteLine($"✅ Recette supprimée avec succès");
             return Ok(new { message = "Recette supprimée avec succès" });
         }
-        catch (UnauthorizedAccessException)
+        catch (UnauthorizedAccessException ex)
         {
+            System.Console.WriteLine($"❌ Accès non autorisé: {ex.Message}");
             return Forbid();  // 403 Forbidden
+        }
+        catch (Exception ex)
+        {
+            System.Console.WriteLine($"❌ Erreur lors de la suppression: {ex.Message}");
+            System.Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            return StatusCode(500, new { message = $"Erreur serveur: {ex.Message}" });
         }
     }
 
