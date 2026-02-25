@@ -29,6 +29,11 @@ public class User
 
     // Relationships
     /// <summary>
+    /// Recettes créées par l'utilisateur
+    /// </summary>
+    public ICollection<UserRecipe> UserRecipes { get; set; } = new List<UserRecipe>();
+
+    /// <summary>
     /// Recettes favorites de l'utilisateur
     /// </summary>
     public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();

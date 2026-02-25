@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using menuMalin.Server.Data;
 using menuMalin.Server.Auth;
 using menuMalin.Server.Repositories;
@@ -28,19 +30,57 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     )
 );
 
-// Ajouter l'authentification JWT avec Auth0
-builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+// BFF: Ajouter l'authentification par Cookies (au lieu de JWT Bearer)
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = "Cookies";
+    options.DefaultChallengeScheme = "Auth0";
+})
+.AddCookie("Cookies", options =>
+{
+    options.LoginPath = "/api/auth/login";
+    options.LogoutPath = "/api/auth/logout";
+    options.Cookie.Name = ".AspNetCore.Cookies";
+    options.Cookie.HttpOnly = true;
+    // Pour cross-origin HTTPS→HTTPS (frontend 7777, backend 7057), utiliser None
+    options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None;
+    options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
+    options.Cookie.Path = "/";
+    options.Events.OnSignedIn += context =>
     {
-        options.Authority = $"https://{auth0Settings.Domain}";
-        options.Audience = auth0Settings.Audience;
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            NameClaimType = System.Security.Claims.ClaimTypes.NameIdentifier,
-            RoleClaimType = System.Security.Claims.ClaimTypes.Role
-        };
-    });
+        // Logs pour debug
+        System.Console.WriteLine($"✅ User signed in: {context.Principal?.Identity?.Name}");
+        System.Console.WriteLine($"   Cookie created with SameSite=None; Secure; Path=/");
+        return System.Threading.Tasks.Task.CompletedTask;
+    };
+    options.Events.OnValidatePrincipal += context =>
+    {
+        System.Console.WriteLine($"🔐 Cookie validation: IsAuthenticated={context.Principal?.Identity?.IsAuthenticated}");
+        return System.Threading.Tasks.Task.CompletedTask;
+    };
+})
+.AddOpenIdConnect("Auth0", options =>
+{
+    options.Authority = $"https://{auth0Settings.Domain}";
+    options.ClientId = auth0Settings.ClientId;
+    options.ClientSecret = auth0Settings.ClientSecret;
+    options.ResponseType = "code";
+    options.CallbackPath = new PathString("/api/auth/callback");
+
+    options.Scope.Clear();
+    options.Scope.Add("openid");
+    options.Scope.Add("profile");
+    options.Scope.Add("email");
+
+    options.SaveTokens = true;
+    options.GetClaimsFromUserInfoEndpoint = true;
+
+    // Correlation cookie doit permettre cross-origin
+    options.CorrelationCookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None;
+    options.CorrelationCookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
+    options.NonceCookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None;
+    options.NonceCookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
+});
 
 // Ajouter OpenApi pour la documentation
 builder.Services.AddOpenApi();
@@ -56,11 +96,13 @@ builder.Services.AddHttpClient<ITheMealDBService, TheMealDBService>()
     });
 
 // Enregistrer les Repositories (Scoped)
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
 builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();
 builder.Services.AddScoped<IUserRecipeRepository, UserRecipeRepository>();
 
 // Enregistrer les Services (Scoped)
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRecipeService, RecipeService>();
 builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 builder.Services.AddScoped<IUserRecipeService, UserRecipeService>();
@@ -99,7 +141,11 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+// HTTPS redirection seulement en production
+if (app.Environment.IsProduction())
+{
+    app.UseHttpsRedirection();
+}
 
 // Utiliser CORS
 app.UseCors("AllowBlazor");

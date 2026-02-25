@@ -1,8 +1,7 @@
 @page "/contact"
-@using Microsoft.AspNetCore.Components.Authorization
 @using menuMalin.Services
 @inject IContactService ContactService
-@inject AuthenticationStateProvider AuthStateProvider
+@inject IAuthService AuthService
 @inject NavigationManager Nav
 
 <PageTitle>MenuMalin - Nous Contacter</PageTitle>
@@ -149,17 +148,24 @@
 
     private async Task CheckAuthenticationState()
     {
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        isUserConnected = authState.User.Identity?.IsAuthenticated ?? false;
+        try
+        {
+            var user = await AuthService.GetCurrentUserAsync();
+            isUserConnected = user?.IsAuthenticated ?? false;
 
-        if (isUserConnected)
-        {
-            model.Email = authState.User.FindFirst("email")?.Value ?? "";
-            model.Name = authState.User.FindFirst("name")?.Value ??
-                        authState.User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value ?? "";
+            if (isUserConnected)
+            {
+                model.Email = user?.Email ?? "";
+                model.Name = user?.Name ?? "";
+            }
+            else
+            {
+                model.Email = string.Empty;
+            }
         }
-        else
+        catch
         {
+            isUserConnected = false;
             model.Email = string.Empty;
         }
     }
@@ -184,9 +190,9 @@
                 model = new ContactFormModel();
                 if (isUserConnected)
                 {
-                    var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-                    model.Email = authState.User.FindFirst("email")?.Value ?? "";
-                    model.Name = authState.User.FindFirst("name")?.Value ?? "";
+                    var user = await AuthService.GetCurrentUserAsync();
+                    model.Email = user?.Email ?? "";
+                    model.Name = user?.Name ?? "";
                 }
                 else
                 {

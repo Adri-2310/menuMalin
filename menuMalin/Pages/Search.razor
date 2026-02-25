@@ -1,17 +1,36 @@
 @page "/search"
-@using Microsoft.AspNetCore.Authorization
 @using menuMalin.Models
 @using menuMalin.Services
 @using menuMalin.Components.Recipe
 @using menuMalin.Shared.Models.Dtos
-@attribute [Authorize]
 @inject IRecipeService RecipeService
 @inject IUserRecipeService UserRecipeService
+@inject IAuthService AuthService
 @inject NavigationManager Nav
 
 <PageTitle>MenuMalin - Recherche</PageTitle>
 
-<div class="container mt-4 mb-5 animate-fade-in">
+@if (isCheckingAuth)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-success"></div>
+        <p class="mt-2 text-muted">Vérification de l'authentification...</p>
+    </div>
+}
+else if (!isAuthenticated)
+{
+    <div class="container mt-4 mb-5">
+        <div class="alert alert-warning text-center rounded-4 py-5" role="alert">
+            <i class="bi bi-lock-fill me-2" style="font-size: 2rem;"></i>
+            <h3 class="mt-3">Accès réservé</h3>
+            <p class="text-muted mb-4">Vous devez être connecté pour accéder à la recherche avancée.</p>
+            <a href="/" class="btn btn-success btn-lg rounded-pill px-5">Se connecter</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container mt-4 mb-5 animate-fade-in">
     @* Bouton Retour *@
     <button class="btn btn-link text-dark text-decoration-none mb-4 ps-0" @onclick="GoBack">
         <i class="bi bi-arrow-left me-2"></i>Retour à l'accueil
@@ -185,7 +204,8 @@
             </div>
         }
     </div>
-</div>
+    </div>
+}
 
 @code {
     private string searchTerm = "";
@@ -196,12 +216,35 @@
     private List<Recipe>? recipes;
     private List<UserRecipeDto>? communityRecipes;
     private bool isLoading = false;
+    private bool isAuthenticated = false;
+    private bool isCheckingAuth = true;
     private string? searchError;
     private string? filterError;
 
     protected override async Task OnInitializedAsync()
     {
-        await Task.WhenAll(LoadFilterOptions(), LoadCommunityRecipes());
+        await CheckAuthentication();
+        if (isAuthenticated)
+        {
+            await Task.WhenAll(LoadFilterOptions(), LoadCommunityRecipes());
+        }
+    }
+
+    private async Task CheckAuthentication()
+    {
+        try
+        {
+            var user = await AuthService.GetCurrentUserAsync();
+            isAuthenticated = user?.IsAuthenticated ?? false;
+        }
+        catch
+        {
+            isAuthenticated = false;
+        }
+        finally
+        {
+            isCheckingAuth = false;
+        }
     }
 
     private async Task LoadFilterOptions()

@@ -9,33 +9,22 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 // ========================================
-// Configuration Auth0 (OIDC) - À FAIRE EN PREMIER
-// ========================================
-
-builder.Services.AddOidcAuthentication(options =>
-{
-    builder.Configuration.Bind("Auth0", options.ProviderOptions);
-    options.ProviderOptions.ResponseType = "code";
-    options.ProviderOptions.DefaultScopes.Add("profile");
-    options.ProviderOptions.DefaultScopes.Add("email");
-    options.ProviderOptions.DefaultScopes.Add("https://menumalin-api");
-});
-
-// ========================================
-// Configuration HTTP Clients
+// Configuration HTTP Clients (BFF Mode)
 // ========================================
 
 // 1. Client HTTP de base
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
-// 2. Client HTTP pour l'API Backend (menuMalin.Server) avec authentification
-builder.Services.AddScoped<AuthenticationDelegatingHandler>();
+// 2. Client HTTP pour l'API Backend (avec credentials pour cookies)
 builder.Services.AddHttpClient<IHttpApiService, HttpApiService>(client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5266/api/");
+    client.BaseAddress = new Uri("https://localhost:7057/api/");
     client.Timeout = TimeSpan.FromSeconds(30);
 })
-.AddHttpMessageHandler<AuthenticationDelegatingHandler>();
+.ConfigureHttpClient(client =>
+{
+    // Inclure les cookies dans les requêtes (automatique en mode BFF)
+});
 
 // 3. Client HTTP pour l'API TheMealDB
 builder.Services.AddHttpClient<IRecipeService, RecipeService>(client =>
@@ -55,6 +44,13 @@ builder.Services.AddScoped<LocalStorageService>();
 
 // ThemeService (pour le thème dark/light)
 builder.Services.AddScoped<IThemeService, ThemeService>();
+
+// Services d'authentification (BFF) - avec HttpClient dédié
+builder.Services.AddHttpClient<IAuthService, AuthService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7057/");
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
 
 // Services métier (Frontend)
 builder.Services.AddScoped<IFavoriteService, FavoriteService>();

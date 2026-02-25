@@ -1,8 +1,7 @@
 ﻿@using menuMalin.Models
 @using menuMalin.Services
-@using Microsoft.AspNetCore.Components.Authorization
 @inject IFavoriteService FavoriteService
-@inject AuthenticationStateProvider AuthStateProvider
+@inject IAuthService AuthService
 @inject NavigationManager Nav
 
 <div class="card h-100 border-0 shadow-sm recipe-card transition-all">
@@ -63,11 +62,11 @@
         {
             isToggling = true;
 
-            // Optionnel : Forcer la connexion pour mettre en favori
-            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-            if (authState.User.Identity?.IsAuthenticated != true)
+            // Vérifier l'authentification
+            var user = await AuthService.GetCurrentUserAsync();
+            if (user?.IsAuthenticated != true)
             {
-                Nav.NavigateTo("authentication/login");
+                Nav.NavigateTo("/");
                 return;
             }
 

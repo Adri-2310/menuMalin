@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.AspNetCore.Components.WebAssembly.Http;
 
 namespace menuMalin.Services;
 
@@ -19,10 +20,24 @@ public class HttpApiService : IHttpApiService
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<T>(url);
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+            var response = await _httpClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"❌ GET {url} - Status: {response.StatusCode}");
+                Console.WriteLine($"Erreur: {errorContent}");
+                return default;
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            return System.Text.Json.JsonSerializer.Deserialize<T>(content);
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"❌ Erreur dans GetAsync: {ex.Message}");
             return default;
         }
     }
@@ -33,24 +48,34 @@ public class HttpApiService : IHttpApiService
         {
             HttpResponseMessage response;
 
+            using var request = new HttpRequestMessage(HttpMethod.Post, url);
+            request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+
             if (data != null)
             {
-                response = await _httpClient.PostAsJsonAsync(url, data);
-            }
-            else
-            {
-                response = await _httpClient.PostAsync(url, null);
+                request.Content = new StringContent(
+                    JsonSerializer.Serialize(data),
+                    System.Text.Encoding.UTF8,
+                    "application/json");
             }
 
+            response = await _httpClient.SendAsync(request);
+
             if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"❌ POST {url} - Status: {response.StatusCode}");
+                Console.WriteLine($"Erreur: {errorContent}");
+                Console.WriteLine($"Headers: {string.Join(", ", response.Headers.Select(h => $"{h.Key}={h.Value}"))}");
                 return default;
+            }
 
             var content = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<T>(content);
         }
         catch (Exception ex)
         {
-            // Logged in development
+            Console.WriteLine($"❌ Erreur dans PostAsync: {ex.Message}");
             return default;
         }
     }
@@ -59,7 +84,9 @@ public class HttpApiService : IHttpApiService
     {
         try
         {
-            var response = await _httpClient.DeleteAsync(url);
+            using var request = new HttpRequestMessage(HttpMethod.Delete, url);
+            request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+            var response = await _httpClient.SendAsync(request);
             return response.IsSuccessStatusCode;
         }
         catch (Exception ex)
@@ -73,18 +100,16 @@ public class HttpApiService : IHttpApiService
     {
         try
         {
-            HttpResponseMessage response;
+            using var request = new HttpRequestMessage(HttpMethod.Patch, url);
+            request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
 
             if (data != null)
             {
                 var content = JsonSerializer.Serialize(data);
-                var httpContent = new StringContent(content, System.Text.Encoding.UTF8, "application/json");
-                response = await _httpClient.PatchAsync(url, httpContent);
+                request.Content = new StringContent(content, System.Text.Encoding.UTF8, "application/json");
             }
-            else
-            {
-                response = await _httpClient.PatchAsync(url, null);
-            }
+
+            var response = await _httpClient.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
                 return default;

@@ -27,11 +27,16 @@ public class AuthenticationDelegatingHandler : DelegatingHandler
             if (tokenResult.TryGetToken(out var token))
             {
                 request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token.Value);
+                Console.WriteLine($"✅ Token ajouté à la requête vers: {request.RequestUri}");
+            }
+            else
+            {
+                Console.WriteLine($"⚠️ Impossible de récupérer le token pour: {request.RequestUri}");
             }
         }
         catch (Exception ex)
         {
-            // Silently fail - le token n'a pas pu être récupéré, la requête sera rejetée avec 401
+            Console.WriteLine($"❌ Erreur dans AuthenticationDelegatingHandler: {ex.Message}");
         }
 
         return await base.SendAsync(request, cancellationToken);

@@ -29,9 +29,8 @@ public class TheMealDBService : ITheMealDBService
 
             return result?.Meals?.FirstOrDefault();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            // Log l'erreur (à implémenter avec Serilog)
             // Logged in development
             return null;
         }
@@ -52,7 +51,7 @@ public class TheMealDBService : ITheMealDBService
 
             return result?.Meals ?? new();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // Logged in development
             return new();
@@ -107,7 +106,7 @@ public class TheMealDBService : ITheMealDBService
 
             return categories;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // Logged in development
             return new();
@@ -139,7 +138,7 @@ public class TheMealDBService : ITheMealDBService
 
             return areas;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // Logged in development
             return new();
@@ -161,7 +160,7 @@ public class TheMealDBService : ITheMealDBService
 
             return result?.Meals ?? new();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // Logged in development
             return new();
@@ -183,7 +182,7 @@ public class TheMealDBService : ITheMealDBService
 
             return result?.Meals ?? new();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // Logged in development
             return new();

@@ -107,7 +107,7 @@ public class ApplicationDbContext : DbContext
 
             // Relations
             entity.HasOne(e => e.User)
-                .WithMany()
+                .WithMany(u => u.UserRecipes)
                 .HasForeignKey(e => e.UserId)
                 .HasPrincipalKey(u => u.Auth0Id)
                 .OnDelete(DeleteBehavior.Cascade);
