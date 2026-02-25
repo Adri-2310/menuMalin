@@ -28,3 +28,13 @@ Thumbs.db
 # NuGet
 *.nupkg
 *.snupkg
+
+# Configuration avec secrets - NE PAS COMMITTER
+appsettings.Development.json
+appsettings.Production.json
+appsettings.*.json
+!appsettings.json
+
+# User Secrets (CLI secrets)
+user-secrets.json
+secrets.json
