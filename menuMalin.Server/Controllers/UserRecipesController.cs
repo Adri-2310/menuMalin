@@ -70,7 +70,13 @@ public class UserRecipesController : ControllerBase
         if (userId == null)
             return Unauthorized();
 
+        System.Console.WriteLine($"📝 GET /api/userrecipes/my - UserId: {userId}");
         var recipes = await _userRecipeService.GetMyRecipesAsync(userId);
+        System.Console.WriteLine($"📝 Recettes trouvées: {recipes.Count()}");
+        foreach (var recipe in recipes)
+        {
+            System.Console.WriteLine($"   - ID: {recipe.UserRecipeId}, Title: {recipe.Title}, UserId: {recipe.UserId}");
+        }
         return Ok(recipes);
     }
 
@@ -150,6 +156,51 @@ public class UserRecipesController : ControllerBase
             System.Console.WriteLine($"❌ Erreur lors de la suppression: {ex.Message}");
             System.Console.WriteLine($"Stack trace: {ex.StackTrace}");
             return StatusCode(500, new { message = $"Erreur serveur: {ex.Message}" });
+        }
+    }
+
+    /// <summary>
+    /// Met à jour une recette (seul le propriétaire peut la modifier)
+    /// </summary>
+    /// <param name="id">L'ID de la recette</param>
+    /// <param name="request">Les nouvelles données de la recette</param>
+    /// <returns>La recette mise à jour</returns>
+    /// <response code="200">Mise à jour réussie</response>
+    /// <response code="404">Recette non trouvée</response>
+    /// <response code="400">Données invalides</response>
+    /// <response code="403">Non autorisé (pas propriétaire)</response>
+    /// <response code="401">Utilisateur non authentifié</response>
+    [HttpPatch("{id}")]
+    public async Task<IActionResult> UpdateRecipe(string id, [FromBody] CreateUserRecipeRequest request)
+    {
+        var userId = ExtractUserId();
+        if (userId == null)
+            return Unauthorized();
+
+        if (string.IsNullOrWhiteSpace(id))
+            return BadRequest("L'ID de la recette est requis");
+
+        if (string.IsNullOrWhiteSpace(request.Title))
+            return BadRequest("Le titre est requis");
+
+        if (string.IsNullOrWhiteSpace(request.Instructions))
+            return BadRequest("Les instructions sont requises");
+
+        try
+        {
+            var recipe = await _userRecipeService.UpdateAsync(id, userId, request);
+            if (recipe == null)
+                return NotFound();
+
+            return Ok(recipe);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Forbid();  // 403 Forbidden
         }
     }
 

@@ -14,6 +14,7 @@
         height: 100%;
         display: flex;
         flex-direction: column;
+        overflow: hidden;
     }
 
     .recipe-card:hover {
@@ -21,15 +22,31 @@
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
     }
 
-    .recipe-card-img {
+    .recipe-card-img-container {
         height: 200px;
-        object-fit: cover;
+        overflow: hidden;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        position: relative;
+    }
+
+    .recipe-card-img {
+        height: 100%;
+        width: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .recipe-card-img.loading {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .recipe-card-img.loaded {
+        opacity: 1;
     }
 
     .recipe-card-img-placeholder {
-        height: 200px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        height: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -132,20 +149,33 @@ else
                     <div class="col-md-6 col-lg-4">
                         <div class="card recipe-card shadow-sm">
                             @* Image *@
-                            @if (!string.IsNullOrEmpty(recipe.ImageUrl))
-                            {
-                                <img src="@recipe.ImageUrl" alt="@recipe.Title" class="card-img-top recipe-card-img" />
-                            }
-                            else
-                            {
-                                <div class="recipe-card-img-placeholder">
-                                    <i class="bi bi-image"></i>
-                                </div>
-                            }
+                            <div class="recipe-card-img-container">
+                                @if (!string.IsNullOrEmpty(recipe.ImageUrl))
+                                {
+                                    <img
+                                        src="@recipe.ImageUrl"
+                                        alt="@recipe.Title"
+                                        class="recipe-card-img loaded"
+                                        loading="lazy" />
+                                }
+                                else
+                                {
+                                    <div class="recipe-card-img-placeholder">
+                                        <i class="bi bi-image"></i>
+                                    </div>
+                                }
+                            </div>
 
                             @* Contenu *@
                             <div class="card-body recipe-card-body">
-                                <h5 class="card-title mb-2">@recipe.Title</h5>
+                                @if (!string.IsNullOrEmpty(recipe.Title))
+                                {
+                                    <h5 class="card-title mb-2">@recipe.Title</h5>
+                                }
+                                else
+                                {
+                                    <h5 class="card-title mb-2 text-muted"><em>Sans titre</em></h5>
+                                }
 
                                 <div class="mb-3">
                                     @if (!string.IsNullOrEmpty(recipe.Category))
@@ -155,6 +185,10 @@ else
                                     @if (!string.IsNullOrEmpty(recipe.Area))
                                     {
                                         <span class="badge bg-secondary">@recipe.Area</span>
+                                    }
+                                    @if (string.IsNullOrEmpty(recipe.Category) && string.IsNullOrEmpty(recipe.Area))
+                                    {
+                                        <span class="text-muted small"><em>Aucune information</em></span>
                                     }
                                 </div>
 

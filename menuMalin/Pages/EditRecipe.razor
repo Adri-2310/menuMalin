@@ -76,13 +76,44 @@ else
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Image URL</label>
-                            <input type="text" class="form-control" @bind="recipe.ImageUrl" placeholder="Lien vers l'image..." />
-                        </div>
-
-                        <div class="mb-3">
                             <label class="form-label fw-bold">Instructions</label>
                             <textarea class="form-control" rows="6" @bind="recipe.Instructions"></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Ingrédients</label>
+                            <div class="card border-light bg-light rounded-3 p-3">
+                                @if (recipe.Ingredients == null || recipe.Ingredients.Count == 0)
+                                {
+                                    <p class="text-muted mb-3"><i class="bi bi-info-circle me-2"></i>Aucun ingrédient ajouté. Cliquez sur "Ajouter" pour commencer.</p>
+                                }
+                                else
+                                {
+                                    @foreach (var (ingredient, index) in recipe.Ingredients.Select((item, i) => (item, i)))
+                                    {
+                                        <div class="input-group mb-2">
+                                            <input
+                                                type="text"
+                                                class="form-control shadow-sm rounded-start-3"
+                                                placeholder="Ex: 200g farine"
+                                                @bind="recipe.Ingredients[index]" />
+                                            <button
+                                                type="button"
+                                                class="btn btn-outline-danger rounded-end-3"
+                                                @onclick="() => RemoveIngredient(index)"
+                                                title="Supprimer cet ingrédient">
+                                                <i class="bi bi-x"></i>
+                                            </button>
+                                        </div>
+                                    }
+                                }
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-success btn-sm rounded-pill mt-2"
+                                    @onclick="AddIngredient">
+                                    <i class="bi bi-plus-circle me-1"></i>Ajouter un ingrédient
+                                </button>
+                            </div>
                         </div>
 
                         <div class="form-check mb-3">
@@ -135,12 +166,15 @@ else
                     </div>
                 </div>
 
-                <div class="card bg-danger mt-3">
+                <div class="card border-2 border-danger mt-4 shadow-sm">
                     <div class="card-body">
-                        <h5 class="card-title text-white">Zone de danger</h5>
-                        <p class="text-white-50 small">Cette action est irréversible</p>
-                        <button class="btn btn-outline-light btn-sm w-100" @onclick="ConfirmDelete">
-                            <i class="bi bi-trash me-2"></i>Supprimer la recette
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-exclamation-diamond text-danger me-2" style="font-size: 1.5rem;"></i>
+                            <h5 class="card-title mb-0 text-danger fw-bold">Zone de danger</h5>
+                        </div>
+                        <p class="text-muted small mb-3">Supprimer cette recette est une action <strong>irréversible</strong>. L'image et toutes les données seront supprimées.</p>
+                        <button class="btn btn-danger btn-sm w-100 rounded-3" @onclick="ConfirmDelete" disabled="@isSaving">
+                            <i class="bi bi-trash-fill me-2"></i>Supprimer définitivement
                         </button>
                     </div>
                 </div>
@@ -211,11 +245,22 @@ else
                 return;
             }
 
-            // Note: Pour l'instant, on ne peut pas modifier complètement
-            // On va juste mettre à jour la visibilité
-            bool result = await UserRecipeService.UpdateVisibilityAsync(recipe.UserRecipeId, recipe.IsPublic);
+            // Créer une requête de mise à jour
+            var request = new CreateUserRecipeRequest
+            {
+                Title = recipe.Title,
+                Category = recipe.Category,
+                Area = recipe.Area,
+                Instructions = recipe.Instructions,
+                ImageUrl = recipe.ImageUrl,
+                IsPublic = recipe.IsPublic,
+                Ingredients = recipe.Ingredients ?? new List<string>()
+            };
 
-            if (result)
+            // Mettre à jour la recette
+            var result = await UserRecipeService.UpdateAsync(recipe.UserRecipeId, request);
+
+            if (result != null)
             {
                 successMessage = "Recette mise à jour avec succès";
                 await Task.Delay(1500);
@@ -280,6 +325,22 @@ else
         finally
         {
             isSaving = false;
+        }
+    }
+
+    private void AddIngredient()
+    {
+        if (recipe?.Ingredients != null)
+        {
+            recipe.Ingredients.Add("");
+        }
+    }
+
+    private void RemoveIngredient(int index)
+    {
+        if (recipe?.Ingredients != null && index >= 0 && index < recipe.Ingredients.Count)
+        {
+            recipe.Ingredients.RemoveAt(index);
         }
     }
 

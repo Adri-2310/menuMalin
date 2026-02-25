@@ -59,4 +59,10 @@ builder.Services.AddScoped<IRecipeServiceFrontend, RecipeServiceFrontend>();
 builder.Services.AddScoped<IFavoriteServiceFrontend, FavoriteServiceFrontend>();
 builder.Services.AddScoped<IUserRecipeService, UserRecipeService>();
 
+// Service d'upload d'images
+builder.Services.AddHttpClient<IUploadService, UploadService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7057/api/");
+});
+
 await builder.Build().RunAsync();

@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Components.Forms
 @inject IUserRecipeService UserRecipeService
 @inject IAuthService AuthService
+@inject IUploadService UploadService
 @inject NavigationManager Nav
 
 <PageTitle>MenuMalin - Créer une Recette</PageTitle>
@@ -385,16 +386,18 @@ else
                     return;
                 }
 
-                // Convertir en base64
-                using var stream = file.OpenReadStream(maxFileSize);
-                var buffer = new byte[stream.Length];
-                await stream.ReadAsync(buffer, 0, (int)stream.Length);
-                var base64String = Convert.ToBase64String(buffer);
-                var mimeType = file.ContentType;
+                // Upload le fichier vers le serveur
+                var imageUrl = await UploadService.UploadImageAsync(file);
 
-                // Stocker l'image en base64
-                model.ImageUrl = $"data:{mimeType};base64,{base64String}";
-                errorMessage = null;
+                if (!string.IsNullOrEmpty(imageUrl))
+                {
+                    model.ImageUrl = imageUrl;
+                    errorMessage = null;
+                }
+                else
+                {
+                    errorMessage = "Erreur lors de l'upload de l'image";
+                }
             }
         }
         catch (Exception ex)

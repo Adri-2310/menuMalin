@@ -86,6 +86,32 @@ public class UserRecipeService : IUserRecipeService
         }
     }
 
+    public async Task<UserRecipeDto?> UpdateAsync(string userRecipeId, CreateUserRecipeRequest request)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(userRecipeId))
+                return null;
+
+            if (request == null)
+                return null;
+
+            if (string.IsNullOrWhiteSpace(request.Title))
+                return null;
+
+            if (string.IsNullOrWhiteSpace(request.Instructions))
+                return null;
+
+            var result = await _httpApiService.PatchAsync<UserRecipeDto>($"{BaseUrl}/{userRecipeId}", request);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            // Error handled silently
+            return null;
+        }
+    }
+
     public async Task<bool> DeleteAsync(string userRecipeId)
     {
         try

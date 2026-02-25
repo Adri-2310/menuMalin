@@ -46,6 +46,16 @@ public interface IUserRecipeService
     Task<bool> DeleteAsync(string userRecipeId, string userId);
 
     /// <summary>
+    /// Met à jour tous les champs modifiables d'une recette
+    /// </summary>
+    /// <param name="userRecipeId">L'ID de la recette</param>
+    /// <param name="userId">L'ID de l'utilisateur qui demande le changement</param>
+    /// <param name="request">Les nouvelles données de la recette</param>
+    /// <returns>Le UserRecipeDto mis à jour ou null si non trouvée</returns>
+    /// <exception cref="UnauthorizedAccessException">Levée si l'utilisateur n'est pas propriétaire</exception>
+    Task<UserRecipeDto?> UpdateAsync(string userRecipeId, string userId, CreateUserRecipeRequest request);
+
+    /// <summary>
     /// Bascule la visibilité (public/privé) d'une recette
     /// </summary>
     /// <param name="userRecipeId">L'ID de la recette</param>

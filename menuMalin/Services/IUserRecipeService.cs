@@ -29,6 +29,11 @@ public interface IUserRecipeService
     Task<UserRecipeDto?> GetByIdAsync(string userRecipeId);
 
     /// <summary>
+    /// Met à jour une recette
+    /// </summary>
+    Task<UserRecipeDto?> UpdateAsync(string userRecipeId, CreateUserRecipeRequest request);
+
+    /// <summary>
     /// Supprime une recette
     /// </summary>
     Task<bool> DeleteAsync(string userRecipeId);

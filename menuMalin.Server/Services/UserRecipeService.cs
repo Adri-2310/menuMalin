@@ -12,14 +12,18 @@ namespace menuMalin.Server.Services;
 public class UserRecipeService : IUserRecipeService
 {
     private readonly IUserRecipeRepository _userRecipeRepository;
+    private readonly IWebHostEnvironment _hostEnvironment;
+    private const string UploadsFolder = "uploads";
 
     /// <summary>
     /// Initialise une nouvelle instance de UserRecipeService
     /// </summary>
     /// <param name="userRecipeRepository">Le repository des recettes utilisateur</param>
-    public UserRecipeService(IUserRecipeRepository userRecipeRepository)
+    /// <param name="hostEnvironment">L'environnement de l'hôte web</param>
+    public UserRecipeService(IUserRecipeRepository userRecipeRepository, IWebHostEnvironment hostEnvironment)
     {
         _userRecipeRepository = userRecipeRepository;
+        _hostEnvironment = hostEnvironment;
     }
 
     public async Task<UserRecipeDto> CreateAsync(string userId, CreateUserRecipeRequest request)
@@ -93,9 +97,49 @@ public class UserRecipeService : IUserRecipeService
 
         // Supprimer la recette
         System.Console.WriteLine($"🗑️ Suppression de la recette {userRecipeId}");
+
+        // Supprimer l'image du serveur si elle existe et provient du dossier uploads
+        if (!string.IsNullOrEmpty(recipe.ImageUrl))
+        {
+            DeleteRecipeImage(recipe.ImageUrl);
+        }
+
         var result = await _userRecipeRepository.DeleteAsync(userRecipeId);
         System.Console.WriteLine($"✅ Recette supprimée: {result}");
         return result;
+    }
+
+    public async Task<UserRecipeDto?> UpdateAsync(string userRecipeId, string userId, CreateUserRecipeRequest request)
+    {
+        // Valider les données requises
+        if (string.IsNullOrWhiteSpace(request.Title))
+            throw new ArgumentException("Le titre est requis");
+        if (string.IsNullOrWhiteSpace(request.Instructions))
+            throw new ArgumentException("Les instructions sont requises");
+
+        // Récupérer la recette pour vérifier le propriétaire
+        var recipe = await _userRecipeRepository.GetByIdAsync(userRecipeId);
+        if (recipe == null)
+            return null;
+
+        // Vérifier que l'utilisateur est le propriétaire
+        if (recipe.UserId != userId)
+            throw new UnauthorizedAccessException("Vous n'êtes pas autorisé à modifier cette recette");
+
+        // Sérialiser les ingrédients en JSON
+        var ingredientsJson = JsonSerializer.Serialize(request.Ingredients ?? new List<string>());
+
+        // Mettre à jour la recette
+        recipe.Title = request.Title;
+        recipe.Category = request.Category;
+        recipe.Area = request.Area;
+        recipe.Instructions = request.Instructions;
+        recipe.IngredientsJson = ingredientsJson;
+        recipe.IsPublic = request.IsPublic;
+        recipe.UpdatedAt = DateTime.UtcNow;
+
+        var updated = await _userRecipeRepository.UpdateAsync(recipe);
+        return updated != null ? MapToDto(updated) : null;
     }
 
     public async Task<bool> UpdateVisibilityAsync(string userRecipeId, string userId, bool isPublic)
@@ -111,6 +155,43 @@ public class UserRecipeService : IUserRecipeService
 
         // Mettre à jour la visibilité
         return await _userRecipeRepository.UpdateVisibilityAsync(userRecipeId, isPublic);
+    }
+
+    /// <summary>
+    /// Supprime l'image associée à une recette du serveur
+    /// </summary>
+    /// <param name="imageUrl">L'URL relative de l'image (ex: /uploads/guid_filename.jpg)</param>
+    private void DeleteRecipeImage(string imageUrl)
+    {
+        try
+        {
+            // Vérifier que l'image provient du dossier uploads interne
+            if (!imageUrl.StartsWith($"/{UploadsFolder}/"))
+            {
+                System.Console.WriteLine($"⚠️ Image externe, non suppression: {imageUrl}");
+                return;
+            }
+
+            // Construire le chemin du fichier
+            var fileName = imageUrl.Replace($"/{UploadsFolder}/", "");
+            var filePath = Path.Combine(_hostEnvironment.WebRootPath, UploadsFolder, fileName);
+
+            // Vérifier que le fichier existe
+            if (!File.Exists(filePath))
+            {
+                System.Console.WriteLine($"⚠️ Fichier image non trouvé: {filePath}");
+                return;
+            }
+
+            // Supprimer le fichier
+            File.Delete(filePath);
+            System.Console.WriteLine($"✅ Image supprimée: {filePath}");
+        }
+        catch (Exception ex)
+        {
+            System.Console.WriteLine($"❌ Erreur lors de la suppression de l'image: {ex.Message}");
+            // Ne pas lever d'exception - la recette doit être supprimée même si l'image ne l'est pas
+        }
     }
 
     /// <summary>
@@ -146,7 +227,8 @@ public class UserRecipeService : IUserRecipeService
             ImageUrl = userRecipe.ImageUrl,
             Ingredients = ingredients,
             IsPublic = userRecipe.IsPublic,
-            CreatedAt = userRecipe.CreatedAt
+            CreatedAt = userRecipe.CreatedAt,
+            UpdatedAt = userRecipe.UpdatedAt
         };
     }
 }
