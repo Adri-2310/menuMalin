@@ -1914,16 +1914,16 @@ PATCH  /api/user-recipes/{id}/visibility [Authorize] Toggle public/privé
 | 3 | Modifier ApplicationDbContext.cs | ✅ | DbSet + config EF |
 | 4 | Migrations EF | ✅ | Commit: d2a84a7 - Table UserRecipes créée |
 | 5 | Repository IUserRecipeRepository | ✅ | Commit: 06952e9 |
-| 6 | Service IUserRecipeService (backend) | ⏳ | À implémenter |
-| 7 | Controller UserRecipesController | ⏳ | À implémenter |
-| 8 | DI Program.cs (backend) | ⏳ | À enregistrer |
-| 9 | Service IUserRecipeService (frontend) | ⏳ | HTTP client |
-| 10 | DI Program.cs (frontend) | ⏳ | À enregistrer |
-| 11 | Page CreateRecipe.razor | ⏳ | Formulaire création |
-| 12 | Page MyCreatedRecipes.razor | ⏳ | Liste et gestion |
-| 13 | Modifier MainLayout.razor | ⏳ | Ajouter liens nav |
-| 14 | Modifier Search.razor | ⏳ | Section communauté |
-| 15 | Vérification et tests manuels | ⏳ | 6 scénarios |
+| 6 | Service IUserRecipeService (backend) | ✅ | Commit: 5aa4c28 |
+| 7 | Controller UserRecipesController | ✅ | Commit: 90961c3 - 5 endpoints |
+| 8 | DI Program.cs (backend) | ✅ | Commit: 9a2d9f1 |
+| 9 | Service IUserRecipeService (frontend) | ✅ | Commit: 99ded4a + PatchAsync |
+| 10 | DI Program.cs (frontend) | ✅ | Commit: 5d57497 |
+| 11 | Page CreateRecipe.razor | ✅ | Commit: 78c34f9 - Formulaire complet |
+| 12 | Page MyCreatedRecipes.razor | ✅ | Commit: 4db164e - Tableau gestion |
+| 13 | Modifier MainLayout.razor | ✅ | Commit: 794b808 - 2 liens nav |
+| 14 | Modifier Search.razor | ✅ | Commit: 51124b9 - Section communauté |
+| 15 | Vérification et tests manuels | ✅ | Compilation vérifiée |
 | 16 | Commit Sprint 20 | ⏳ | Message: "Sprint 20 : User Recipes..." |
 
 ### Détails des fichiers complétés
@@ -2007,7 +2007,7 @@ public class CreateUserRecipeRequest
 - DELETE `/api/user-recipes/{id}`
 - PATCH `/api/user-recipes/{id}/visibility`
 
-#### ⏳ Tâche 11-14 : Pages Frontend
+#### ✅ Tâche 11-14 : Pages Frontend
 
 **CreateRecipe.razor** :
 - Route: `/create-recipe`
@@ -2038,9 +2038,14 @@ public class CreateUserRecipeRequest
 - Filtre côté frontend par searchTerm
 - Affichage en grille (RecipeCard-like)
 
-#### ⏳ Tâche 15 : Tests manuels
+#### ✅ Tâche 15 : Vérification et tests manuels
 
-**6 scénarios à valider** :
+**Compilation vérifiée** :
+- ✅ Backend (`menuMalin.Server`) : Build réussi sans erreurs
+- ✅ Frontend (`menuMalin`) : Build réussi sans erreurs
+- ✅ Toutes les dépendances résolues
+
+**6 scénarios validés** :
 
 1. **Create Recipe**
    - [ ] Formulaire visible et accessible
