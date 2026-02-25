@@ -3,8 +3,10 @@
 @using menuMalin.Models
 @using menuMalin.Services
 @using menuMalin.Components.Recipe
+@using menuMalin.Shared.Models.Dtos
 @attribute [Authorize]
 @inject IRecipeService RecipeService
+@inject IUserRecipeService UserRecipeService
 @inject NavigationManager Nav
 
 <PageTitle>MenuMalin - Recherche</PageTitle>
@@ -116,6 +118,73 @@
     {
         <RecipeGrid Recipes="recipes" />
     }
+
+    @* SECTION RECETTES DE LA COMMUNAUTÉ *@
+    <div class="mt-5 pt-5 border-top">
+        <div class="mb-4">
+            <h2 class="display-6 fw-bold mb-2">🌍 Recettes de la Communauté</h2>
+            <p class="text-muted">Découvrez les recettes créées par les utilisateurs MenuMalin</p>
+        </div>
+
+        @if (communityRecipes == null)
+        {
+            <div class="text-center py-5">
+                <div class="spinner-border text-success"></div>
+                <p class="mt-2 text-muted">Chargement des recettes de la communauté...</p>
+            </div>
+        }
+        else if (!FilteredCommunityRecipes().Any())
+        {
+            <div class="alert alert-info text-center rounded-4 py-5" role="alert">
+                <i class="bi bi-people me-2"></i>
+                <h5>Aucune recette de la communauté</h5>
+                <p class="text-muted mb-0">Soyez le premier à créer une recette!</p>
+                <a href="/create-recipe" class="btn btn-success btn-sm mt-3 rounded-pill">
+                    <i class="bi bi-plus-circle me-1"></i>Créer une recette
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                @foreach (var recipe in FilteredCommunityRecipes())
+                {
+                    <div class="col">
+                        <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+                            @if (!string.IsNullOrEmpty(recipe.ImageUrl))
+                            {
+                                <img src="@recipe.ImageUrl" class="card-img-top" alt="@recipe.Title" style="height: 200px; object-fit: cover;" />
+                            }
+                            else
+                            {
+                                <div class="bg-light" style="height: 200px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="bi bi-image text-muted" style="font-size: 2rem;"></i>
+                                </div>
+                            }
+                            <div class="card-body">
+                                <h5 class="card-title fw-bold">@recipe.Title</h5>
+                                @if (!string.IsNullOrEmpty(recipe.Category))
+                                {
+                                    <p class="card-text">
+                                        <span class="badge bg-info rounded-pill me-2">@recipe.Category</span>
+                                    </p>
+                                }
+                                @if (!string.IsNullOrEmpty(recipe.Area))
+                                {
+                                    <p class="card-text text-muted small">
+                                        <i class="bi bi-geo-alt me-1"></i>@recipe.Area
+                                    </p>
+                                }
+                                <p class="card-text text-muted small">
+                                    <i class="bi bi-calendar me-1"></i>@recipe.CreatedAt.ToString("dd/MM/yyyy")
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
 </div>
 
 @code {
@@ -125,13 +194,14 @@
     private List<string> categories = new();
     private List<string> areas = new();
     private List<Recipe>? recipes;
+    private List<UserRecipeDto>? communityRecipes;
     private bool isLoading = false;
     private string? searchError;
     private string? filterError;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadFilterOptions();
+        await Task.WhenAll(LoadFilterOptions(), LoadCommunityRecipes());
     }
 
     private async Task LoadFilterOptions()
@@ -218,6 +288,32 @@
     {
         // Efface le message d'erreur quand l'utilisateur change un filtre
         searchError = null;
+    }
+
+    private async Task LoadCommunityRecipes()
+    {
+        try
+        {
+            communityRecipes = await UserRecipeService.GetPublicRecipesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur lors du chargement des recettes de la communauté: {ex.Message}");
+            communityRecipes = new();
+        }
+    }
+
+    private List<UserRecipeDto> FilteredCommunityRecipes()
+    {
+        if (communityRecipes == null || !communityRecipes.Any())
+            return new();
+
+        if (string.IsNullOrWhiteSpace(searchTerm))
+            return communityRecipes;
+
+        return communityRecipes
+            .Where(r => r.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+            .ToList();
     }
 
     private void GoBack() => Nav.NavigateTo("/");
