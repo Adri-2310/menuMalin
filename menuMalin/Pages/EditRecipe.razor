@@ -1,0 +1,287 @@
+@page "/edit-recipe/{RecipeId}"
+@using menuMalin.Services
+@using menuMalin.Shared.Models.Dtos
+@using menuMalin.Shared.Models.Requests
+@inject IUserRecipeService UserRecipeService
+@inject IAuthService AuthService
+@inject NavigationManager Nav
+@inject IJSRuntime JSRuntime
+
+<PageTitle>MenuMalin - Modifier Recette</PageTitle>
+
+@if (isLoading)
+{
+    <div class="container mt-5">
+        <div class="text-center py-5">
+            <div class="spinner-border text-success"></div>
+            <p class="mt-2 text-muted">Chargement de la recette...</p>
+        </div>
+    </div>
+}
+else if (recipe == null)
+{
+    <div class="container mt-5">
+        <div class="alert alert-danger" role="alert">
+            <h4 class="alert-heading">Recette non trouvée</h4>
+            <p>Cette recette n'existe pas ou vous n'avez pas accès à celle-ci.</p>
+            <a href="/my-created-recipes" class="btn btn-primary">Retour à mes recettes</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container mt-4 mb-5">
+        <button class="btn btn-link text-dark text-decoration-none mb-4 ps-0" @onclick="GoBack">
+            <i class="bi bi-arrow-left me-2"></i>Retour
+        </button>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <h1 class="mb-4">Modifier la recette</h1>
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        @errorMessage
+                        <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(successMessage))
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle me-2"></i>
+                        @successMessage
+                        <button type="button" class="btn-close" @onclick="() => successMessage = null"></button>
+                    </div>
+                }
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Titre</label>
+                            <input type="text" class="form-control" @bind="recipe.Title" />
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Catégorie</label>
+                                <input type="text" class="form-control" @bind="recipe.Category" placeholder="Ex: Dessert, Plat principal..." />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Pays / Région</label>
+                                <input type="text" class="form-control" @bind="recipe.Area" placeholder="Ex: Français, Italien..." />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Image URL</label>
+                            <input type="text" class="form-control" @bind="recipe.ImageUrl" placeholder="Lien vers l'image..." />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Instructions</label>
+                            <textarea class="form-control" rows="6" @bind="recipe.Instructions"></textarea>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" @bind="recipe.IsPublic" id="isPublic">
+                            <label class="form-check-label" for="isPublic">
+                                Rendre cette recette publique (visible à la communauté)
+                            </label>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary" @onclick="SaveRecipe" disabled="@isSaving">
+                                @if (isSaving)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                }
+                                Enregistrer
+                            </button>
+                            <button class="btn btn-outline-secondary" @onclick="GoBack">Annuler</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card shadow-sm sticky-top" style="top: 20px;">
+                    <div class="card-body">
+                        <h5 class="card-title">Aperçu</h5>
+                        @if (!string.IsNullOrEmpty(recipe.ImageUrl))
+                        {
+                            <img src="@recipe.ImageUrl" alt="@recipe.Title" class="img-fluid rounded mb-3" />
+                        }
+                        else
+                        {
+                            <div class="bg-light rounded p-4 text-center mb-3">
+                                <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                            </div>
+                        }
+                        <h6>@recipe.Title</h6>
+                        <p class="text-muted small">
+                            @if (!string.IsNullOrEmpty(recipe.Category))
+                            {
+                                <span class="badge bg-info">@recipe.Category</span>
+                            }
+                            @if (!string.IsNullOrEmpty(recipe.Area))
+                            {
+                                <span class="badge bg-secondary">@recipe.Area</span>
+                            }
+                        </p>
+                        <p class="text-muted small">Créée le: @recipe.CreatedAt.ToString("dd/MM/yyyy")</p>
+                    </div>
+                </div>
+
+                <div class="card bg-danger mt-3">
+                    <div class="card-body">
+                        <h5 class="card-title text-white">Zone de danger</h5>
+                        <p class="text-white-50 small">Cette action est irréversible</p>
+                        <button class="btn btn-outline-light btn-sm w-100" @onclick="ConfirmDelete">
+                            <i class="bi bi-trash me-2"></i>Supprimer la recette
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string? RecipeId { get; set; }
+
+    private UserRecipeDto? recipe;
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private string? errorMessage;
+    private string? successMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRecipe();
+    }
+
+    private async Task LoadRecipe()
+    {
+        try
+        {
+            isLoading = true;
+            if (string.IsNullOrEmpty(RecipeId))
+            {
+                errorMessage = "ID de recette manquant";
+                return;
+            }
+
+            recipe = await UserRecipeService.GetByIdAsync(RecipeId);
+            if (recipe == null)
+            {
+                errorMessage = "Recette non trouvée";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task SaveRecipe()
+    {
+        try
+        {
+            isSaving = true;
+            errorMessage = null;
+            successMessage = null;
+
+            if (recipe == null || string.IsNullOrWhiteSpace(recipe.Title))
+            {
+                errorMessage = "Le titre est obligatoire";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(recipe.Instructions))
+            {
+                errorMessage = "Les instructions sont obligatoires";
+                return;
+            }
+
+            // Note: Pour l'instant, on ne peut pas modifier complètement
+            // On va juste mettre à jour la visibilité
+            bool result = await UserRecipeService.UpdateVisibilityAsync(recipe.UserRecipeId, recipe.IsPublic);
+
+            if (result)
+            {
+                successMessage = "Recette mise à jour avec succès";
+                await Task.Delay(1500);
+                Nav.NavigateTo("/my-created-recipes");
+            }
+            else
+            {
+                errorMessage = "Erreur lors de la mise à jour";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur: {ex.Message}";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task ConfirmDelete()
+    {
+        if (recipe == null)
+            return;
+
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm",
+            "Êtes-vous sûr de vouloir supprimer cette recette ? Cette action est irréversible.");
+
+        if (confirmed)
+        {
+            await DeleteRecipe();
+        }
+    }
+
+    private async Task DeleteRecipe()
+    {
+        try
+        {
+            isSaving = true;
+            errorMessage = null;
+
+            if (recipe == null)
+                return;
+
+            bool result = await UserRecipeService.DeleteAsync(recipe.UserRecipeId);
+
+            if (result)
+            {
+                successMessage = "Recette supprimée avec succès";
+                await Task.Delay(1500);
+                Nav.NavigateTo("/my-created-recipes");
+            }
+            else
+            {
+                errorMessage = "Erreur lors de la suppression. Veuillez réessayer.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur: {ex.Message}";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private void GoBack() => Nav.NavigateTo("/my-created-recipes");
+}
