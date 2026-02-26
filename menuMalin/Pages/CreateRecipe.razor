@@ -5,6 +5,7 @@
 @inject IUserRecipeService UserRecipeService
 @inject IAuthService AuthService
 @inject IUploadService UploadService
+@inject IRecipeService RecipeService
 @inject NavigationManager Nav
 
 <PageTitle>MenuMalin - Créer une Recette</PageTitle>
@@ -89,23 +90,43 @@ else
                     @* Catégorie *@
                     <div class="mb-4">
                         <label for="category" class="form-label fw-bold">Catégorie</label>
-                        <input
-                            type="text"
-                            class="form-control form-control-lg shadow-sm rounded-3"
+                        <select
+                            class="form-select form-select-lg shadow-sm rounded-3"
                             id="category"
-                            placeholder="Ex: Plat principal, Dessert, Entrée"
-                            @bind="model.Category" />
+                            @bind="model.Category">
+                            <option value="">-- Sélectionnez une catégorie --</option>
+                            @foreach (var category in categories)
+                            {
+                                <option value="@category">@category</option>
+                            }
+                        </select>
+                        @if (isLoadingCategories)
+                        {
+                            <small class="text-muted d-block mt-1">
+                                <span class="spinner-border spinner-border-sm me-2"></span>Chargement...
+                            </small>
+                        }
                     </div>
 
                     @* Cuisine/Area *@
                     <div class="mb-4">
                         <label for="area" class="form-label fw-bold">Cuisine / Région</label>
-                        <input
-                            type="text"
-                            class="form-control form-control-lg shadow-sm rounded-3"
+                        <select
+                            class="form-select form-select-lg shadow-sm rounded-3"
                             id="area"
-                            placeholder="Ex: Française, Italienne, Asiatique"
-                            @bind="model.Area" />
+                            @bind="model.Area">
+                            <option value="">-- Sélectionnez une cuisine --</option>
+                            @foreach (var area in areas)
+                            {
+                                <option value="@area">@area</option>
+                            }
+                        </select>
+                        @if (isLoadingAreas)
+                        {
+                            <small class="text-muted d-block mt-1">
+                                <span class="spinner-border spinner-border-sm me-2"></span>Chargement...
+                            </small>
+                        }
                     </div>
 
                     @* Instructions (requis) *@
@@ -141,9 +162,25 @@ else
                         {
                             <div class="card border-light bg-light rounded-3 p-3 mb-3">
                                 <div class="d-flex align-items-center gap-3">
-                                    <img src="@model.ImageUrl" alt="Aperçu" style="max-height: 150px; max-width: 150px; object-fit: cover; border-radius: 8px;" />
+                                    <div style="position: relative;">
+                                        <img
+                                            src="@model.ImageUrl"
+                                            alt="Aperçu"
+                                            style="max-height: 150px; max-width: 150px; object-fit: cover; border-radius: 8px;"
+                                            @onerror="HandleImageError" />
+                                        @if (imageLoadFailed)
+                                        {
+                                            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,0,0,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                                <small class="text-danger fw-bold">Image invalide</small>
+                                            </div>
+                                        }
+                                    </div>
                                     <div>
                                         <p class="mb-2"><strong>Aperçu :</strong></p>
+                                        @if (imageLoadFailed)
+                                        {
+                                            <p class="text-danger small mb-2"><i class="bi bi-exclamation-triangle me-1"></i>L'URL est invalide ou non accessible</p>
+                                        }
                                         <button type="button" class="btn btn-sm btn-outline-danger" @onclick="ClearImage">
                                             <i class="bi bi-x-circle me-1"></i>Supprimer l'image
                                         </button>
@@ -274,10 +311,54 @@ else
     private bool isAuthenticated = false;
     private bool isCheckingAuth = true;
     private string? urlInput;
+    private List<string> categories = new();
+    private List<string> areas = new();
+    private bool isLoadingCategories = false;
+    private bool isLoadingAreas = false;
+    private bool imageLoadFailed = false;
 
     protected override async Task OnInitializedAsync()
     {
         await CheckAuthentication();
+        if (isAuthenticated)
+        {
+            await LoadCategories();
+            await LoadAreas();
+        }
+    }
+
+    private async Task LoadCategories()
+    {
+        try
+        {
+            isLoadingCategories = true;
+            categories = await RecipeService.GetCategoriesAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Erreur lors du chargement des catégories";
+        }
+        finally
+        {
+            isLoadingCategories = false;
+        }
+    }
+
+    private async Task LoadAreas()
+    {
+        try
+        {
+            isLoadingAreas = true;
+            areas = await RecipeService.GetAreasAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Erreur lors du chargement des régions";
+        }
+        finally
+        {
+            isLoadingAreas = false;
+        }
     }
 
     private async Task CheckAuthentication()
@@ -410,14 +491,30 @@ else
     {
         if (!string.IsNullOrWhiteSpace(url))
         {
-            model.ImageUrl = url;
-            errorMessage = null;
+            // Valider que c'est une URL valide
+            if (Uri.TryCreate(url, UriKind.Absolute, out var uriResult) &&
+                (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
+            {
+                model.ImageUrl = url;
+                errorMessage = null;
+                imageLoadFailed = false;
+            }
+            else
+            {
+                errorMessage = "L'URL n'est pas valide. Veuillez entrer une URL HTTP ou HTTPS complète";
+            }
         }
+    }
+
+    private void HandleImageError()
+    {
+        imageLoadFailed = true;
     }
 
     private void ClearImage()
     {
         model.ImageUrl = null;
         urlInput = null;
+        imageLoadFailed = false;
     }
 }
