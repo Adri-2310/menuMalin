@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.WebAssembly.Http;
+using Microsoft.JSInterop;
 
 namespace menuMalin.Services;
 
@@ -20,11 +21,13 @@ public class AuthService : IAuthService
 {
     private readonly HttpClient _httpClient;
     private readonly NavigationManager _navigationManager;
+    private readonly IJSRuntime _jsRuntime;
 
-    public AuthService(HttpClient httpClient, NavigationManager navigationManager)
+    public AuthService(HttpClient httpClient, NavigationManager navigationManager, IJSRuntime jsRuntime)
     {
         _httpClient = httpClient;
         _navigationManager = navigationManager;
+        _jsRuntime = jsRuntime;
     }
 
     public async Task<AuthUser?> GetCurrentUserAsync()
@@ -69,12 +72,15 @@ public class AuthService : IAuthService
             request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
             request.Content = new StringContent("");
             await _httpClient.SendAsync(request);
-            // Rediriger vers l'accueil après logout
-            _navigationManager.NavigateTo("/");
+
+            // Force un vrai rechargement complet du navigateur
+            // window.location.reload() recharge la page depuis le serveur, réinitialisant complètement Blazor
+            await _jsRuntime.InvokeVoidAsync("window.location.reload");
         }
         catch
         {
-            _navigationManager.NavigateTo("/");
+            // En cas d'erreur, forcer quand même le rechargement
+            await _jsRuntime.InvokeVoidAsync("window.location.reload");
         }
     }
 }

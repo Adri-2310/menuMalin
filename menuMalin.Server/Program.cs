@@ -80,6 +80,25 @@ builder.Services.AddAuthentication(options =>
     options.CorrelationCookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
     options.NonceCookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None;
     options.NonceCookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
+
+    // Gérer les erreurs d'authentification (ex: utilisateur refuse l'autorisation)
+    options.Events = new OpenIdConnectEvents
+    {
+        OnRemoteFailure = context =>
+        {
+            // Si l'utilisateur refuse l'autorisation, rediriger vers l'accueil
+            if (context.Failure?.Message?.Contains("access_denied") == true)
+            {
+                System.Console.WriteLine("⚠️ Utilisateur a refusé l'autorisation - redirection vers l'accueil");
+                context.Response.Redirect("https://localhost:7777/");
+                context.HandleResponse();
+                return System.Threading.Tasks.Task.CompletedTask;
+            }
+
+            // Pour les autres erreurs, les laisser se propager normalement
+            return System.Threading.Tasks.Task.CompletedTask;
+        }
+    };
 });
 
 // Ajouter OpenApi pour la documentation

@@ -48,6 +48,11 @@ public class EmailService : IEmailService
 
             var displayName = string.IsNullOrWhiteSpace(senderName) ? senderEmail : $"{senderName} ({senderEmail})";
 
+            // Log de debug pour vérifier la configuration lue depuis appsettings.json
+            _logger.LogDebug(
+                "Configuration SMTP chargée - Host: '{Host}', Port: {Port}, EnableSsl: {Ssl}, Username: '{Username}', FromEmail: '{FromEmail}', ToEmail: '{ToEmail}'",
+                host, port, enableSsl, username, fromEmail, toEmail);
+
             // Corps de l'email en HTML
             var emailBody = $"""
                 <html>
