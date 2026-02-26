@@ -33,7 +33,7 @@
             placeholder="Votre email"
             @bind="model.Email"
             required
-            disabled="@isUserConnected" />
+            readonly="@isUserConnected" />
         <small class="text-muted">@(isUserConnected ? "✓ Auto-rempli depuis votre compte" : "Nous répondrons à cet email")</small>
     </div>
 
@@ -48,7 +48,7 @@
                 id="name"
                 placeholder="Votre nom"
                 @bind="model.Name"
-                disabled />
+                readonly />
             <small class="text-muted">✓ Auto-rempli depuis votre compte</small>
         </div>
     }
@@ -156,8 +156,10 @@
 
             bool success = await ContactService.SendMessageAsync(
                 model.Email,
+                model.Name,
                 model.Subject,
-                model.Message
+                model.Message,
+                model.SubscribeNewsletter
             );
 
             if (success)

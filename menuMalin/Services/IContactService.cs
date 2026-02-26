@@ -8,5 +8,5 @@ public interface IContactService
     /// <summary>
     /// Envoie un message de contact
     /// </summary>
-    Task<bool> SendMessageAsync(string email, string subject, string message);
+    Task<bool> SendMessageAsync(string email, string? name, string subject, string message, bool subscribeNewsletter);
 }

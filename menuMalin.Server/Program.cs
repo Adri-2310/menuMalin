@@ -107,6 +107,9 @@ builder.Services.AddScoped<IRecipeService, RecipeService>();
 builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 builder.Services.AddScoped<IUserRecipeService, UserRecipeService>();
 
+// Enregistrer le Service Email (Singleton - thread-safe et réutilisable)
+builder.Services.AddSingleton<IEmailService, EmailService>();
+
 // Ajouter CORS si nécessaire (pour le frontend Blazor)
 builder.Services.AddCors(options =>
 {

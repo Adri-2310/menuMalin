@@ -17,13 +17,13 @@ public class EdgeCaseTests
         // Arrange
         var httpApiServiceMock = new Mock<IHttpApiService>();
         httpApiServiceMock
-            .Setup(x => x.PostAsync<object>(It.IsAny<string>(), It.IsAny<object>()))
-            .ReturnsAsync(new object());
+            .Setup(x => x.PostAsync<ContactService.ContactResponse>(It.IsAny<string>(), It.IsAny<object>()))
+            .ReturnsAsync(new ContactService.ContactResponse { Id = "1" });
 
         var contactService = new ContactService(httpApiServiceMock.Object);
 
         // Act
-        var result = await contactService.SendMessageAsync("", "Subject", "Message");
+        var result = await contactService.SendMessageAsync("", null, "Subject", "Message", false);
 
         // Assert
         result.Should().BeTrue(); // Service n'a pas de validation client
@@ -35,14 +35,14 @@ public class EdgeCaseTests
         // Arrange
         var httpApiServiceMock = new Mock<IHttpApiService>();
         httpApiServiceMock
-            .Setup(x => x.PostAsync<object>(It.IsAny<string>(), It.IsAny<object>()))
-            .ReturnsAsync(new object());
+            .Setup(x => x.PostAsync<ContactService.ContactResponse>(It.IsAny<string>(), It.IsAny<object>()))
+            .ReturnsAsync(new ContactService.ContactResponse { Id = "2" });
 
         var contactService = new ContactService(httpApiServiceMock.Object);
         var longMessage = new string('a', 5000); // 5000 caractères
 
         // Act
-        var result = await contactService.SendMessageAsync("user@example.com", "Long", longMessage);
+        var result = await contactService.SendMessageAsync("user@example.com", null, "Long", longMessage, false);
 
         // Assert
         result.Should().BeTrue();
@@ -54,16 +54,18 @@ public class EdgeCaseTests
         // Arrange
         var httpApiServiceMock = new Mock<IHttpApiService>();
         httpApiServiceMock
-            .Setup(x => x.PostAsync<object>(It.IsAny<string>(), It.IsAny<object>()))
-            .ReturnsAsync(new object());
+            .Setup(x => x.PostAsync<ContactService.ContactResponse>(It.IsAny<string>(), It.IsAny<object>()))
+            .ReturnsAsync(new ContactService.ContactResponse { Id = "3" });
 
         var contactService = new ContactService(httpApiServiceMock.Object);
 
         // Act
         var result = await contactService.SendMessageAsync(
             "user@example.com",
+            null,
             "Special: <>&\"'",
-            "Message with émojis 🎉 and ñ");
+            "Message with émojis 🎉 and ñ",
+            false);
 
         // Assert
         result.Should().BeTrue();
@@ -158,26 +160,26 @@ public class EdgeCaseTests
         var callCount = 0;
 
         httpApiServiceMock
-            .Setup(x => x.PostAsync<object>(It.IsAny<string>(), It.IsAny<object>()))
+            .Setup(x => x.PostAsync<ContactService.ContactResponse>(It.IsAny<string>(), It.IsAny<object>()))
             .Returns(() =>
             {
                 callCount++;
                 if (callCount == 1)
                     throw new HttpRequestException("Network error");
-                return Task.FromResult<object>(new object());
+                return Task.FromResult<ContactService.ContactResponse?>(new ContactService.ContactResponse { Id = "99" });
             });
 
         var contactService = new ContactService(httpApiServiceMock.Object);
 
         // Act - Premier appel échoue
-        var result1 = await contactService.SendMessageAsync("user@example.com", "Test", "Message");
+        var result1 = await contactService.SendMessageAsync("user@example.com", null, "Test", "Message", false);
 
         // Réinitialiser et deuxième tentative
         httpApiServiceMock
-            .Setup(x => x.PostAsync<object>(It.IsAny<string>(), It.IsAny<object>()))
-            .ReturnsAsync(new object());
+            .Setup(x => x.PostAsync<ContactService.ContactResponse>(It.IsAny<string>(), It.IsAny<object>()))
+            .ReturnsAsync(new ContactService.ContactResponse { Id = "100" });
 
-        var result2 = await contactService.SendMessageAsync("user@example.com", "Test", "Message");
+        var result2 = await contactService.SendMessageAsync("user@example.com", null, "Test", "Message", false);
 
         // Assert
         result1.Should().BeFalse(); // Premier appel échoue
@@ -225,13 +227,13 @@ public class EdgeCaseTests
         // Arrange
         var httpApiServiceMock = new Mock<IHttpApiService>();
         httpApiServiceMock
-            .Setup(x => x.PostAsync<object>(It.IsAny<string>(), It.IsAny<object>()))
+            .Setup(x => x.PostAsync<ContactService.ContactResponse>(It.IsAny<string>(), It.IsAny<object>()))
             .ThrowsAsync(new NullReferenceException("Unexpected null"));
 
         var contactService = new ContactService(httpApiServiceMock.Object);
 
         // Act
-        var result = await contactService.SendMessageAsync("user@example.com", "Test", "Message");
+        var result = await contactService.SendMessageAsync("user@example.com", null, "Test", "Message", false);
 
         // Assert
         result.Should().BeFalse(); // Service gère l'exception

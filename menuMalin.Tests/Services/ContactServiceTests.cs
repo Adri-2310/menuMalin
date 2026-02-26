@@ -25,11 +25,11 @@ public class ContactServiceTests
         string message = "Test message content";
 
         _httpApiServiceMock
-            .Setup(x => x.PostAsync<object>(It.IsAny<string>(), It.IsAny<object>()))
-            .ReturnsAsync(new object());
+            .Setup(x => x.PostAsync<ContactService.ContactResponse>(It.IsAny<string>(), It.IsAny<object>()))
+            .ReturnsAsync(new ContactService.ContactResponse { Id = "123" });
 
         // Act
-        var result = await _contactService.SendMessageAsync(email, subject, message);
+        var result = await _contactService.SendMessageAsync(email, null, subject, message, false);
 
         // Assert
         result.Should().BeTrue();
@@ -44,11 +44,11 @@ public class ContactServiceTests
         string message = "Test message content";
 
         _httpApiServiceMock
-            .Setup(x => x.PostAsync<object>(It.IsAny<string>(), It.IsAny<object>()))
+            .Setup(x => x.PostAsync<ContactService.ContactResponse>(It.IsAny<string>(), It.IsAny<object>()))
             .ThrowsAsync(new ArgumentException("Email cannot be empty"));
 
         // Act
-        var result = await _contactService.SendMessageAsync(email, subject, message);
+        var result = await _contactService.SendMessageAsync(email, null, subject, message, false);
 
         // Assert
         result.Should().BeFalse();
@@ -63,11 +63,11 @@ public class ContactServiceTests
         string message = "";
 
         _httpApiServiceMock
-            .Setup(x => x.PostAsync<object>(It.IsAny<string>(), It.IsAny<object>()))
+            .Setup(x => x.PostAsync<ContactService.ContactResponse>(It.IsAny<string>(), It.IsAny<object>()))
             .ThrowsAsync(new ArgumentException("Message cannot be empty"));
 
         // Act
-        var result = await _contactService.SendMessageAsync(email, subject, message);
+        var result = await _contactService.SendMessageAsync(email, null, subject, message, false);
 
         // Assert
         result.Should().BeFalse();
@@ -82,7 +82,7 @@ public class ContactServiceTests
         string message = "Test message content";
 
         // Act
-        Func<Task> act = async () => await _contactService.SendMessageAsync(email, subject, message);
+        Func<Task> act = async () => await _contactService.SendMessageAsync(email, null, subject, message, false);
 
         // Assert
         await act.Should().NotThrowAsync();
@@ -100,18 +100,18 @@ public class ContactServiceTests
         };
 
         _httpApiServiceMock
-            .Setup(x => x.PostAsync<object>(It.IsAny<string>(), It.IsAny<object>()))
-            .ReturnsAsync(new object());
+            .Setup(x => x.PostAsync<ContactService.ContactResponse>(It.IsAny<string>(), It.IsAny<object>()))
+            .ReturnsAsync(new ContactService.ContactResponse { Id = "456" });
 
         // Act & Assert
         foreach (var (email, subject, message) in messages)
         {
-            var result = await _contactService.SendMessageAsync(email, subject, message);
+            var result = await _contactService.SendMessageAsync(email, null, subject, message, false);
             result.Should().BeTrue();
         }
 
         _httpApiServiceMock.Verify(
-            x => x.PostAsync<object>(It.IsAny<string>(), It.IsAny<object>()),
+            x => x.PostAsync<ContactService.ContactResponse>(It.IsAny<string>(), It.IsAny<object>()),
             Times.Exactly(3));
     }
 }

@@ -78,7 +78,9 @@ public class AuthController : ControllerBase
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
             ?? User.FindFirst("sub")?.Value;
         var email = User.FindFirst(ClaimTypes.Email)?.Value;
-        var name = User.FindFirst(ClaimTypes.Name)?.Value;
+        var name = User.FindFirst(ClaimTypes.Name)?.Value
+            ?? User.FindFirst("name")?.Value
+            ?? User.FindFirst("nickname")?.Value;
         var picture = User.FindFirst("picture")?.Value;
 
         System.Console.WriteLine($"📍 /api/auth/me called - IsAuthenticated: {User.Identity?.IsAuthenticated}");

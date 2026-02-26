@@ -132,21 +132,23 @@ public class ServiceIntegrationTests
         var httpApiServiceMock = new Mock<IHttpApiService>();
 
         httpApiServiceMock
-            .Setup(x => x.PostAsync<object>(It.IsAny<string>(), It.IsAny<object>()))
-            .ReturnsAsync(new object());
+            .Setup(x => x.PostAsync<ContactService.ContactResponse>(It.IsAny<string>(), It.IsAny<object>()))
+            .ReturnsAsync(new ContactService.ContactResponse { Id = "1" });
 
         var contactService = new ContactService(httpApiServiceMock.Object);
 
         // Act
         var result = await contactService.SendMessageAsync(
             "user@example.com",
+            null,
             "Support",
-            "I need assistance");
+            "I need assistance",
+            false);
 
         // Assert
         result.Should().BeTrue();
         httpApiServiceMock.Verify(
-            x => x.PostAsync<object>(It.IsAny<string>(), It.IsAny<object>()),
+            x => x.PostAsync<ContactService.ContactResponse>(It.IsAny<string>(), It.IsAny<object>()),
             Times.Once);
     }
 
@@ -157,7 +159,7 @@ public class ServiceIntegrationTests
         var httpApiServiceMock = new Mock<IHttpApiService>();
 
         httpApiServiceMock
-            .Setup(x => x.PostAsync<object>(It.IsAny<string>(), It.IsAny<object>()))
+            .Setup(x => x.PostAsync<ContactService.ContactResponse>(It.IsAny<string>(), It.IsAny<object>()))
             .ThrowsAsync(new HttpRequestException("Network error"));
 
         var contactService = new ContactService(httpApiServiceMock.Object);
@@ -165,8 +167,10 @@ public class ServiceIntegrationTests
         // Act
         var result = await contactService.SendMessageAsync(
             "user@example.com",
+            null,
             "Error",
-            "Test");
+            "Test",
+            false);
 
         // Assert
         result.Should().BeFalse();
@@ -179,17 +183,17 @@ public class ServiceIntegrationTests
         var httpApiServiceMock = new Mock<IHttpApiService>();
 
         httpApiServiceMock
-            .Setup(x => x.PostAsync<object>("contact", It.IsAny<object>()))
-            .ReturnsAsync(new object());
+            .Setup(x => x.PostAsync<ContactService.ContactResponse>("contact", It.IsAny<object>()))
+            .ReturnsAsync(new ContactService.ContactResponse { Id = "2" });
 
         var contactService = new ContactService(httpApiServiceMock.Object);
 
         // Act
-        await contactService.SendMessageAsync("test@example.com", "Feedback", "Message");
+        await contactService.SendMessageAsync("test@example.com", null, "Feedback", "Message", false);
 
         // Assert
         httpApiServiceMock.Verify(
-            x => x.PostAsync<object>("contact", It.IsAny<object>()),
+            x => x.PostAsync<ContactService.ContactResponse>("contact", It.IsAny<object>()),
             Times.Once);
     }
 
@@ -216,8 +220,8 @@ public class ServiceIntegrationTests
             .Returns(ValueTask.CompletedTask);
 
         httpApiServiceMock
-            .Setup(x => x.PostAsync<object>(It.IsAny<string>(), It.IsAny<object>()))
-            .ReturnsAsync(new object());
+            .Setup(x => x.PostAsync<ContactService.ContactResponse>(It.IsAny<string>(), It.IsAny<object>()))
+            .ReturnsAsync(new ContactService.ContactResponse { Id = "3" });
 
         var favoriteService = new FavoriteService(localStorageMock.Object);
         var contactService = new ContactService(httpApiServiceMock.Object);
@@ -225,7 +229,7 @@ public class ServiceIntegrationTests
         // Act
         await favoriteService.AddFavoriteAsync(recipe);
         var isFavorite = await favoriteService.IsFavoriteAsync("789");
-        var messageSent = await contactService.SendMessageAsync("user@example.com", "Like", "Love this recipe!");
+        var messageSent = await contactService.SendMessageAsync("user@example.com", null, "Like", "Love this recipe!", false);
 
         // Assert
         isFavorite.Should().BeTrue();
@@ -234,7 +238,7 @@ public class ServiceIntegrationTests
             x => x.SetItemAsync(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CancellationToken>()),
             Times.Once);
         httpApiServiceMock.Verify(
-            x => x.PostAsync<object>(It.IsAny<string>(), It.IsAny<object>()),
+            x => x.PostAsync<ContactService.ContactResponse>(It.IsAny<string>(), It.IsAny<object>()),
             Times.Once);
     }
 

@@ -16,6 +16,11 @@ public class ContactMessage
     public string? UserId { get; set; }
 
     /// <summary>
+    /// Nom du contacteur
+    /// </summary>
+    public string? Name { get; set; }
+
+    /// <summary>
     /// Email du contacteur
     /// </summary>
     public string Email { get; set; } = string.Empty;
@@ -24,6 +29,11 @@ public class ContactMessage
     /// Sujet du message (Bug, Suggestion, Autre)
     /// </summary>
     public string Subject { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Consentement pour la newsletter
+    /// </summary>
+    public bool SubscribeNewsletter { get; set; } = false;
 
     /// <summary>
     /// Corps du message
