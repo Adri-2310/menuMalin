@@ -2,7 +2,10 @@
 @using menuMalin.Services
 @using menuMalin.Shared.Models.Dtos
 @using menuMalin.Shared.Models.Requests
+@using Microsoft.AspNetCore.Components.Forms
 @inject IUserRecipeService UserRecipeService
+@inject IRecipeService RecipeService
+@inject IUploadService UploadService
 @inject IAuthService AuthService
 @inject NavigationManager Nav
 @inject IJSRuntime JSRuntime
@@ -67,17 +70,125 @@ else
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Catégorie</label>
-                                <input type="text" class="form-control" @bind="recipe.Category" placeholder="Ex: Dessert, Plat principal..." />
+                                <select class="form-select" @bind="recipe.Category">
+                                    <option value="">-- Sélectionnez une catégorie --</option>
+                                    @foreach (var category in categories)
+                                    {
+                                        <option value="@category">@category</option>
+                                    }
+                                </select>
+                                @if (isLoadingCategories)
+                                {
+                                    <small class="text-muted d-block mt-1">
+                                        <span class="spinner-border spinner-border-sm me-2"></span>Chargement...
+                                    </small>
+                                }
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Pays / Région</label>
-                                <input type="text" class="form-control" @bind="recipe.Area" placeholder="Ex: Français, Italien..." />
+                                <select class="form-select" @bind="recipe.Area">
+                                    <option value="">-- Sélectionnez une région --</option>
+                                    @foreach (var area in areas)
+                                    {
+                                        <option value="@area">@area</option>
+                                    }
+                                </select>
+                                @if (isLoadingAreas)
+                                {
+                                    <small class="text-muted d-block mt-1">
+                                        <span class="spinner-border spinner-border-sm me-2"></span>Chargement...
+                                    </small>
+                                }
                             </div>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-bold">Instructions</label>
                             <textarea class="form-control" rows="6" @bind="recipe.Instructions"></textarea>
+                        </div>
+
+                        @* Image Management *@
+                        <div class="mb-4">
+                            <label class="form-label fw-bold mb-3">Image de la recette</label>
+
+                            @* Upload d'image *@
+                            <div class="mb-3">
+                                <label for="imageFile" class="form-label">Choisir une image depuis votre ordinateur</label>
+                                <InputFile
+                                    class="form-control form-control-lg shadow-sm rounded-3"
+                                    id="imageFile"
+                                    accept="image/*"
+                                    OnChange="HandleImageUpload" />
+                                <small class="text-muted d-block">Formats supportés : JPG, PNG, GIF, WebP (max 5MB)</small>
+                            </div>
+
+                            @* Aperçu de l'image *@
+                            @if (!string.IsNullOrEmpty(recipe?.ImageUrl))
+                            {
+                                <div class="card border-light bg-light rounded-3 p-3 mb-3">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div style="position: relative;">
+                                            <img
+                                                src="@recipe.ImageUrl"
+                                                alt="Aperçu"
+                                                style="max-height: 150px; max-width: 150px; object-fit: cover; border-radius: 8px;"
+                                                @onerror="HandleImageError" />
+                                            @if (imageLoadFailed)
+                                            {
+                                                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,0,0,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                                    <small class="text-danger fw-bold">Image invalide</small>
+                                                </div>
+                                            }
+                                        </div>
+                                        <div>
+                                            <p class="mb-2"><strong>Aperçu :</strong></p>
+                                            @if (imageLoadFailed)
+                                            {
+                                                <p class="text-danger small mb-2"><i class="bi bi-exclamation-triangle me-1"></i>L'URL est invalide ou non accessible</p>
+                                            }
+                                            <button type="button" class="btn btn-sm btn-outline-danger" @onclick="ClearImage">
+                                                <i class="bi bi-x-circle me-1"></i>Supprimer l'image
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="card border-light bg-light rounded-3 p-5 text-center text-muted mb-3">
+                                    <i class="bi bi-image" style="font-size: 2rem;"></i>
+                                    <p class="mt-2">Aucune image sélectionnée</p>
+                                </div>
+                            }
+
+                            @* Option : URL alternative *@
+                            <div class="accordion mb-3" id="urlAccordionEdit">
+                                <div class="accordion-item border-light">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#urlCollapseEdit">
+                                            <i class="bi bi-link-45deg me-2"></i>Ou entrer une URL d'image
+                                        </button>
+                                    </h2>
+                                    <div id="urlCollapseEdit" class="accordion-collapse collapse" data-bs-parent="#urlAccordionEdit">
+                                        <div class="accordion-body">
+                                            <div class="input-group">
+                                                <input
+                                                    type="url"
+                                                    class="form-control form-control-lg shadow-sm rounded-start-3"
+                                                    placeholder="https://example.com/image.jpg"
+                                                    @bind="urlInput" />
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-outline-primary rounded-end-3"
+                                                    @onclick="() => SetImageFromUrl(urlInput)">
+                                                    <i class="bi bi-check-lg me-1"></i>Appliquer
+                                                </button>
+                                            </div>
+                                            <small class="text-muted d-block mt-2">Collez l'URL d'une image publique</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="mb-4">
@@ -192,10 +303,19 @@ else
     private bool isSaving = false;
     private string? errorMessage;
     private string? successMessage;
+    private List<string> categories = new();
+    private List<string> areas = new();
+    private bool isLoadingCategories = false;
+    private bool isLoadingAreas = false;
+    private bool imageLoadFailed = false;
+    private string? urlInput;
+    private string? originalImageUrl;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadRecipe();
+        await LoadCategories();
+        await LoadAreas();
     }
 
     private async Task LoadRecipe()
@@ -214,6 +334,10 @@ else
             {
                 errorMessage = "Recette non trouvée";
             }
+            else
+            {
+                originalImageUrl = recipe.ImageUrl;
+            }
         }
         catch (Exception ex)
         {
@@ -223,6 +347,116 @@ else
         {
             isLoading = false;
         }
+    }
+
+    private async Task LoadCategories()
+    {
+        try
+        {
+            isLoadingCategories = true;
+            categories = await RecipeService.GetCategoriesAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Erreur lors du chargement des catégories";
+        }
+        finally
+        {
+            isLoadingCategories = false;
+        }
+    }
+
+    private async Task LoadAreas()
+    {
+        try
+        {
+            isLoadingAreas = true;
+            areas = await RecipeService.GetAreasAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Erreur lors du chargement des régions";
+        }
+        finally
+        {
+            isLoadingAreas = false;
+        }
+    }
+
+    private async Task HandleImageUpload(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            var file = e.File;
+
+            if (file != null)
+            {
+                // Vérifier la taille du fichier (max 5MB)
+                const long maxFileSize = 5 * 1024 * 1024; // 5MB
+                if (file.Size > maxFileSize)
+                {
+                    errorMessage = "L'image est trop grande (max 5MB)";
+                    return;
+                }
+
+                // Vérifier le type MIME
+                var validTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
+                if (!validTypes.Contains(file.ContentType))
+                {
+                    errorMessage = "Format d'image non supporté";
+                    return;
+                }
+
+                // Upload le fichier vers le serveur
+                var imageUrl = await UploadService.UploadImageAsync(file);
+
+                if (!string.IsNullOrEmpty(imageUrl))
+                {
+                    recipe!.ImageUrl = imageUrl;
+                    errorMessage = null;
+                    imageLoadFailed = false;
+                }
+                else
+                {
+                    errorMessage = "Erreur lors de l'upload de l'image";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur lors du chargement de l'image : {ex.Message}";
+        }
+    }
+
+    private void SetImageFromUrl(string? url)
+    {
+        if (!string.IsNullOrWhiteSpace(url))
+        {
+            // Valider que c'est une URL valide
+            if (Uri.TryCreate(url, UriKind.Absolute, out var uriResult) &&
+                (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
+            {
+                recipe!.ImageUrl = url;
+                errorMessage = null;
+                imageLoadFailed = false;
+            }
+            else
+            {
+                errorMessage = "L'URL n'est pas valide. Veuillez entrer une URL HTTP ou HTTPS complète";
+            }
+        }
+    }
+
+    private void HandleImageError()
+    {
+        imageLoadFailed = true;
+    }
+
+    private void ClearImage()
+    {
+        recipe!.ImageUrl = null;
+        urlInput = null;
+        imageLoadFailed = false;
     }
 
     private async Task SaveRecipe()
