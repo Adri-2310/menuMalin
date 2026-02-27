@@ -1,5 +1,5 @@
-﻿@using menuMalin.Models
 @using menuMalin.Services
+@using menuMalin.Shared.Models.Dtos
 @inject IFavoriteServiceFrontend FavoriteService
 @inject IAuthService AuthService
 @inject NavigationManager Nav
@@ -7,21 +7,21 @@
 <div class="card h-100 border-0 shadow-sm recipe-card transition-all">
     @* Image de la recette *@
     <div class="position-relative overflow-hidden rounded-4">
-        <img src="@Recipe.StrMealThumb" class="card-img-top hover-zoom" alt="@Recipe.StrMeal"
+        <img src="@Recipe.ImageUrl" class="card-img-top hover-zoom" alt="@Recipe.Title"
              onerror="this.src='images/placeholder.png'">
-        
+
         <div class="category-badge">
             <span class="badge rounded-pill bg-success-blur px-3 py-2">
-                @Recipe.StrCategory
+                @Recipe.Category
             </span>
         </div>
     </div>
 
     <div class="card-body px-2 py-3">
-        <h5 class="card-title fw-bold text-dark mb-3">@Recipe.StrMeal</h5>
-        
+        <h5 class="card-title fw-bold text-dark mb-3">@Recipe.Title</h5>
+
         <div class="d-flex justify-content-between align-items-center mt-auto">
-            <a href="/recipe/@Recipe.IdMeal" class="btn btn-sm btn-success rounded-pill px-4 fw-bold">
+            <a href="/recipe/@Recipe.RecipeId" class="btn btn-sm btn-success rounded-pill px-4 fw-bold">
                 Voir plus
             </a>
 
@@ -42,7 +42,7 @@
 
 @code {
     [Parameter]
-    public Recipe Recipe { get; set; } = new();
+    public RecipeDto Recipe { get; set; } = new();
 
     private bool isFavorite = false;
     private bool isToggling = false;
@@ -50,9 +50,9 @@
     // Au chargement du composant, on vérifie si c'est déjà un favori
     protected override async Task OnInitializedAsync()
     {
-        if (!string.IsNullOrEmpty(Recipe.IdMeal))
+        if (!string.IsNullOrEmpty(Recipe.RecipeId))
         {
-            isFavorite = await FavoriteService.IsFavoriteAsync(Recipe.IdMeal);
+            isFavorite = await FavoriteService.IsFavoriteAsync(Recipe.RecipeId);
         }
     }
 
@@ -73,13 +73,13 @@
             if (isFavorite)
             {
                 // On retire
-                await FavoriteService.RemoveFavoriteAsync(Recipe.IdMeal);
+                await FavoriteService.RemoveFavoriteAsync(Recipe.RecipeId);
                 isFavorite = false;
             }
             else
             {
                 // On ajoute
-                await FavoriteService.AddFavoriteAsync(Recipe.IdMeal);
+                await FavoriteService.AddFavoriteAsync(Recipe.RecipeId);
                 isFavorite = true;
             }
         }

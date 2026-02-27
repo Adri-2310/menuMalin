@@ -53,7 +53,6 @@ builder.Services.AddHttpClient<IAuthService, AuthService>(client =>
 });
 
 // Services métier (Frontend)
-builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 builder.Services.AddScoped<IContactService, ContactService>();
 builder.Services.AddScoped<IRecipeServiceFrontend, RecipeServiceFrontend>();
 builder.Services.AddScoped<IFavoriteServiceFrontend, FavoriteServiceFrontend>();

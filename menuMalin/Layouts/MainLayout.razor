@@ -36,9 +36,12 @@
                         <NavLink class="nav-link px-3" href="create-recipe">Créer une Recette</NavLink>
                     </li>
                 }
-                <li class="nav-item">
-                    <NavLink class="nav-link px-3" href="public-recipes">Recettes Partagées</NavLink>
-                </li>
+                @if (isAuthenticated)
+                {
+                    <li class="nav-item">
+                        <NavLink class="nav-link px-3" href="public-recipes">Recettes Partagées</NavLink>
+                    </li>
+                }
                 <li class="nav-item">
                     <NavLink class="nav-link px-3" href="contact">Nous contacter</NavLink>
                 </li>

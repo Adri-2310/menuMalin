@@ -62,6 +62,26 @@
     }
 </style>
 
+@if (isCheckingAuth)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-success" role="status"></div>
+        <p class="mt-2 text-muted">Vérification de l'authentification...</p>
+    </div>
+}
+else if (!isAuthenticated)
+{
+    <div class="container mt-4 mb-5">
+        <div class="alert alert-warning text-center rounded-4 py-5" role="alert">
+            <i class="bi bi-lock-fill me-2" style="font-size: 2rem;"></i>
+            <h3 class="mt-3">Accès réservé</h3>
+            <p class="text-muted mb-4">Vous devez être connecté pour découvrir les recettes partagées de la communauté.</p>
+            <a href="/" class="btn btn-success btn-lg rounded-pill px-5">Se connecter</a>
+        </div>
+    </div>
+}
+else
+{
 <div class="container mt-4 mb-5 animate-fade-in">
     @* Bouton Retour *@
     <button class="btn btn-link text-dark text-decoration-none mb-4 ps-0" @onclick="GoBack">
@@ -171,16 +191,26 @@
         </div>
     }
 </div>
+}
 
 @code {
     private List<UserRecipeDto>? recipes;
     private bool isLoading = true;
+    private bool isAuthenticated = false;
+    private bool isCheckingAuth = true;
     private AuthUser? currentUser;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadRecipes();
         await CheckAuthentication();
+        if (isAuthenticated)
+        {
+            await LoadRecipes();
+        }
+        else
+        {
+            isLoading = false;
+        }
     }
 
     private async Task LoadRecipes()
@@ -204,10 +234,16 @@
         try
         {
             currentUser = await AuthService.GetCurrentUserAsync();
+            isAuthenticated = currentUser?.IsAuthenticated ?? false;
         }
         catch
         {
+            isAuthenticated = false;
             currentUser = null;
+        }
+        finally
+        {
+            isCheckingAuth = false;
         }
     }
 

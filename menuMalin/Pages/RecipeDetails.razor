@@ -2,7 +2,7 @@
 @using menuMalin.Models
 @using menuMalin.Services
 @inject IRecipeService RecipeService
-@inject IFavoriteService FavoriteService
+@inject IFavoriteServiceFrontend FavoriteService
 @inject NavigationManager Nav
 
 <PageTitle>@(recipe?.StrMeal ?? "Recette") - menuMalin</PageTitle>
@@ -160,7 +160,7 @@
         if (isFavorite)
             await FavoriteService.RemoveFavoriteAsync(recipe.IdMeal);
         else
-            await FavoriteService.AddFavoriteAsync(recipe);
+            await FavoriteService.AddFavoriteAsync(recipe.IdMeal);
 
         isFavorite = !isFavorite;
     }

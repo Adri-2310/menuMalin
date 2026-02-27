@@ -1,0 +1,166 @@
+@using menuMalin.Shared.Models.Dtos
+
+@if (Recipes == null || !Recipes.Any())
+{
+    <div class="alert alert-info text-center rounded-4" role="alert">
+        <i class="bi bi-info-circle me-2"></i>
+        Aucune recette à afficher
+    </div>
+}
+else
+{
+    @* AFFICHAGE DE LA GRILLE *@
+    <div class="row row-cols-1 row-cols-md-3 row-cols-xl-4 g-4 mb-5">
+        @foreach (var recipe in GetPaginatedRecipes())
+        {
+            <div class="col">
+                <RecipeCardDto Recipe="recipe" />
+            </div>
+        }
+    </div>
+
+    @* COMPTEUR DE RÉSULTATS *@
+    @if (Recipes!.Count > 0)
+    {
+        <p class="text-muted small text-center mb-4">
+            Affichage @PageStart–@PageEnd sur @Recipes.Count recettes
+        </p>
+    }
+
+    @* PAGINATION *@
+    @if (TotalPages > 1)
+    {
+        <nav aria-label="Pagination" class="d-flex justify-content-center">
+            <ul class="pagination flex-wrap">
+                <li class="page-item @(CurrentPage == 1 ? "disabled" : "")">
+                    <button class="page-link" @onclick="PreviousPage" disabled="@(CurrentPage == 1)">
+                        <i class="bi bi-chevron-left me-1"></i>Précédent
+                    </button>
+                </li>
+
+                @foreach (var pageNum in GetPaginationPages())
+                {
+                    if (pageNum == -1)
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    }
+                    else
+                    {
+                        var p = pageNum;
+                        <li class="page-item @(CurrentPage == p ? "active" : "")">
+                            <button class="page-link" @onclick="@(() => GoToPage(p))">
+                                @p
+                            </button>
+                        </li>
+                    }
+                }
+
+                <li class="page-item @(CurrentPage == TotalPages ? "disabled" : "")">
+                    <button class="page-link" @onclick="NextPage" disabled="@(CurrentPage == TotalPages)">
+                        Suivant<i class="bi bi-chevron-right ms-1"></i>
+                    </button>
+                </li>
+            </ul>
+        </nav>
+    }
+}
+
+@code {
+    private const int ITEMS_PER_PAGE = 6;
+
+    [Parameter]
+    public List<RecipeDto>? Recipes { get; set; }
+
+    private int CurrentPage { get; set; } = 1;
+
+    private int TotalPages => Recipes == null ? 0 : (int)Math.Ceiling((double)Recipes.Count / ITEMS_PER_PAGE);
+
+    private int PageStart => (CurrentPage - 1) * ITEMS_PER_PAGE + 1;
+    private int PageEnd => Math.Min(CurrentPage * ITEMS_PER_PAGE, Recipes?.Count ?? 0);
+
+    protected override void OnParametersSet()
+    {
+        // Reset pagination quand les recettes changent
+        CurrentPage = 1;
+    }
+
+    private List<RecipeDto> GetPaginatedRecipes()
+    {
+        if (Recipes == null) return new List<RecipeDto>();
+
+        var startIndex = (CurrentPage - 1) * ITEMS_PER_PAGE;
+        return Recipes.Skip(startIndex).Take(ITEMS_PER_PAGE).ToList();
+    }
+
+    private List<int> GetPaginationPages()
+    {
+        var pages = new List<int>();
+
+        if (TotalPages <= 7)
+        {
+            // Si 7 pages ou moins, afficher tous les boutons
+            for (int i = 1; i <= TotalPages; i++)
+            {
+                pages.Add(i);
+            }
+        }
+        else
+        {
+            // Toujours afficher la première page
+            pages.Add(1);
+
+            // Déterminer la plage autour de la page actuelle
+            int start = Math.Max(2, CurrentPage - 1);
+            int end = Math.Min(TotalPages - 1, CurrentPage + 1);
+
+            // Ajouter "..." si nécessaire entre 1 et start
+            if (start > 2)
+            {
+                pages.Add(-1); // -1 représente "..."
+            }
+
+            // Ajouter les pages autour de la page actuelle
+            for (int i = start; i <= end; i++)
+            {
+                pages.Add(i);
+            }
+
+            // Ajouter "..." si nécessaire entre end et TotalPages
+            if (end < TotalPages - 1)
+            {
+                pages.Add(-1); // -1 représente "..."
+            }
+
+            // Toujours afficher la dernière page
+            pages.Add(TotalPages);
+        }
+
+        return pages;
+    }
+
+    private void NextPage()
+    {
+        if (CurrentPage < TotalPages)
+        {
+            CurrentPage++;
+        }
+    }
+
+    private void PreviousPage()
+    {
+        if (CurrentPage > 1)
+        {
+            CurrentPage--;
+        }
+    }
+
+    private void GoToPage(int pageNum)
+    {
+        if (pageNum >= 1 && pageNum <= TotalPages)
+        {
+            CurrentPage = pageNum;
+        }
+    }
+}
