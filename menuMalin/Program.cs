@@ -23,7 +23,7 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 // 2. Client HTTP pour l'API Backend (avec credentials pour cookies)
 builder.Services.AddHttpClient<IHttpApiService, HttpApiService>(client =>
 {
-    client.BaseAddress = new Uri("https://localhost:7057/api/");
+    client.BaseAddress = new Uri($"{backendUrl}/api/");
     client.Timeout = TimeSpan.FromSeconds(30);
 })
 .ConfigureHttpClient(client =>
