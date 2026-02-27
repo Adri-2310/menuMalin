@@ -125,17 +125,76 @@ builder.Services.AddAuthentication(options =>
         },
         OnTicketReceived = context =>
         {
-            // Après l'authentification réussie, redirige vers le frontend
-            // Ignorer le returnUrl et toujours aller vers le frontend
-            var returnUrl = context.Properties?.RedirectUri ?? "/";
+            // Après l'authentification réussie, rediriger vers le frontend
+            // Retourner une page HTML avec un délai au lieu de rediriger directement
+            // Cela donne au navigateur le temps d'établir le cookie cross-origin
+            System.Console.WriteLine($"✅ Authentification réussie - Redirection vers le frontend");
 
-            // Si returnUrl est "/" (relatif au backend), rediriger vers le frontend
-            if (returnUrl == "/" || returnUrl == "")
-            {
-                context.Properties!.RedirectUri = "https://localhost:7777/";
-            }
+            var html = @"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>Authentification...</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #2d6a4f 0%, #40916c 100%);
+        }
+        .container {
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2d6a4f;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        h1 {
+            color: #2d6a4f;
+            margin: 0;
+            font-size: 24px;
+        }
+        p {
+            color: #666;
+            margin: 10px 0 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='spinner'></div>
+        <h1>Authentification réussie</h1>
+        <p>Redirection en cours...</p>
+    </div>
+    <script>
+        setTimeout(function() {
+            window.location.href = 'https://localhost:7777/';
+        }, 1500);
+    </script>
+</body>
+</html>";
 
-            System.Console.WriteLine($"✅ Authentification réussie - Redirection vers: {context.Properties!.RedirectUri}");
+            context.HttpContext.Response.ContentType = "text/html";
+            context.HttpContext.Response.WriteAsync(html);
+            context.HandleResponse();
             return System.Threading.Tasks.Task.CompletedTask;
         }
     };
