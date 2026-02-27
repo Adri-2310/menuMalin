@@ -237,9 +237,7 @@ public class UserRecipeService : IUserRecipeService
         if (IPAddress.TryParse(uri.Host, out var ipAddress))
         {
             // Bloquer les adresses privées et réservées
-            if (ipAddress.IsLoopback || // 127.x.x.x
-                ipAddress.IsPrivate || // 10.x.x.x, 172.16-31.x.x, 192.168.x.x
-                IsReservedAddress(ipAddress)) // 169.254.x.x, 0.x.x.x, etc.
+            if (IsPrivateOrReservedAddress(ipAddress))
             {
                 throw new ArgumentException("Les adresses IP privées ou réservées ne sont pas autorisées");
             }
@@ -247,16 +245,44 @@ public class UserRecipeService : IUserRecipeService
     }
 
     /// <summary>
-    /// Vérifie si une adresse IP est réservée (169.254.x.x, etc.)
+    /// Vérifie si une adresse IP est privée ou réservée
     /// </summary>
-    private static bool IsReservedAddress(IPAddress address)
+    private static bool IsPrivateOrReservedAddress(IPAddress address)
     {
-        // 169.254.x.x (APIPA)
         if (address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
         {
             var bytes = address.GetAddressBytes();
-            return bytes[0] == 169 && bytes[1] == 254; // 169.254.x.x
+
+            // 10.0.0.0/8
+            if (bytes[0] == 10)
+                return true;
+
+            // 172.16.0.0/12
+            if (bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31)
+                return true;
+
+            // 192.168.0.0/16
+            if (bytes[0] == 192 && bytes[1] == 168)
+                return true;
+
+            // 169.254.0.0/16 (APIPA)
+            if (bytes[0] == 169 && bytes[1] == 254)
+                return true;
+
+            // 0.0.0.0/8
+            if (bytes[0] == 0)
+                return true;
+
+            // 127.0.0.0/8 (already covered by IsLoopback)
+            // 224.0.0.0/4 (Multicast)
+            if (bytes[0] >= 224 && bytes[0] <= 239)
+                return true;
+
+            // 240.0.0.0/4 (Reserved)
+            if (bytes[0] >= 240)
+                return true;
         }
+
         return false;
     }
 

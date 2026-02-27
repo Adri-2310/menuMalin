@@ -280,22 +280,35 @@ else
 
             @* Priorité: si recherche texte → chercher par texte
                  Sinon: filtrer par catégorie ou zone *@
+            List<RecipeDto> recipeResults = null;
+
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                recipes = await RecipeService.SearchRecipesAsync(searchTerm);
+                recipeResults = await RecipeService.SearchRecipesAsync(searchTerm);
             }
             else if (!string.IsNullOrWhiteSpace(selectedCategory))
             {
-                recipes = await RecipeService.SearchByCategoryAsync(selectedCategory);
+                recipeResults = await RecipeService.FilterByCategoryAsync(selectedCategory);
             }
             else if (!string.IsNullOrWhiteSpace(selectedArea))
             {
-                recipes = await RecipeService.SearchByAreaAsync(selectedArea);
+                recipeResults = await RecipeService.FilterByAreaAsync(selectedArea);
             }
 
-            if (recipes == null || !recipes.Any())
+            if (recipeResults == null || !recipeResults.Any())
             {
                 recipes = new List<Recipe>();
+            }
+            else
+            {
+                // Convertir RecipeDto en Recipe pour compatibilité avec RecipeGrid
+                recipes = recipeResults.Select(r => new Recipe
+                {
+                    IdMeal = r.MealDBId,
+                    StrMeal = r.Title,
+                    StrMealThumb = r.ImageUrl,
+                    StrCategory = r.Category
+                }).ToList();
             }
         }
         catch (Exception ex)

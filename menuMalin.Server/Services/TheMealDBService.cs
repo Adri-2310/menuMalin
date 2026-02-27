@@ -77,7 +77,7 @@ public class TheMealDBService : ITheMealDBService
         }
         catch (Exception ex)
         {
-            // Logged in development
+            _logger.LogError(ex, "Erreur lors de la récupération d'une recette depuis TheMealDB");
             return null;
         }
     }

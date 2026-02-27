@@ -198,7 +198,7 @@ public class UserRecipesController : ControllerBase
         {
             return BadRequest(ex.Message);
         }
-        catch (UnauthorizedAccessException ex)
+        catch (UnauthorizedAccessException)
         {
             return Forbid();  // 403 Forbidden
         }
