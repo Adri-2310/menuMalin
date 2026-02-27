@@ -94,20 +94,14 @@ public class ContactController : ControllerBase
         _logger.LogDebug("POST /api/contact - UserId depuis le cookie: {UserId}", userId ?? "anonyme");
 
         // Vérifier que l'utilisateur existe en base de données (évite violation FK)
-        // Si l'utilisateur n'existe pas, on laisse UserId = null (contact anonyme)
-        // IMPORTANT: on doit stocker le UserId (PK UUID), pas le Auth0Id (claim JWT)
+        // Le userId vient du claim NameIdentifier et est déjà le UserId (UUID)
         if (!string.IsNullOrEmpty(userId))
         {
-            var dbUser = await _context.Users.FirstOrDefaultAsync(u => u.Auth0Id == userId);
+            var dbUser = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
             if (dbUser == null)
             {
                 _logger.LogDebug("POST /api/contact - userId {UserId} non trouvé en DB, contact anonyme", userId);
                 userId = null;
-            }
-            else
-            {
-                // Remplacer le Auth0Id par le UserId (PK UUID) pour la FK ContactMessages.UserId -> Users.UserId
-                userId = dbUser.UserId;
             }
         }
 

@@ -8,16 +8,16 @@ namespace menuMalin.Server.Services;
 public interface IUserService
 {
     /// <summary>
-    /// Récupère ou crée un utilisateur basé sur ses informations Auth0
+    /// Récupère ou crée un utilisateur basé sur son email
     /// </summary>
-    /// <param name="auth0Id">L'identifiant Auth0 (ex: "auth0|123456")</param>
-    /// <param name="email">L'email de l'utilisateur</param>
+    /// <param name="emailOrUserId">L'email ou identifiant de l'utilisateur</param>
+    /// <param name="email">L'email de l'utilisateur (optionnel)</param>
     /// <param name="name">Le nom de l'utilisateur (optionnel)</param>
     /// <returns>L'utilisateur créé ou récupéré</returns>
-    Task<User> GetOrCreateUserAsync(string auth0Id, string? email = null, string? name = null);
+    Task<User> GetOrCreateUserAsync(string emailOrUserId, string? email = null, string? name = null);
 
     /// <summary>
-    /// Récupère un utilisateur par son Auth0Id
+    /// Récupère un utilisateur par son UserId (backward compatibility)
     /// </summary>
-    Task<User?> GetUserByAuth0IdAsync(string auth0Id);
+    Task<User?> GetUserByAuth0IdAsync(string userIdOrAuth0Id);
 }

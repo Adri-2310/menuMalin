@@ -7,9 +7,9 @@ je # 📊 PROGRESSION DE REFACTORISATION - menuMalin
 
 ## 📈 RÉSUMÉ GÉNÉRAL
 
-**Étapes complétées**: 8/40 (20%)
-**Phase actuelle**: ✅ PHASE 1 TERMINÉE! → Commençons Phase 2
-**Durée estimée restante**: ~3.5 heures
+**Étapes complétées**: 14/40 (35%)
+**Phase actuelle**: ✅ PHASE 2 TERMINÉE! → Commençons Phase 3
+**Durée estimée restante**: ~2.5 heures
 
 ---
 
@@ -55,18 +55,18 @@ je # 📊 PROGRESSION DE REFACTORISATION - menuMalin
 
 ---
 
-## 🔐 PHASE 2: INFRASTRUCTURE D'AUTHENTIFICATION (Étapes 9-14)
+## ✅ PHASE 2: INFRASTRUCTURE D'AUTHENTIFICATION (Étapes 9-14)
 
-**État**: ⏳ Prêt à commencer
-**Durée estimée**: 1-2 heures
-**Risque**: ⚠️ Moyen
+**État**: ✅ TERMINÉE!
+**Durée réelle**: ~1.5 heures
+**Risque**: ✅ Aucun problème
 
-- [ ] **Étape 9**: Vérifier modèle `User.cs` (Id, Email, Name existants)
-- [ ] **Étape 10**: Mettre à jour `AuthController.cs` (ajouter endpoint POST `/api/auth/login` vide)
-- [ ] **Étape 11**: Implémenter logique d'authentification (login/logout dans AuthController)
-- [ ] **Étape 12**: Vérifier `UserService.GetOrCreateUserAsync()` existe
-- [ ] **Étape 13**: (OPTIONNEL) Ajouter hachage password (PasswordHash, PasswordSalt)
-- [ ] **Étape 14**: Vérifier middleware auth dans `Program.cs` (`UseAuthentication`, `UseAuthorization`)
+- [x] **Étape 9**: Vérifier modèle `User.cs` (ajouté Name, supprimé Auth0Id)
+- [x] **Étape 10**: Mettre à jour `AuthController.cs` (endpoints login/logout/me)
+- [x] **Étape 11**: Implémenter logique d'authentification (email/password → cookie)
+- [x] **Étape 12**: Adapter `UserService.GetOrCreateUserAsync()` (email au lieu d'Auth0Id)
+- [x] **Étape 13**: (OPTIONNEL) Pas encore implémenté (dev accepte tous les credentials)
+- [x] **Étape 14**: Middleware auth OK dans `Program.cs`
 
 **Détails Étape 11**:
 - [ ] Endpoint POST `/api/auth/login` (email, password)

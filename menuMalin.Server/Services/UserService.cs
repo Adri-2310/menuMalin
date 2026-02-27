@@ -15,10 +15,13 @@ public class UserService : IUserService
         _userRepository = userRepository;
     }
 
-    public async Task<User> GetOrCreateUserAsync(string auth0Id, string? email = null, string? name = null)
+    public async Task<User> GetOrCreateUserAsync(string emailOrUserId, string? email = null, string? name = null)
     {
-        // Essayer de récupérer l'utilisateur existant
-        var existingUser = await _userRepository.GetByAuth0IdAsync(auth0Id);
+        // Pour l'authentification simple, on utilise l'email comme identifiant unique
+        var userEmail = email ?? emailOrUserId;
+
+        // Essayer de récupérer l'utilisateur existant par email
+        var existingUser = await _userRepository.GetByEmailAsync(userEmail);
         if (existingUser != null)
         {
             return existingUser;
@@ -28,12 +31,12 @@ public class UserService : IUserService
         var newUser = new User
         {
             UserId = Guid.NewGuid().ToString("N"),
-            Auth0Id = auth0Id,
-            Email = email ?? string.Empty,
+            Email = userEmail,
+            Name = name ?? userEmail.Split("@")[0],
             CreatedAt = DateTime.UtcNow
         };
 
-        System.Console.WriteLine($"👤 Création d'un nouvel utilisateur: {auth0Id}");
+        System.Console.WriteLine($"👤 Création d'un nouvel utilisateur: {userEmail}");
 
         try
         {
@@ -43,8 +46,8 @@ public class UserService : IUserService
         {
             // Race condition : un autre thread/requête a créé l'utilisateur en même temps
             // Récupérer l'utilisateur qui a été créé
-            System.Console.WriteLine($"⚠️ Race condition détectée pour {auth0Id}, récupération de l'utilisateur créé");
-            var raceCreatedUser = await _userRepository.GetByAuth0IdAsync(auth0Id);
+            System.Console.WriteLine($"⚠️ Race condition détectée pour {userEmail}, récupération de l'utilisateur créé");
+            var raceCreatedUser = await _userRepository.GetByEmailAsync(userEmail);
             if (raceCreatedUser != null)
             {
                 return raceCreatedUser;
@@ -53,8 +56,9 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<User?> GetUserByAuth0IdAsync(string auth0Id)
+    public async Task<User?> GetUserByAuth0IdAsync(string userIdOrAuth0Id)
     {
-        return await _userRepository.GetByAuth0IdAsync(auth0Id);
+        // Backward compatibility: traiter comme UserId
+        return await _userRepository.GetByUserIdAsync(userIdOrAuth0Id);
     }
 }

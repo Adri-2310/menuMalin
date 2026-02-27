@@ -1,9 +1,8 @@
 namespace menuMalin.Server.Models.Entities;
 
 /// <summary>
-/// Représente un utilisateur mappé à Auth0
-/// Architecture Hybrid: Le profil complet (Name, Picture) est stocké dans localStorage client
-/// Cette entité stocke seulement les données critiques pour les relations (Auth0Id, Email)
+/// Représente un utilisateur de l'application
+/// Architecture simple: Authentification par email + password (stockés en base)
 /// </summary>
 public class User
 {
@@ -13,14 +12,14 @@ public class User
     public string UserId { get; set; } = string.Empty;
 
     /// <summary>
-    /// Identifiant unique Auth0 (ex: "auth0|123456789")
-    /// </summary>
-    public string Auth0Id { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Email de l'utilisateur (pour référence et récupération de compte)
+    /// Email de l'utilisateur (identifiant de connexion unique)
     /// </summary>
     public string Email { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Nom de l'utilisateur (affiché dans l'interface)
+    /// </summary>
+    public string? Name { get; set; }
 
     /// <summary>
     /// Date de création du compte

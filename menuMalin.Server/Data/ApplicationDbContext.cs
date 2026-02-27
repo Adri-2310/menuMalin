@@ -29,11 +29,10 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.UserId);
             entity.Property(e => e.UserId).HasColumnType("varchar(36)");
-            entity.Property(e => e.Auth0Id).HasMaxLength(255).IsRequired();
             entity.Property(e => e.Email).HasMaxLength(255).IsRequired();
+            entity.Property(e => e.Name).HasMaxLength(255);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
 
-            entity.HasIndex(e => e.Auth0Id).IsUnique();
             entity.HasIndex(e => e.Email).IsUnique();
 
             // Relations

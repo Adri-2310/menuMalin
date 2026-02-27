@@ -8,9 +8,9 @@ namespace menuMalin.Server.Repositories;
 public interface IUserRepository
 {
     /// <summary>
-    /// Récupère un utilisateur par son Auth0Id
+    /// Récupère un utilisateur par son email
     /// </summary>
-    Task<User?> GetByAuth0IdAsync(string auth0Id);
+    Task<User?> GetByEmailAsync(string email);
 
     /// <summary>
     /// Récupère un utilisateur par son UserId (UUID)

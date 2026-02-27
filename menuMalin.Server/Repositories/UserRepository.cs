@@ -16,10 +16,17 @@ public class UserRepository : IUserRepository
         _context = context;
     }
 
-    public async Task<User?> GetByAuth0IdAsync(string auth0Id)
+    public async Task<User?> GetByEmailAsync(string email)
     {
         return await _context.Users
-            .FirstOrDefaultAsync(u => u.Auth0Id == auth0Id);
+            .FirstOrDefaultAsync(u => u.Email == email);
+    }
+
+    // Backward compatibility alias
+    public async Task<User?> GetByAuth0IdAsync(string auth0IdOrUserId)
+    {
+        // Traiter comme UserId (maintenant que Auth0Id n'existe plus)
+        return await GetByUserIdAsync(auth0IdOrUserId);
     }
 
     public async Task<User?> GetByUserIdAsync(string userId)
