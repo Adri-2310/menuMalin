@@ -55,7 +55,7 @@ builder.Services.AddHttpClient<IAuthService, AuthService>(client =>
 builder.Services.AddScoped<IContactService, ContactService>();
 builder.Services.AddHttpClient<IRecipeService, RecipeService>(client =>
 {
-    client.BaseAddress = new Uri("https://www.themealdb.com/api/json/v1/1/");
+    client.BaseAddress = new Uri($"{backendUrl}/api/");
     client.Timeout = TimeSpan.FromSeconds(30);
 });
 builder.Services.AddScoped<IRecipeServiceFrontend, RecipeServiceFrontend>();
