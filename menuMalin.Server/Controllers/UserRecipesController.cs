@@ -11,7 +11,6 @@ namespace menuMalin.Server.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class UserRecipesController : ControllerBase
 {
     private readonly IUserRecipeService _userRecipeService;

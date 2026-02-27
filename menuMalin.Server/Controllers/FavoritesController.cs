@@ -6,12 +6,11 @@ using menuMalin.Server.Services;
 namespace menuMalin.Server.Controllers;
 
 /// <summary>
-/// Contrôleur pour les favoris (protégé par Auth0)
-/// Toutes les routes nécessitent une authentification JWT valide
+/// Contrôleur pour les favoris
+/// Toutes les routes nécessitent une authentification cookie valide
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class FavoritesController : ControllerBase
 {
     private readonly IFavoriteService _favoriteService;

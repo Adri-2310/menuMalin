@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Security.Claims;
 
 namespace menuMalin.Server.Controllers;
 
@@ -9,7 +10,6 @@ namespace menuMalin.Server.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class UploadController : ControllerBase
 {
     private readonly IWebHostEnvironment _hostEnvironment;
@@ -22,11 +22,17 @@ public class UploadController : ControllerBase
     }
 
     /// <summary>
-    /// Upload une image de recette
+    /// Upload une image de recette (authentifié)
     /// </summary>
     [HttpPost("recipe-image")]
     public async Task<IActionResult> UploadRecipeImage(IFormFile file)
     {
+        // Vérifier l'authentification
+        if (!User.Identity?.IsAuthenticated ?? false)
+        {
+            return Unauthorized(new { error = "Authentication required" });
+        }
+
         try
         {
             // Vérifier que le fichier n'est pas null
