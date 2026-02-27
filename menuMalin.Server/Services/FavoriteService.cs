@@ -15,6 +15,7 @@ public class FavoriteService : IFavoriteService
     private readonly IFavoriteRepository _favoriteRepository;
     private readonly IRecipeService _recipeService;
     private readonly IRecipeRepository _recipeRepository;
+    private readonly ITheMealDBService _theMealDBService;
 
     /// <summary>
     /// Initialise une nouvelle instance de FavoriteService
@@ -22,11 +23,13 @@ public class FavoriteService : IFavoriteService
     /// <param name="favoriteRepository">Le repository des favoris</param>
     /// <param name="recipeService">Le service des recettes</param>
     /// <param name="recipeRepository">Le repository des recettes</param>
-    public FavoriteService(IFavoriteRepository favoriteRepository, IRecipeService recipeService, IRecipeRepository recipeRepository)
+    /// <param name="theMealDBService">Le service TheMealDB pour récupérer les données externes</param>
+    public FavoriteService(IFavoriteRepository favoriteRepository, IRecipeService recipeService, IRecipeRepository recipeRepository, ITheMealDBService theMealDBService)
     {
         _favoriteRepository = favoriteRepository;
         _recipeService = recipeService;
         _recipeRepository = recipeRepository;
+        _theMealDBService = theMealDBService;
     }
 
     /// <summary>
@@ -38,43 +41,73 @@ public class FavoriteService : IFavoriteService
     /// <exception cref="InvalidOperationException">Levée si la recette n'existe pas</exception>
     public async Task<RecipeDto> AddFavoriteAsync(string userId, string recipeId)
     {
-        // Vérifier si la recette existe déjà
-        var recipeExists = await _recipeRepository.GetByIdAsync(recipeId);
+        // Chercher si la recette existe déjà par MealDBId (recipeId est le MealDBId)
+        var recipeExists = await _recipeRepository.GetByMealDbIdAsync(recipeId);
 
+        // Si elle n'existe pas, essayer de la récupérer depuis TheMealDB et la créer
         if (recipeExists == null)
         {
-            // Créer une recette placeholder pour les recettes externes (TheMealDB, etc.)
-            var placeholderRecipe = new Recipe
+            var theMealData = await _theMealDBService.GetByIdAsync(recipeId);
+            if (theMealData != null)
             {
-                RecipeId = recipeId,
-                MealDBId = recipeId,  // Stocker le MealDBId comme identifiant externe
-                Title = string.Empty,
-                Instructions = string.Empty,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
-
-            await _recipeRepository.AddAsync(placeholderRecipe);
-            recipeExists = placeholderRecipe;
+                try
+                {
+                    // Créer la recette complète avec les données de TheMealDB
+                    await _recipeService.CreateOrUpdateRecipeAsync(theMealData);
+                    // Récupérer la recette fraîchement créée depuis la BD
+                    recipeExists = await _recipeRepository.GetByMealDbIdAsync(recipeId);
+                }
+                catch (Exception ex) when (ex.InnerException?.Message.Contains("Duplicate") ?? false)
+                {
+                    // Race condition : un autre thread a créé la recette en même temps
+                    System.Console.WriteLine($"⚠️ Race condition sur recette {recipeId}, récupération...");
+                    recipeExists = await _recipeRepository.GetByMealDbIdAsync(recipeId);
+                }
+            }
+            else
+            {
+                // Si TheMealDB échoue, lever une exception plutôt que créer un placeholder
+                throw new InvalidOperationException(
+                    $"La recette TheMealDB {recipeId} n'a pas pu être trouvée. " +
+                    "Assurez-vous que l'ID est correct et que l'API TheMealDB est accessible.");
+            }
         }
 
-        // Créer un nouveau favori
+        // À ce stade, recipeExists ne doit jamais être null
+        if (recipeExists == null)
+        {
+            throw new InvalidOperationException(
+                $"Impossible de créer ou trouver la recette {recipeId}.");
+        }
+
+        // Créer un nouveau favori (utiliser le RecipeId interne de la recette créée)
         var favorite = new Favorite
         {
             FavoriteId = Guid.NewGuid().ToString("N"),
             UserId = userId,
-            RecipeId = recipeId,
+            RecipeId = recipeExists.RecipeId,  // Utiliser le RecipeId interne, pas le MealDBId
             CreatedAt = DateTime.UtcNow
         };
 
-        await _favoriteRepository.AddAsync(favorite);
+        try
+        {
+            await _favoriteRepository.AddAsync(favorite);
+        }
+        catch (Exception ex) when (ex.InnerException?.Message.Contains("Duplicate") ?? false)
+        {
+            // Favori déjà existant - c'est un ajout duplex, juste retourner la recette
+            System.Console.WriteLine($"⚠️ Favori déjà existant pour {userId}/{recipeId}");
+        }
 
-        // Retourner la recette (placeholder ou réelle)
+        // Retourner la recette complète
         return new RecipeDto
         {
             RecipeId = recipeExists.RecipeId,
             Title = recipeExists.Title ?? string.Empty,
             MealDBId = recipeExists.MealDBId,
+            ImageUrl = recipeExists.ImageUrl,
+            Category = recipeExists.Category,
+            Area = recipeExists.Area,
             Instructions = recipeExists.Instructions ?? string.Empty
         };
     }
@@ -99,19 +132,79 @@ public class FavoriteService : IFavoriteService
     {
         var favorites = await _favoriteRepository.GetByUserIdAsync(userId);
         var recipes = new List<RecipeDto>();
+        var placeholderIds = new List<string>(); // IDs des placeholders à mettre à jour
 
+        // Première passe : traiter les recettes chargées (pas de N+1, elles sont incluses via Include)
         foreach (var favorite in favorites)
         {
-            var recipe = await _recipeService.GetRecipeByIdAsync(favorite.RecipeId);
-            if (recipe != null)
+            var recipe = favorite.Recipe;
+            if (recipe == null)
+                continue;
+
+            // Vérifier si c'est une recette placeholder
+            bool isPlaceholder = string.IsNullOrEmpty(recipe.ImageUrl)
+                || string.IsNullOrEmpty(recipe.Category)
+                || (recipe.Title?.StartsWith("Recette #") == true);
+
+            if (!isPlaceholder)
             {
-                recipes.Add(recipe);
+                recipes.Add(new RecipeDto
+                {
+                    RecipeId = recipe.RecipeId,
+                    MealDBId = recipe.MealDBId,
+                    Title = recipe.Title ?? string.Empty,
+                    Category = recipe.Category ?? string.Empty,
+                    ImageUrl = recipe.ImageUrl ?? string.Empty,
+                    Area = recipe.Area ?? string.Empty,
+                    Instructions = recipe.Instructions ?? string.Empty
+                });
             }
-            else
+            else if (!string.IsNullOrEmpty(recipe.MealDBId))
             {
-                // Si la recette n'existe pas localement (ex: TheMealDB), créer un placeholder
-                // La recette sera chargée depuis TheMealDB côté frontend
-                recipes.Add(new RecipeDto { RecipeId = favorite.RecipeId });
+                placeholderIds.Add(recipe.MealDBId);
+            }
+        }
+
+        // Deuxième passe : mettre à jour les placeholders en batch
+        foreach (var mealDbId in placeholderIds)
+        {
+            try
+            {
+                var theMealData = await _theMealDBService.GetByIdAsync(mealDbId);
+                if (theMealData != null)
+                {
+                    var updatedRecipe = await _recipeService.CreateOrUpdateRecipeAsync(theMealData);
+                    recipes.Add(updatedRecipe);
+                }
+                else
+                {
+                    // Si TheMealDB retourne null, afficher un placeholder avec message
+                    recipes.Add(new RecipeDto
+                    {
+                        RecipeId = mealDbId,
+                        MealDBId = mealDbId,
+                        Title = $"[Données indisponibles]",
+                        Category = "Indisponible",
+                        ImageUrl = "/images/placeholder-unavailable.png",
+                        Area = string.Empty,
+                        Instructions = "Cette recette n'est temporairement pas disponible. L'API TheMealDB est peut-être down."
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine($"⚠️ Erreur mise à jour placeholder {mealDbId}: {ex.Message}");
+                // Afficher un placeholder en cas d'erreur au lieu de filtrer
+                recipes.Add(new RecipeDto
+                {
+                    RecipeId = mealDbId,
+                    MealDBId = mealDbId,
+                    Title = $"[Erreur de chargement]",
+                    Category = "Erreur",
+                    ImageUrl = "/images/placeholder-error.png",
+                    Area = string.Empty,
+                    Instructions = $"Erreur lors du chargement: {ex.Message}"
+                });
             }
         }
 

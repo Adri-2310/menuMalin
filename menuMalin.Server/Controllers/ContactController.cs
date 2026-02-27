@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using menuMalin.Server.Data;
 using menuMalin.Server.Models.Entities;
+using menuMalin.Server.Repositories;
 using menuMalin.Server.Services;
 
 namespace menuMalin.Server.Controllers;
@@ -14,6 +15,7 @@ namespace menuMalin.Server.Controllers;
 [Route("api/[controller]")]
 public class ContactController : ControllerBase
 {
+    private readonly IContactRepository _contactRepository;
     private readonly ApplicationDbContext _context;
     private readonly IEmailService _emailService;
     private readonly ILogger<ContactController> _logger;
@@ -21,11 +23,13 @@ public class ContactController : ControllerBase
     /// <summary>
     /// Initialise une nouvelle instance de ContactController
     /// </summary>
-    /// <param name="context">Le contexte de base de données</param>
+    /// <param name="contactRepository">Le repository des messages de contact</param>
+    /// <param name="context">Le contexte de base de données (pour vérification d'user)</param>
     /// <param name="emailService">Le service d'envoi d'emails</param>
     /// <param name="logger">Le logger</param>
-    public ContactController(ApplicationDbContext context, IEmailService emailService, ILogger<ContactController> logger)
+    public ContactController(IContactRepository contactRepository, ApplicationDbContext context, IEmailService emailService, ILogger<ContactController> logger)
     {
+        _contactRepository = contactRepository;
         _context = context;
         _emailService = emailService;
         _logger = logger;
@@ -58,16 +62,31 @@ public class ContactController : ControllerBase
             return BadRequest("L'email est requis");
         }
 
+        if (request.Email.Length > 255)
+        {
+            return BadRequest("L'email ne peut pas dépasser 255 caractères");
+        }
+
         if (string.IsNullOrWhiteSpace(request.Subject))
         {
             _logger.LogWarning("POST /api/contact - validation échouée: sujet vide");
             return BadRequest("Le sujet est requis");
         }
 
+        if (request.Subject.Length > 500)
+        {
+            return BadRequest("Le sujet ne peut pas dépasser 500 caractères");
+        }
+
         if (string.IsNullOrWhiteSpace(request.Message))
         {
             _logger.LogWarning("POST /api/contact - validation échouée: message vide");
             return BadRequest("Le message ne peut pas être vide");
+        }
+
+        if (request.Message.Length > 10000)
+        {
+            return BadRequest("Le message ne peut pas dépasser 10 000 caractères");
         }
 
         // Récupérer l'utilisateur connecté (optionnel)
@@ -111,8 +130,7 @@ public class ContactController : ControllerBase
 
         try
         {
-            _context.ContactMessages.Add(contactMessage);
-            await _context.SaveChangesAsync();
+            await _contactRepository.AddAsync(contactMessage);
             _logger.LogInformation("Message de contact {ContactId} sauvegardé en DB avec succès", contactMessage.ContactId);
         }
         catch (Exception ex)

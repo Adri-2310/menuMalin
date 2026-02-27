@@ -497,7 +497,6 @@ else
             if (result != null)
             {
                 successMessage = "Recette mise à jour avec succès";
-                await Task.Delay(1500);
                 Nav.NavigateTo("/my-created-recipes");
             }
             else
@@ -544,7 +543,6 @@ else
             if (result)
             {
                 successMessage = "Recette supprimée avec succès";
-                await Task.Delay(1500);
                 Nav.NavigateTo("/my-created-recipes");
             }
             else

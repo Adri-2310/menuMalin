@@ -87,6 +87,17 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(e => new { e.UserId, e.RecipeId }).IsUnique();
             entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => e.RecipeId);
+
+            // Relations
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.Favorites)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Recipe)
+                .WithMany(r => r.Favorites)
+                .HasForeignKey(e => e.RecipeId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // Configuration UserRecipe
@@ -96,7 +107,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.UserRecipeId).HasColumnType("varchar(36)");
             entity.Property(e => e.UserId).HasColumnType("varchar(36)").IsRequired();
             entity.Property(e => e.Title).HasMaxLength(200).IsRequired();
-            entity.Property(e => e.IngredientsJson).HasColumnType("varchar(2000)");
+            entity.Property(e => e.IngredientsJson).HasColumnType("longtext");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP(6)")
@@ -109,7 +120,6 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(e => e.User)
                 .WithMany(u => u.UserRecipes)
                 .HasForeignKey(e => e.UserId)
-                .HasPrincipalKey(u => u.Auth0Id)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

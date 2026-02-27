@@ -238,42 +238,6 @@ public class UserRecipesController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Endpoint de debug - Liste toutes les recettes et leurs propriétaires
-    /// </summary>
-    [HttpGet("debug/all")]
-    [AllowAnonymous]
-    public async Task<IActionResult> DebugListAll()
-    {
-        var recipes = await _userRecipeService.GetPublicRecipesAsync();
-        return Ok(recipes.Select(r => new { r.UserRecipeId, r.Title, r.UserId, r.CreatedAt }));
-    }
-
-    /// <summary>
-    /// Endpoint de debug - Force suppression d'une recette sans vérification du propriétaire
-    /// </summary>
-    [HttpDelete("debug/force-delete/{id}")]
-    [AllowAnonymous]
-    public async Task<IActionResult> DebugForceDelete(string id)
-    {
-        var recipe = await _userRecipeService.GetByIdAsync(id);
-        if (recipe == null)
-            return NotFound();
-
-        try
-        {
-            System.Console.WriteLine($"🗑️ DEBUG: Force delete recette {id}");
-            // Accès direct au repository pour bypass les vérifications
-            var result = await _userRecipeService.DeleteAsync(id, recipe.UserId);
-            System.Console.WriteLine($"✅ DEBUG: Suppression réussie");
-            return Ok(new { message = "Recette supprimée", recipeId = id, userId = recipe.UserId });
-        }
-        catch (Exception ex)
-        {
-            System.Console.WriteLine($"❌ DEBUG: Erreur {ex.Message}");
-            return BadRequest(new { error = ex.Message });
-        }
-    }
 
     /// <summary>
     /// Extrait l'ID utilisateur depuis les Claims de l'authentification

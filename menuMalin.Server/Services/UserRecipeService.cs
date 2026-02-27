@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Net;
 using menuMalin.Server.Models.Entities;
 using menuMalin.Server.Repositories;
 using menuMalin.Shared.Models.Dtos;
@@ -31,8 +32,21 @@ public class UserRecipeService : IUserRecipeService
         // Valider les données requises
         if (string.IsNullOrWhiteSpace(request.Title))
             throw new ArgumentException("Le titre est requis");
+        if (request.Title.Length < 3)
+            throw new ArgumentException("Le titre doit contenir au moins 3 caractères");
+        if (request.Title.Length > 200)
+            throw new ArgumentException("Le titre ne peut pas dépasser 200 caractères");
+
         if (string.IsNullOrWhiteSpace(request.Instructions))
             throw new ArgumentException("Les instructions sont requises");
+        if (request.Instructions.Length < 10)
+            throw new ArgumentException("Les instructions doivent contenir au moins 10 caractères");
+
+        // Valider l'ImageUrl pour éviter les SSRF
+        if (!string.IsNullOrEmpty(request.ImageUrl))
+        {
+            ValidateImageUrl(request.ImageUrl);
+        }
 
         // Sérialiser les ingrédients en JSON
         var ingredientsJson = JsonSerializer.Serialize(request.Ingredients ?? new List<string>());
@@ -192,6 +206,58 @@ public class UserRecipeService : IUserRecipeService
             System.Console.WriteLine($"❌ Erreur lors de la suppression de l'image: {ex.Message}");
             // Ne pas lever d'exception - la recette doit être supprimée même si l'image ne l'est pas
         }
+    }
+
+    /// <summary>
+    /// Valide qu'une URL d'image ne pose pas de risque SSRF
+    /// </summary>
+    /// <param name="imageUrl">L'URL à valider</param>
+    /// <throws>ArgumentException si l'URL est dangereuse</throws>
+    private static void ValidateImageUrl(string imageUrl)
+    {
+        // Les URLs internes (relatives) commençant par / sont acceptées
+        if (imageUrl.StartsWith("/"))
+        {
+            return;
+        }
+
+        // Tenter de parser l'URL
+        if (!Uri.TryCreate(imageUrl, UriKind.Absolute, out var uri))
+        {
+            throw new ArgumentException("URL d'image invalide");
+        }
+
+        // Vérifier que le schéma est HTTP ou HTTPS
+        if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
+        {
+            throw new ArgumentException("Seuls les schémas HTTP et HTTPS sont autorisés");
+        }
+
+        // Vérifier que ce n'est pas une adresse IP privée ou réservée
+        if (IPAddress.TryParse(uri.Host, out var ipAddress))
+        {
+            // Bloquer les adresses privées et réservées
+            if (ipAddress.IsLoopback || // 127.x.x.x
+                ipAddress.IsPrivate || // 10.x.x.x, 172.16-31.x.x, 192.168.x.x
+                IsReservedAddress(ipAddress)) // 169.254.x.x, 0.x.x.x, etc.
+            {
+                throw new ArgumentException("Les adresses IP privées ou réservées ne sont pas autorisées");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Vérifie si une adresse IP est réservée (169.254.x.x, etc.)
+    /// </summary>
+    private static bool IsReservedAddress(IPAddress address)
+    {
+        // 169.254.x.x (APIPA)
+        if (address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+        {
+            var bytes = address.GetAddressBytes();
+            return bytes[0] == 169 && bytes[1] == 254; // 169.254.x.x
+        }
+        return false;
     }
 
     /// <summary>

@@ -254,14 +254,19 @@ else
 
     private string GetCreatorName(string userId)
     {
-        // Afficher "Vous" si c'est l'utilisateur connecté, sinon afficher l'ID tronqué
+        // Afficher "Vous" si c'est l'utilisateur connecté
         if (IsOwner(userId))
         {
             return currentUser?.Name ?? "Vous";
         }
 
-        // Afficher un nom générique pour les autres utilisateurs
-        return $"Utilisateur #{userId.Substring(0, Math.Min(8, userId.Length))}";
+        // Générer un pseudonyme stable basé sur un hash de l'ID (pas d'exposition d'ID)
+        var hash = userId.GetHashCode();
+        var adjectives = new[] { "Brave", "Sage", "Créatif", "Joyeux", "Rapide", "Agile" };
+        var nouns = new[] { "Chef", "Cuisinier", "Gourmet", "Maître", "Expert", "Artisan" };
+        var adjIndex = Math.Abs(hash) % adjectives.Length;
+        var nounIndex = Math.Abs(hash / adjectives.Length) % nouns.Length;
+        return $"{adjectives[adjIndex]} {nouns[nounIndex]}";
     }
 
     private void GoBack() => Nav.NavigateTo("/");

@@ -46,8 +46,25 @@ public class FavoriteRepository : IFavoriteRepository
 
     public async Task<bool> IsFavoriteAsync(string userId, string recipeId)
     {
-        return await _context.Favorites
+        // D'abord chercher par RecipeId interne (pour les appels du backend)
+        var isFavorite = await _context.Favorites
             .AnyAsync(f => f.UserId == userId && f.RecipeId == recipeId);
+
+        if (isFavorite)
+            return true;
+
+        // Si pas trouvé, chercher par MealDBId (pour les appels du frontend avec TheMealDB ID)
+        // En supposant que recipeId pourrait être un TheMealDB ID
+        var recipeByMealDb = await _context.Recipes
+            .FirstOrDefaultAsync(r => r.MealDBId == recipeId);
+
+        if (recipeByMealDb != null)
+        {
+            return await _context.Favorites
+                .AnyAsync(f => f.UserId == userId && f.RecipeId == recipeByMealDb.RecipeId);
+        }
+
+        return false;
     }
 
     public async Task<Favorite?> GetByUserAndRecipeAsync(string userId, string recipeId)
@@ -58,7 +75,20 @@ public class FavoriteRepository : IFavoriteRepository
 
     public async Task<bool> RemoveByUserAndRecipeAsync(string userId, string recipeId)
     {
+        // D'abord chercher par RecipeId interne
         var favorite = await GetByUserAndRecipeAsync(userId, recipeId);
+
+        // Si pas trouvé, chercher par MealDBId
+        if (favorite == null)
+        {
+            var recipeByMealDb = await _context.Recipes
+                .FirstOrDefaultAsync(r => r.MealDBId == recipeId);
+
+            if (recipeByMealDb != null)
+            {
+                favorite = await GetByUserAndRecipeAsync(userId, recipeByMealDb.RecipeId);
+            }
+        }
 
         if (favorite == null)
             return false;

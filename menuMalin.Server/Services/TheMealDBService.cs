@@ -9,11 +9,13 @@ namespace menuMalin.Server.Services;
 public class TheMealDBService : ITheMealDBService
 {
     private readonly HttpClient _httpClient;
+    private readonly ILogger<TheMealDBService> _logger;
     private const string BaseUrl = "https://www.themealdb.com/api/json/v1/1";
 
-    public TheMealDBService(HttpClient httpClient)
+    public TheMealDBService(HttpClient httpClient, ILogger<TheMealDBService> logger)
     {
         _httpClient = httpClient;
+        _logger = logger;
         _httpClient.BaseAddress = new Uri(BaseUrl);
     }
 
@@ -29,9 +31,9 @@ public class TheMealDBService : ITheMealDBService
 
             return result?.Meals?.FirstOrDefault();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Logged in development
+            _logger.LogError(ex, "Erreur lors de la récupération d'une recette aléatoire depuis TheMealDB");
             return null;
         }
     }
@@ -51,9 +53,9 @@ public class TheMealDBService : ITheMealDBService
 
             return result?.Meals ?? new();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Logged in development
+            _logger.LogError(ex, "Erreur lors de la recherche de recettes par nom dans TheMealDB");
             return new();
         }
     }
@@ -106,9 +108,9 @@ public class TheMealDBService : ITheMealDBService
 
             return categories;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Logged in development
+            _logger.LogError(ex, "Erreur lors de la recherche de recettes par nom dans TheMealDB");
             return new();
         }
     }
@@ -138,9 +140,9 @@ public class TheMealDBService : ITheMealDBService
 
             return areas;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Logged in development
+            _logger.LogError(ex, "Erreur lors de la recherche de recettes par nom dans TheMealDB");
             return new();
         }
     }
@@ -160,9 +162,9 @@ public class TheMealDBService : ITheMealDBService
 
             return result?.Meals ?? new();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Logged in development
+            _logger.LogError(ex, "Erreur lors de la recherche de recettes par nom dans TheMealDB");
             return new();
         }
     }
@@ -182,9 +184,9 @@ public class TheMealDBService : ITheMealDBService
 
             return result?.Meals ?? new();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Logged in development
+            _logger.LogError(ex, "Erreur lors de la recherche de recettes par nom dans TheMealDB");
             return new();
         }
     }

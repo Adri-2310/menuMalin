@@ -40,6 +40,8 @@ builder.Services.AddAuthentication(options =>
 {
     options.LoginPath = "/api/auth/login";
     options.LogoutPath = "/api/auth/logout";
+    options.ExpireTimeSpan = TimeSpan.FromHours(24);
+    options.SlidingExpiration = true;
     options.Cookie.Name = ".AspNetCore.Cookies";
     options.Cookie.HttpOnly = true;
     // Pour cross-origin HTTPS→HTTPS (frontend 7777, backend 7057), utiliser None
@@ -119,6 +121,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
 builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();
 builder.Services.AddScoped<IUserRecipeRepository, UserRecipeRepository>();
+builder.Services.AddScoped<IContactRepository, ContactRepository>();
 
 // Enregistrer les Services (Scoped)
 builder.Services.AddScoped<IUserService, UserService>();
@@ -126,8 +129,8 @@ builder.Services.AddScoped<IRecipeService, RecipeService>();
 builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 builder.Services.AddScoped<IUserRecipeService, UserRecipeService>();
 
-// Enregistrer le Service Email (Singleton - thread-safe et réutilisable)
-builder.Services.AddSingleton<IEmailService, EmailService>();
+// Enregistrer le Service Email (Scoped pour éviter les problèmes avec les dépendances Scoped)
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Ajouter CORS si nécessaire (pour le frontend Blazor)
 builder.Services.AddCors(options =>

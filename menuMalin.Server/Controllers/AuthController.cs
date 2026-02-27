@@ -15,10 +15,12 @@ namespace menuMalin.Server.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IUserService _userService;
+    private readonly ILogger<AuthController> _logger;
 
-    public AuthController(IUserService userService)
+    public AuthController(IUserService userService, ILogger<AuthController> logger)
     {
         _userService = userService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -46,14 +48,15 @@ public class AuthController : ControllerBase
         // Ce endpoint est appelé par Auth0 après l'authentification
         // Le middleware OAuth gère automatiquement l'échange du code et crée un cookie
         // NE PAS faire un deuxième SignInAsync - le middleware l'a déjà fait !
-        System.Console.WriteLine($"📍 /api/auth/callback - IsAuthenticated: {User.Identity?.IsAuthenticated}");
-        System.Console.WriteLine($"   User: {User.Identity?.Name ?? "(anonymous)"}");
+        _logger.LogDebug("Auth callback - IsAuthenticated: {IsAuthenticated}", User.Identity?.IsAuthenticated);
+        _logger.LogDebug("Auth callback - User: {UserName}", User.Identity?.Name ?? "(anonymous)");
 
-        if (!string.IsNullOrEmpty(returnUrl) && Uri.IsWellFormedUriString(returnUrl, UriKind.Absolute))
+        // Valider que returnUrl est un chemin relatif (commence par /) pour éviter les open redirects
+        if (!string.IsNullOrEmpty(returnUrl) && returnUrl.StartsWith("/") && !returnUrl.StartsWith("//"))
         {
             return Redirect(returnUrl);
         }
-        return Redirect("https://localhost:7777/");
+        return Redirect("/");
     }
 
     /// <summary>
@@ -62,9 +65,28 @@ public class AuthController : ControllerBase
     [HttpPost("logout")]
     public async Task<IActionResult> Logout()
     {
-        System.Console.WriteLine($"📍 /api/auth/logout called - IsAuthenticated before: {User.Identity?.IsAuthenticated}");
+        // Vérification basique anti-CSRF : vérifier que la requête vient du même domaine
+        var origin = Request.Headers["Origin"].ToString();
+        var host = Request.Host.Host;
+
+        // Rejeter les requêtes cross-origin sans validation supplémentaire
+        if (!string.IsNullOrEmpty(origin))
+        {
+            if (!Uri.TryCreate(origin, UriKind.Absolute, out var originUri))
+            {
+                return BadRequest(new { error = "Origin invalide" });
+            }
+
+            // Vérifier que l'origine correspond au host actuel
+            if (!originUri.Host.Equals(host, StringComparison.OrdinalIgnoreCase))
+            {
+                return Forbid("CORS policy violation - logout from different origin");
+            }
+        }
+
+        _logger.LogDebug("Auth logout - IsAuthenticated before: {IsAuthenticated}", User.Identity?.IsAuthenticated);
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        System.Console.WriteLine($"   IsAuthenticated after SignOut: {User.Identity?.IsAuthenticated}");
+        _logger.LogDebug("Auth logout - IsAuthenticated after: {IsAuthenticated}", User.Identity?.IsAuthenticated);
         return Ok(new { message = "Logged out successfully" });
     }
 
@@ -83,8 +105,8 @@ public class AuthController : ControllerBase
             ?? User.FindFirst("nickname")?.Value;
         var picture = User.FindFirst("picture")?.Value;
 
-        System.Console.WriteLine($"📍 /api/auth/me called - IsAuthenticated: {User.Identity?.IsAuthenticated}");
-        System.Console.WriteLine($"   UserId: {userId}, Email: {email}");
+        _logger.LogDebug("Auth me - IsAuthenticated: {IsAuthenticated}", User.Identity?.IsAuthenticated);
+        _logger.LogDebug("Auth me - UserId: {UserId}", userId);
 
         // Créer ou récupérer l'utilisateur dans la base de données
         if (!string.IsNullOrEmpty(userId))
@@ -92,11 +114,11 @@ public class AuthController : ControllerBase
             try
             {
                 await _userService.GetOrCreateUserAsync(userId, email, name);
-                System.Console.WriteLine($"✅ Utilisateur synchronisé avec la base de données");
+                _logger.LogInformation("Utilisateur synchronisé avec la base de données");
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine($"❌ Erreur lors de la création/synchronisation de l'utilisateur: {ex.Message}");
+                _logger.LogError(ex, "Erreur lors de la création/synchronisation de l'utilisateur");
             }
         }
 

@@ -8,6 +8,11 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
+// Charger les URLs depuis appsettings.json
+var config = builder.Configuration;
+var backendUrl = config["ApiConfig:BackendUrl"] ?? "https://localhost:7057";
+var frontendUrl = config["ApiConfig:FrontendUrl"] ?? "https://localhost:7777";
+
 // ========================================
 // Configuration HTTP Clients (BFF Mode)
 // ========================================
@@ -26,12 +31,6 @@ builder.Services.AddHttpClient<IHttpApiService, HttpApiService>(client =>
     // Inclure les cookies dans les requêtes (automatique en mode BFF)
 });
 
-// 3. Client HTTP pour l'API TheMealDB
-builder.Services.AddHttpClient<IRecipeService, RecipeService>(client =>
-{
-    client.BaseAddress = new Uri("https://www.themealdb.com/api/json/v1/1/");
-});
-
 // ========================================
 // Configuration des Services Frontend
 // ========================================
@@ -48,7 +47,7 @@ builder.Services.AddScoped<IThemeService, ThemeService>();
 // Services d'authentification (BFF) - avec HttpClient dédié
 builder.Services.AddHttpClient<IAuthService, AuthService>(client =>
 {
-    client.BaseAddress = new Uri("https://localhost:7057/");
+    client.BaseAddress = new Uri($"{backendUrl}/");
     client.Timeout = TimeSpan.FromSeconds(30);
 });
 
@@ -57,11 +56,12 @@ builder.Services.AddScoped<IContactService, ContactService>();
 builder.Services.AddScoped<IRecipeServiceFrontend, RecipeServiceFrontend>();
 builder.Services.AddScoped<IFavoriteServiceFrontend, FavoriteServiceFrontend>();
 builder.Services.AddScoped<IUserRecipeService, UserRecipeService>();
+builder.Services.AddScoped<IPageAuthService, PageAuthService>();
 
 // Service d'upload d'images
 builder.Services.AddHttpClient<IUploadService, UploadService>(client =>
 {
-    client.BaseAddress = new Uri("https://localhost:7057/api/");
+    client.BaseAddress = new Uri($"{backendUrl}/api/");
 });
 
 await builder.Build().RunAsync();

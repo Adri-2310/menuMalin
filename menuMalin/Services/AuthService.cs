@@ -58,8 +58,12 @@ public class AuthService : IAuthService
 
     public Task LoginAsync()
     {
-        // Redirige vers le backend pour le login Auth0
-        _navigationManager.NavigateTo("https://localhost:7057/api/auth/login?returnUrl=https://localhost:7777/");
+        // Redirige vers le backend pour le login Auth0 (URL relative au BaseAddress du HttpClient)
+        // Le BaseAddress est défini dans Program.cs à partir de appsettings.json
+        var loginUrl = _httpClient.BaseAddress != null
+            ? $"{_httpClient.BaseAddress.AbsoluteUri}api/auth/login?returnUrl=/"
+            : "/api/auth/login?returnUrl=/";
+        _navigationManager.NavigateTo(loginUrl);
         return Task.CompletedTask;
     }
 

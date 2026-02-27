@@ -422,8 +422,7 @@ else
                 // Réinitialiser le formulaire
                 model = new CreateUserRecipeRequest();
 
-                // Redirection après 2 secondes
-                await Task.Delay(2000);
+                // Redirection immédiate (afficher toast de succès avant navigation)
                 Nav.NavigateTo("/my-created-recipes");
             }
             else

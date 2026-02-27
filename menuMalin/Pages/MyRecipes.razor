@@ -116,7 +116,6 @@ else
     private string? errorMessage;
     private bool isAuthenticated = false;
     private bool isCheckingAuth = true;
-    private DateTime lastLoadTime = DateTime.MinValue;
 
     protected override async Task OnInitializedAsync()
     {
@@ -124,21 +123,11 @@ else
         if (isAuthenticated)
         {
             await LoadFavorites();
-            lastLoadTime = DateTime.UtcNow;
         }
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        // Recharger les favoris si plus de 2 secondes ont passé depuis le dernier chargement
-        // Cela permet de récupérer les nouveaux favoris ajoutés depuis d'autres pages
-        if (isAuthenticated && !isLoading && (DateTime.UtcNow - lastLoadTime).TotalSeconds > 2)
-        {
-            await LoadFavorites();
-            lastLoadTime = DateTime.UtcNow;
-            StateHasChanged();  // Forcer la re-render
-        }
-    }
+    // OnAfterRenderAsync removed: polling infini à toutes les 2 secondes
+    // Les favoris se chargeront au OnInitializedAsync et lors du retour à la page
 
     private async Task CheckAuthentication()
     {

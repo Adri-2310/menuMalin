@@ -184,21 +184,30 @@ public class FavoritesController : ControllerBase
     }
 
     /// <summary>
-    /// Extrait l'Auth0Id des claims JWT
+    /// Extrait l'Auth0Id des claims du cookie d'authentification
     /// </summary>
     /// <returns>L'Auth0Id (sub claim d'Auth0) ou null si absent</returns>
     private string? GetAuth0IdFromClaims()
     {
+        // Log le nombre de claims disponibles en debug uniquement
+        var allClaims = User.Claims.ToList();
+        _logger.LogDebug("Claims disponibles: Nombre={Count}", allClaims.Count);
+
         // Auth0 utilise "sub" comme claim principal pour l'ID utilisateur
         // Essayer plusieurs sources possibles pour la compatibilité
         var auth0Id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
                       User.FindFirst("sub")?.Value ??
+                      User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value ??
                       User.FindFirst("user_id")?.Value;
 
         if (string.IsNullOrEmpty(auth0Id))
         {
-            var availableClaims = string.Join(", ", User.Claims.Select(c => c.Type));
-            _logger.LogWarning("Aucun claim d'Auth0Id trouvé. Claims disponibles: {Claims}", availableClaims);
+            var availableClaims = string.Join(", ", allClaims.Select(c => c.Type));
+            _logger.LogError("❌ Aucun claim d'Auth0Id trouvé! Claims: {Claims}", availableClaims);
+        }
+        else
+        {
+            _logger.LogInformation("✅ Auth0Id trouvé: {Auth0Id}", auth0Id);
         }
 
         return auth0Id;

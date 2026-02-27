@@ -157,12 +157,22 @@
     {
         if (recipe == null) return;
 
-        if (isFavorite)
-            await FavoriteService.RemoveFavoriteAsync(recipe.IdMeal);
-        else
-            await FavoriteService.AddFavoriteAsync(recipe.IdMeal);
-
+        var previousState = isFavorite;
         isFavorite = !isFavorite;
+
+        try
+        {
+            if (previousState)
+                await FavoriteService.RemoveFavoriteAsync(recipe.IdMeal);
+            else
+                await FavoriteService.AddFavoriteAsync(recipe.IdMeal);
+        }
+        catch (Exception ex)
+        {
+            // En cas d'erreur, revenir à l'état précédent
+            System.Console.WriteLine($"❌ Erreur lors du toggle favori: {ex.Message}");
+            isFavorite = previousState;
+        }
     }
 
     private void GoBack() => Nav.NavigateTo("/");

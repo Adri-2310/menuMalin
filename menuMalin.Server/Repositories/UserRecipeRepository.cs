@@ -47,10 +47,12 @@ public class UserRecipeRepository : IUserRecipeRepository
 
     public async Task<UserRecipe?> UpdateAsync(UserRecipe userRecipe)
     {
-        var existing = await GetByIdAsync(userRecipe.UserRecipeId);
+        // Récupérer l'entité existante
+        var existing = await _context.UserRecipes.FirstOrDefaultAsync(r => r.UserRecipeId == userRecipe.UserRecipeId);
         if (existing == null)
             return null;
 
+        // Mettre à jour les propriétés
         existing.Title = userRecipe.Title;
         existing.Category = userRecipe.Category;
         existing.Area = userRecipe.Area;
@@ -60,7 +62,8 @@ public class UserRecipeRepository : IUserRecipeRepository
         existing.IsPublic = userRecipe.IsPublic;
         existing.UpdatedAt = DateTime.UtcNow;
 
-        _context.UserRecipes.Update(existing);
+        // L'entité est déjà trackée, pas besoin d'appeler Update()
+        // EF Core détecte automatiquement les changements
         await _context.SaveChangesAsync();
         return existing;
     }

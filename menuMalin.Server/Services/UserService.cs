@@ -34,7 +34,23 @@ public class UserService : IUserService
         };
 
         System.Console.WriteLine($"👤 Création d'un nouvel utilisateur: {auth0Id}");
-        return await _userRepository.AddAsync(newUser);
+
+        try
+        {
+            return await _userRepository.AddAsync(newUser);
+        }
+        catch (Exception ex) when (ex.InnerException?.Message.Contains("Duplicate") ?? false)
+        {
+            // Race condition : un autre thread/requête a créé l'utilisateur en même temps
+            // Récupérer l'utilisateur qui a été créé
+            System.Console.WriteLine($"⚠️ Race condition détectée pour {auth0Id}, récupération de l'utilisateur créé");
+            var raceCreatedUser = await _userRepository.GetByAuth0IdAsync(auth0Id);
+            if (raceCreatedUser != null)
+            {
+                return raceCreatedUser;
+            }
+            throw; // Re-lever si on ne peut pas le récupérer
+        }
     }
 
     public async Task<User?> GetUserByAuth0IdAsync(string auth0Id)
