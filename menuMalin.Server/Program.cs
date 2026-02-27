@@ -83,7 +83,7 @@ builder.Services.AddAuthentication(options =>
     options.NonceCookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None;
     options.NonceCookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
 
-    // Gérer les erreurs d'authentification (ex: utilisateur refuse l'autorisation)
+    // Gérer les erreurs d'authentification et configurer le redirect post-authentification
     options.Events = new OpenIdConnectEvents
     {
         OnRemoteFailure = context =>
@@ -98,6 +98,28 @@ builder.Services.AddAuthentication(options =>
             }
 
             // Pour les autres erreurs, les laisser se propager normalement
+            return System.Threading.Tasks.Task.CompletedTask;
+        },
+        OnRedirectToIdentityProviderForSignOut = context =>
+        {
+            // Redirige vers le frontend après la déconnexion
+            context.Response.Redirect("https://localhost:7777/");
+            context.HandleResponse();
+            return System.Threading.Tasks.Task.CompletedTask;
+        },
+        OnTicketReceived = context =>
+        {
+            // Après l'authentification réussie, redirige vers le frontend
+            // Ignorer le returnUrl et toujours aller vers le frontend
+            var returnUrl = context.Properties?.RedirectUri ?? "/";
+
+            // Si returnUrl est "/" (relatif au backend), rediriger vers le frontend
+            if (returnUrl == "/" || returnUrl == "")
+            {
+                context.Properties!.RedirectUri = "https://localhost:7777/";
+            }
+
+            System.Console.WriteLine($"✅ Authentification réussie - Redirection vers: {context.Properties!.RedirectUri}");
             return System.Threading.Tasks.Task.CompletedTask;
         }
     };

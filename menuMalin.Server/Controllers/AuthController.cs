@@ -51,12 +51,25 @@ public class AuthController : ControllerBase
         _logger.LogDebug("Auth callback - IsAuthenticated: {IsAuthenticated}", User.Identity?.IsAuthenticated);
         _logger.LogDebug("Auth callback - User: {UserName}", User.Identity?.Name ?? "(anonymous)");
 
-        // Valider que returnUrl est un chemin relatif (commence par /) pour éviter les open redirects
-        if (!string.IsNullOrEmpty(returnUrl) && returnUrl.StartsWith("/") && !returnUrl.StartsWith("//"))
-        {
-            return Redirect(returnUrl);
-        }
-        return Redirect("/");
+        // Rediriger vers le frontend après l'authentification
+        // Ajouter un délai pour que le navigateur établisse le cookie avant de charger le frontend
+        var html = @"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>Redirection...</title>
+</head>
+<body>
+    <p>Redirection en cours...</p>
+    <script>
+        setTimeout(function() {
+            window.location.href = 'https://localhost:7777/';
+        }, 1000);
+    </script>
+</body>
+</html>";
+        return Content(html, "text/html");
     }
 
     /// <summary>
