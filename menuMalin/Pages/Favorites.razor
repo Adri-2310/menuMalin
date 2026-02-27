@@ -68,6 +68,7 @@ else
     private List<RecipeDto>? favorites;
     private bool isAuthenticated = false;
     private bool isCheckingAuth = true;
+    private DateTime lastLoadTime = DateTime.MinValue;
 
     protected override async Task OnInitializedAsync()
     {
@@ -75,6 +76,19 @@ else
         if (isAuthenticated)
         {
             await LoadFavorites();
+            lastLoadTime = DateTime.UtcNow;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Recharger les favoris si plus de 2 secondes ont passé depuis le dernier chargement
+        // Cela permet de récupérer les nouveaux favoris ajoutés depuis d'autres pages
+        if (isAuthenticated && (DateTime.UtcNow - lastLoadTime).TotalSeconds > 2)
+        {
+            await LoadFavorites();
+            lastLoadTime = DateTime.UtcNow;
+            StateHasChanged();  // Forcer la re-render
         }
     }
 

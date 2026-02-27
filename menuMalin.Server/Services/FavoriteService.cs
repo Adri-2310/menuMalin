@@ -14,16 +14,19 @@ public class FavoriteService : IFavoriteService
 {
     private readonly IFavoriteRepository _favoriteRepository;
     private readonly IRecipeService _recipeService;
+    private readonly IRecipeRepository _recipeRepository;
 
     /// <summary>
     /// Initialise une nouvelle instance de FavoriteService
     /// </summary>
     /// <param name="favoriteRepository">Le repository des favoris</param>
     /// <param name="recipeService">Le service des recettes</param>
-    public FavoriteService(IFavoriteRepository favoriteRepository, IRecipeService recipeService)
+    /// <param name="recipeRepository">Le repository des recettes</param>
+    public FavoriteService(IFavoriteRepository favoriteRepository, IRecipeService recipeService, IRecipeRepository recipeRepository)
     {
         _favoriteRepository = favoriteRepository;
         _recipeService = recipeService;
+        _recipeRepository = recipeRepository;
     }
 
     /// <summary>
@@ -35,6 +38,26 @@ public class FavoriteService : IFavoriteService
     /// <exception cref="InvalidOperationException">Levée si la recette n'existe pas</exception>
     public async Task<RecipeDto> AddFavoriteAsync(string userId, string recipeId)
     {
+        // Vérifier si la recette existe déjà
+        var recipeExists = await _recipeRepository.GetByIdAsync(recipeId);
+
+        if (recipeExists == null)
+        {
+            // Créer une recette placeholder pour les recettes externes (TheMealDB, etc.)
+            var placeholderRecipe = new Recipe
+            {
+                RecipeId = recipeId,
+                MealDBId = recipeId,  // Stocker le MealDBId comme identifiant externe
+                Title = string.Empty,
+                Instructions = string.Empty,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            await _recipeRepository.AddAsync(placeholderRecipe);
+            recipeExists = placeholderRecipe;
+        }
+
         // Créer un nouveau favori
         var favorite = new Favorite
         {
@@ -46,9 +69,14 @@ public class FavoriteService : IFavoriteService
 
         await _favoriteRepository.AddAsync(favorite);
 
-        // Retourner la recette
-        var recipe = await _recipeService.GetRecipeByIdAsync(recipeId);
-        return recipe ?? throw new InvalidOperationException($"Recette {recipeId} non trouvée");
+        // Retourner la recette (placeholder ou réelle)
+        return new RecipeDto
+        {
+            RecipeId = recipeExists.RecipeId,
+            Title = recipeExists.Title ?? string.Empty,
+            MealDBId = recipeExists.MealDBId,
+            Instructions = recipeExists.Instructions ?? string.Empty
+        };
     }
 
     /// <summary>
@@ -78,6 +106,12 @@ public class FavoriteService : IFavoriteService
             if (recipe != null)
             {
                 recipes.Add(recipe);
+            }
+            else
+            {
+                // Si la recette n'existe pas localement (ex: TheMealDB), créer un placeholder
+                // La recette sera chargée depuis TheMealDB côté frontend
+                recipes.Add(new RecipeDto { RecipeId = favorite.RecipeId });
             }
         }
 

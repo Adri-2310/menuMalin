@@ -20,11 +20,19 @@ public class FavoriteServiceFrontend : IFavoriteServiceFrontend
         try
         {
             var favorites = await _httpApiService.GetAsync<List<RecipeDto>>(BaseUrl);
+            if (favorites != null && favorites.Count > 0)
+            {
+                Console.WriteLine($"✅ {favorites.Count} favoris chargés");
+            }
+            else
+            {
+                Console.WriteLine("ℹ️ Aucun favori trouvé");
+            }
             return favorites ?? new();
         }
         catch (Exception ex)
         {
-            // Logged in development
+            Console.WriteLine($"❌ Erreur GetUserFavoritesAsync: {ex.Message}");
             return new();
         }
     }
@@ -34,15 +42,28 @@ public class FavoriteServiceFrontend : IFavoriteServiceFrontend
         try
         {
             if (string.IsNullOrWhiteSpace(recipeId))
+            {
+                Console.WriteLine("❌ AddFavoriteAsync: RecipeId vide ou null");
                 return false;
+            }
 
             var request = new { recipeId };
             var result = await _httpApiService.PostAsync<object>(BaseUrl, request);
-            return result != null;
+
+            if (result != null)
+            {
+                Console.WriteLine($"✅ Favori ajouté: {recipeId}");
+                return true;
+            }
+            else
+            {
+                Console.WriteLine($"❌ Erreur lors de l'ajout du favori {recipeId}");
+                return false;
+            }
         }
         catch (Exception ex)
         {
-            // Logged in development
+            Console.WriteLine($"❌ Erreur AddFavoriteAsync: {ex.Message}");
             return false;
         }
     }
@@ -52,13 +73,25 @@ public class FavoriteServiceFrontend : IFavoriteServiceFrontend
         try
         {
             if (string.IsNullOrWhiteSpace(recipeId))
+            {
+                Console.WriteLine("❌ RemoveFavoriteAsync: RecipeId vide ou null");
                 return false;
+            }
 
-            return await _httpApiService.DeleteAsync($"{BaseUrl}/{recipeId}");
+            var result = await _httpApiService.DeleteAsync($"{BaseUrl}/{recipeId}");
+            if (result)
+            {
+                Console.WriteLine($"✅ Favori supprimé: {recipeId}");
+            }
+            else
+            {
+                Console.WriteLine($"❌ Erreur lors de la suppression du favori {recipeId}");
+            }
+            return result;
         }
         catch (Exception ex)
         {
-            // Logged in development
+            Console.WriteLine($"❌ Erreur RemoveFavoriteAsync: {ex.Message}");
             return false;
         }
     }
@@ -68,14 +101,19 @@ public class FavoriteServiceFrontend : IFavoriteServiceFrontend
         try
         {
             if (string.IsNullOrWhiteSpace(recipeId))
+            {
+                Console.WriteLine("❌ IsFavoriteAsync: RecipeId vide ou null");
                 return false;
+            }
 
             var result = await _httpApiService.GetAsync<IsFavoriteResponse>($"{BaseUrl}/{recipeId}/exists");
-            return result?.IsFavorite ?? false;
+            var isFavorite = result?.IsFavorite ?? false;
+            Console.WriteLine($"ℹ️ Vérification favori {recipeId}: {(isFavorite ? "OUI" : "NON")}");
+            return isFavorite;
         }
         catch (Exception ex)
         {
-            // Logged in development
+            Console.WriteLine($"❌ Erreur IsFavoriteAsync: {ex.Message}");
             return false;
         }
     }

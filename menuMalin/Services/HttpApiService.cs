@@ -12,7 +12,8 @@ public class HttpApiService : IHttpApiService
     private readonly HttpClient _httpClient;
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = null  // Utiliser le nom exact de la propriété (PascalCase)
     };
 
     public HttpApiService(HttpClient httpClient)
@@ -58,7 +59,7 @@ public class HttpApiService : IHttpApiService
             if (data != null)
             {
                 request.Content = new StringContent(
-                    JsonSerializer.Serialize(data),
+                    JsonSerializer.Serialize(data, JsonOptions),
                     System.Text.Encoding.UTF8,
                     "application/json");
             }
