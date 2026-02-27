@@ -60,6 +60,22 @@ builder.Services.AddAuthentication(options =>
         System.Console.WriteLine($"🔐 Cookie validation: IsAuthenticated={context.Principal?.Identity?.IsAuthenticated}");
         return System.Threading.Tasks.Task.CompletedTask;
     };
+    // Gérer les redirects pour les endpoints API
+    // Au lieu de rediriger vers la page de login, retourner 401 JSON
+    options.Events.OnRedirectToLogin = context =>
+    {
+        // Si c'est une requête API (fetch depuis Blazor), retourner 401 au lieu de rediriger
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+            System.Console.WriteLine($"⚠️ API endpoint {context.Request.Path} accédé sans authentification - retour 401");
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            context.Response.ContentType = "application/json";
+            return context.Response.WriteAsync("{\"error\":\"Not authenticated\"}");
+        }
+        // Pour les autres requêtes (pages HTML du navigateur), garder le redirect
+        context.Response.Redirect(context.RedirectUri);
+        return System.Threading.Tasks.Task.CompletedTask;
+    };
 })
 .AddOpenIdConnect("Auth0", options =>
 {

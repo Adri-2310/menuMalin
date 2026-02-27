@@ -104,12 +104,28 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Récupère les informations de l'utilisateur connecté
+    /// Récupère les informations de l'utilisateur connecté (ou retourne isAuthenticated:false si non authentifié)
+    /// Utilise [AllowAnonymous] pour éviter les redirects OAuth cross-origin qui causent des erreurs CORS
     /// </summary>
     [HttpGet("me")]
-    [Authorize]
+    [AllowAnonymous]
     public async Task<IActionResult> GetCurrentUser()
     {
+        // Si pas authentifié, retourner une réponse vide sans erreur
+        // Cela évite les redirects OAuth qui causent des erreurs CORS avec le frontend WASM
+        if (User.Identity?.IsAuthenticated != true)
+        {
+            _logger.LogDebug("Auth me - Utilisateur non authentifié");
+            return Ok(new
+            {
+                userId = (string?)null,
+                email = (string?)null,
+                name = (string?)null,
+                picture = (string?)null,
+                isAuthenticated = false
+            });
+        }
+
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
             ?? User.FindFirst("sub")?.Value;
         var email = User.FindFirst(ClaimTypes.Email)?.Value;
@@ -141,7 +157,7 @@ public class AuthController : ControllerBase
             email,
             name,
             picture,
-            isAuthenticated = User.Identity?.IsAuthenticated ?? false
+            isAuthenticated = true
         });
     }
 
