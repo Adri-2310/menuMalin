@@ -118,9 +118,9 @@
         collapseNavMenu = !collapseNavMenu;
     }
 
-    private async Task Login()
+    private void Login()
     {
-        await AuthService.LoginAsync();
+        Navigation.NavigateTo("/login");
     }
 
     private async Task Logout()

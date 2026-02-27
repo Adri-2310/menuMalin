@@ -12,7 +12,7 @@ namespace menuMalin.Services;
 public interface IAuthService
 {
     Task<AuthUser?> GetCurrentUserAsync();
-    Task LoginAsync();
+    Task<AuthUser?> LoginAsync(string email, string password);
     Task LogoutAsync();
     Task<bool> IsAuthenticatedAsync();
 }
@@ -56,15 +56,28 @@ public class AuthService : IAuthService
         return user?.IsAuthenticated ?? false;
     }
 
-    public Task LoginAsync()
+    public async Task<AuthUser?> LoginAsync(string email, string password)
     {
-        // Redirige vers le backend pour le login Auth0 (URL relative au BaseAddress du HttpClient)
-        // Le BaseAddress est défini dans Program.cs à partir de appsettings.json
-        var loginUrl = _httpClient.BaseAddress != null
-            ? $"{_httpClient.BaseAddress.AbsoluteUri}api/auth/login?returnUrl=/"
-            : "/api/auth/login?returnUrl=/";
-        _navigationManager.NavigateTo(loginUrl);
-        return Task.CompletedTask;
+        try
+        {
+            var loginRequest = new { email, password };
+            var request = new HttpRequestMessage(HttpMethod.Post, "api/auth/login");
+            request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+            request.Content = JsonContent.Create(loginRequest);
+
+            var response = await _httpClient.SendAsync(request);
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                return JsonSerializer.Deserialize<AuthUser>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            }
+            return null;
+        }
+        catch (Exception ex)
+        {
+            System.Console.WriteLine($"❌ Erreur lors du login: {ex.Message}");
+            return null;
+        }
     }
 
     public async Task LogoutAsync()

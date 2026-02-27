@@ -234,9 +234,9 @@ else
         Nav.NavigateTo("/search");
     }
 
-    private async Task Login()
+    private void Login()
     {
-        await AuthService.LoginAsync();
+        Nav.NavigateTo("/login");
     }
 
     private async Task Logout()

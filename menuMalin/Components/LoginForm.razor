@@ -1,0 +1,138 @@
+@using System.ComponentModel.DataAnnotations
+@using menuMalin.Services
+
+<div class="login-form">
+    <div class="card">
+        <div class="card-body">
+            <h2 class="card-title mb-4">Connexion</h2>
+
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @ErrorMessage
+                    <button type="button" class="btn-close" @onclick="() => ErrorMessage = null"></button>
+                </div>
+            }
+
+            <form @onsubmit="HandleLogin">
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input
+                        type="email"
+                        class="form-control"
+                        id="email"
+                        @bind="Email"
+                        placeholder="votre@email.com"
+                        required />
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label">Mot de passe</label>
+                    <input
+                        type="password"
+                        class="form-control"
+                        id="password"
+                        @bind="Password"
+                        placeholder="Mot de passe"
+                        required />
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100" disabled="@IsLoading">
+                    @if (IsLoading)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        <span>Connexion en cours...</span>
+                    }
+                    else
+                    {
+                        <span>Se connecter</span>
+                    }
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Inject]
+    private AuthService? AuthService { get; set; }
+
+    [Inject]
+    private NavigationManager? NavigationManager { get; set; }
+
+    private string Email { get; set; } = string.Empty;
+    private string Password { get; set; } = string.Empty;
+    private string? ErrorMessage { get; set; }
+    private bool IsLoading { get; set; }
+
+    private async Task HandleLogin()
+    {
+        if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
+        {
+            ErrorMessage = "Email et mot de passe requis";
+            return;
+        }
+
+        ErrorMessage = null;
+        IsLoading = true;
+
+        try
+        {
+            var result = await AuthService!.LoginAsync(Email, Password);
+
+            if (result?.IsAuthenticated == true)
+            {
+                // Redirection vers la page d'accueil
+                NavigationManager!.NavigateTo("/", forceLoad: true);
+            }
+            else
+            {
+                ErrorMessage = "Identifiants invalides";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Erreur lors de la connexion: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+}
+
+<style>
+.login-form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.login-form .card {
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.login-form .card-body {
+    padding: 2rem;
+}
+
+.login-form .card-title {
+    text-align: center;
+    color: #333;
+    font-weight: 600;
+}
+
+.login-form .btn-primary {
+    background-color: #667eea;
+    border-color: #667eea;
+}
+
+.login-form .btn-primary:hover {
+    background-color: #5568d3;
+    border-color: #5568d3;
+}
+</style>
