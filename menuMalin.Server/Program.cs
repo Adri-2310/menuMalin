@@ -3,7 +3,6 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using menuMalin.Server.Data;
-using menuMalin.Server.Auth;
 using menuMalin.Server.Repositories;
 using menuMalin.Server.Services;
 
@@ -12,11 +11,6 @@ var builder = WebApplication.CreateBuilder(args);
 // ========================================
 // Configuration des Services
 // ========================================
-
-// Configuration Auth0Settings depuis appsettings.json
-var auth0Settings = new Auth0Settings();
-builder.Configuration.GetSection("Auth0").Bind(auth0Settings);
-builder.Services.AddSingleton(auth0Settings);
 
 // Ajouter Entity Framework Core avec MySQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")

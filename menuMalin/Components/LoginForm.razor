@@ -73,6 +73,18 @@
             return;
         }
 
+        if (Email.Length > 254 || !Email.Contains("@"))
+        {
+            ErrorMessage = "Email invalide";
+            return;
+        }
+
+        if (Password.Length < 1)
+        {
+            ErrorMessage = "Le mot de passe ne peut pas être vide";
+            return;
+        }
+
         ErrorMessage = null;
         IsLoading = true;
 
