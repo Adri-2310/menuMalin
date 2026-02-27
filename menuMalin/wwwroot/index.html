@@ -30,27 +30,7 @@
         <a href="." class="reload">Recharger</a>
         <span class="dismiss">🗙</span>
     </div>
-    <script src="_content/Microsoft.AspNetCore.Components.WebAssembly.Authentication/AuthenticationService.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Désactiver SRI en développement pour éviter les erreurs de hash intégrité -->
-    <script>
-        window.Blazor = window.Blazor || {};
-        window.Blazor._internal = window.Blazor._internal || {};
-        window.Blazor._internal.downloadResource = (async function(originalDownload) {
-            return async function(url, initRequest) {
-                try {
-                    return await originalDownload(url, initRequest);
-                } catch (e) {
-                    if (e.message && e.message.includes('integrity')) {
-                        console.warn('SRI integrity check failed, retrying without SRI:', url);
-                        initRequest.integrity = '';
-                        return await fetch(url, initRequest);
-                    }
-                    throw e;
-                }
-            };
-        }(window.Blazor._internal.downloadResource || fetch));
-    </script>
     <script src="_framework/blazor.webassembly.js"></script>
     <script>navigator.serviceWorker.register('service-worker.js');</script>
 </body>
