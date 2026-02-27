@@ -64,7 +64,7 @@ public class AuthController : ControllerBase
     <p>Redirection en cours...</p>
     <script>
         setTimeout(function() {
-            window.location.href = 'https://localhost:7777/';
+            window.location.href = 'https://localhost:7057/';
         }, 1000);
     </script>
 </body>

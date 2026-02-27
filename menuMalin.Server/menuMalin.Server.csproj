@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\menuMalin.Shared\menuMalin.Shared.csproj" />
+    <ProjectReference Include="..\menuMalin\menuMalin.csproj" />
   </ItemGroup>
 
   <ItemGroup>

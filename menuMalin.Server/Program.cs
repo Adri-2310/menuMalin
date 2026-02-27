@@ -44,9 +44,9 @@ builder.Services.AddAuthentication(options =>
     options.SlidingExpiration = true;
     options.Cookie.Name = ".AspNetCore.Cookies";
     options.Cookie.HttpOnly = true;
-    // Pour cross-origin HTTPS→HTTPS (frontend 7777, backend 7057), utiliser None
-    options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None;
-    options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
+    // En mode Hosted, frontend et backend sont sur le même port - utiliser Strict
+    options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict;
+    options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.SameAsRequest;
     options.Cookie.Path = "/";
     options.Events.OnSignedIn += context =>
     {
@@ -93,11 +93,11 @@ builder.Services.AddAuthentication(options =>
     options.SaveTokens = true;
     options.GetClaimsFromUserInfoEndpoint = true;
 
-    // Correlation cookie doit permettre cross-origin
-    options.CorrelationCookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None;
-    options.CorrelationCookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
-    options.NonceCookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None;
-    options.NonceCookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
+    // En mode Hosted (même port), utiliser Strict pour la sécurité
+    options.CorrelationCookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict;
+    options.CorrelationCookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.SameAsRequest;
+    options.NonceCookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict;
+    options.NonceCookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.SameAsRequest;
 
     // Gérer les erreurs d'authentification et configurer le redirect post-authentification
     options.Events = new OpenIdConnectEvents
@@ -108,7 +108,7 @@ builder.Services.AddAuthentication(options =>
             if (context.Failure?.Message?.Contains("access_denied") == true)
             {
                 System.Console.WriteLine("⚠️ Utilisateur a refusé l'autorisation - redirection vers l'accueil");
-                context.Response.Redirect("https://localhost:7777/");
+                context.Response.Redirect("https://localhost:7057/");
                 context.HandleResponse();
                 return System.Threading.Tasks.Task.CompletedTask;
             }
@@ -119,7 +119,7 @@ builder.Services.AddAuthentication(options =>
         OnRedirectToIdentityProviderForSignOut = context =>
         {
             // Redirige vers le frontend après la déconnexion
-            context.Response.Redirect("https://localhost:7777/");
+            context.Response.Redirect("https://localhost:7057/");
             context.HandleResponse();
             return System.Threading.Tasks.Task.CompletedTask;
         },
@@ -186,7 +186,7 @@ builder.Services.AddAuthentication(options =>
     </div>
     <script>
         setTimeout(function() {
-            window.location.href = 'https://localhost:7777/';
+            window.location.href = 'https://localhost:7057/';
         }, 1500);
     </script>
 </body>
@@ -229,21 +229,7 @@ builder.Services.AddScoped<IUserRecipeService, UserRecipeService>();
 // Enregistrer le Service Email (Scoped pour éviter les problèmes avec les dépendances Scoped)
 builder.Services.AddScoped<IEmailService, EmailService>();
 
-// Ajouter CORS si nécessaire (pour le frontend Blazor)
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowBlazor", policy =>
-    {
-        policy.WithOrigins(
-            "https://localhost:7216",
-            "http://localhost:5149",
-            "https://localhost:7777"
-        )
-        .AllowAnyMethod()
-        .AllowAnyHeader()
-        .AllowCredentials();
-    });
-});
+// Note: CORS n'est plus nécessaire en mode Hosted Blazor (frontend + backend sur le même port)
 
 // ========================================
 // Configuration du Pipeline HTTP
@@ -269,13 +255,16 @@ if (app.Environment.IsProduction())
     app.UseHttpsRedirection();
 }
 
-// Utiliser CORS
-app.UseCors("AllowBlazor");
+// Servir les fichiers statiques du frontend Blazor WASM (doit être avant UseAuthentication)
+app.UseStaticFiles();
 
 // Ajouter l'authentification avant l'autorisation
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Fallback vers index.html pour les routes Blazor (SPA routing)
+app.MapFallbackToFile("index.html");
 
 app.Run();
