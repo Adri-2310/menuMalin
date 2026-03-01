@@ -6,6 +6,7 @@
 @inject IServiceRecetteFrontend RecipeService
 @inject IServiceRecetteUtilisateur UserRecipeService
 @inject IServiceAuthentification AuthService
+@inject ServiceEtatAuthentification AuthState
 @inject NavigationManager Nav
 
 <PageTitle>MenuMalin - Recherche</PageTitle>
@@ -234,8 +235,17 @@ else
     {
         try
         {
-            var user = await AuthService.GetCurrentUserAsync();
-            isAuthenticated = user?.IsAuthenticated ?? false;
+            // Vérifier d'abord l'état global (Singleton)
+            if (AuthState?.CurrentUser != null && AuthState.IsAuthenticated)
+            {
+                isAuthenticated = true;
+            }
+            else
+            {
+                // Sinon appeler l'API
+                var user = await AuthService.GetCurrentUserAsync();
+                isAuthenticated = user?.IsAuthenticated ?? false;
+            }
         }
         catch
         {

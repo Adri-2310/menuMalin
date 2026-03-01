@@ -212,6 +212,7 @@ else
 
     private async Task LoadDefaultRecipes()
     {
+        isLoading = true;
         try
         {
             featuredRecipes = await RecipeService.GetRandomRecipesAsync(3);
@@ -219,6 +220,10 @@ else
         catch (Exception ex)
         {
             errorMessage = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
         }
     }
 
