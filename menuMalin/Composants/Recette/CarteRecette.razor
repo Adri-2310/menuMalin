@@ -1,6 +1,7 @@
 @using menuMalin.Services
 @inject IServiceFavorisFrontend FavoriteService
 @inject IServiceAuthentification AuthService
+@inject ServiceEtatAuthentification AuthState
 @inject NavigationManager Nav
 @inject IServiceNotification NotifService
 
@@ -75,9 +76,20 @@
         {
             isToggling = true;
 
-            // Vérifier l'authentification
-            var user = await AuthService.GetCurrentUserAsync();
-            if (user?.IsAuthenticated != true)
+            // Vérifier l'authentification (utiliser l'état global d'abord, puis fallback à l'API)
+            bool isAuthenticated = false;
+
+            if (AuthState?.IsAuthenticated == true)
+            {
+                isAuthenticated = true;
+            }
+            else
+            {
+                var user = await AuthService.GetCurrentUserAsync();
+                isAuthenticated = user?.IsAuthenticated ?? false;
+            }
+
+            if (!isAuthenticated)
             {
                 NotifService.AfficherAvertissement("Vous devez être connecté pour ajouter un favori", "Authentification requise");
                 Nav.NavigateTo("/");
