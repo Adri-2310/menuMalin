@@ -102,12 +102,12 @@ builder.Services.AddScoped<IServiceRecetteUtilisateur, ServiceRecetteUtilisateur
 // Enregistrer le Service Email (Scoped pour éviter les problèmes avec les dépendances Scoped)
 builder.Services.AddScoped<IServiceEmail, ServiceEmail>();
 
-// Configuration CORS (développement: frontend et backend sur ports différents)
+// Configuration CORS (développement: frontend et backend peuvent être sur le même serveur ou ports différents)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("https://localhost:7777")
+        policy.WithOrigins("https://localhost:7777", "https://localhost:7057")
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials(); // IMPORTANT: permettre les cookies
