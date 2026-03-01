@@ -13,7 +13,7 @@ public class ServiceApiHttp : IServiceApiHttp
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
-        PropertyNamingPolicy = null  // Utiliser le nom exact de la propriété (PascalCase)
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase  // Convertir camelCase → PascalCase
     };
 
     public ServiceApiHttp(HttpClient httpClient)
