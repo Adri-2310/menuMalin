@@ -7,8 +7,23 @@ using menuMalin.Server.Depots;
 using menuMalin.Server.Depots.Interfaces;
 using menuMalin.Server.Services;
 using menuMalin.Server.Services.Interfaces;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ========================================
+// Configuration Serilog pour les fichiers de log
+// ========================================
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .WriteTo.File(
+        path: "logs/menuMalin-.txt",
+        rollingInterval: RollingInterval.Day,
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}"
+    )
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 // ========================================
 // Configuration des Services
