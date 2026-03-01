@@ -102,7 +102,17 @@ builder.Services.AddScoped<IServiceRecetteUtilisateur, ServiceRecetteUtilisateur
 // Enregistrer le Service Email (Scoped pour éviter les problèmes avec les dépendances Scoped)
 builder.Services.AddScoped<IServiceEmail, ServiceEmail>();
 
-// Note: CORS n'est plus nécessaire en mode Hosted Blazor (frontend + backend sur le même port)
+// Configuration CORS (développement: frontend et backend sur ports différents)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("https://localhost:7777")
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials(); // IMPORTANT: permettre les cookies
+    });
+});
 
 // ========================================
 // Configuration du Pipeline HTTP
@@ -130,6 +140,9 @@ if (app.Environment.IsProduction())
 
 // Servir les fichiers statiques du frontend Blazor WASM (doit être avant UseAuthentication)
 app.UseStaticFiles();
+
+// Appliquer CORS (avant l'authentification et l'autorisation)
+app.UseCors("AllowFrontend");
 
 // Ajouter l'authentification avant l'autorisation
 app.UseAuthentication();
