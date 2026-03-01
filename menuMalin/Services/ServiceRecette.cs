@@ -3,6 +3,7 @@
 using System.Net.Http.Json;
 using menuMalin.DTOs;
 using menuMalin.Modeles;
+using menuMalin.Shared.Modeles.DTOs;
 using System.Reflection;
 
 public class ServiceRecette : IServiceRecette
@@ -19,8 +20,9 @@ public class ServiceRecette : IServiceRecette
         try
         {
             // Appelle le backend proxy: GET /api/recipes/random
-            var response = await _http.GetFromJsonAsync<ReponseRecette>("recipes/random");
-            return response?.Meals ?? new List<Recette>();
+            // Le backend retourne directement un tableau JSON d'objets {IdMeal, StrMeal, StrMealThumb, ...}
+            var recipes = await _http.GetFromJsonAsync<List<Recette>>("recipes/random");
+            return recipes ?? new List<Recette>();
         }
         catch
         {
@@ -33,8 +35,9 @@ public class ServiceRecette : IServiceRecette
         try
         {
             // Appelle le backend proxy: GET /api/recipes/search?query={searchTerm}
-            var response = await _http.GetFromJsonAsync<ReponseRecette>($"recipes/search?query={Uri.EscapeDataString(searchTerm)}");
-            return response?.Meals ?? new List<Recette>();
+            // Le backend retourne directement un tableau JSON d'objets {IdMeal, StrMeal, StrMealThumb, ...}
+            var recipes = await _http.GetFromJsonAsync<List<Recette>>($"recipes/search?query={Uri.EscapeDataString(searchTerm)}");
+            return recipes ?? new List<Recette>();
         }
         catch
         {
@@ -48,8 +51,9 @@ public class ServiceRecette : IServiceRecette
         try
         {
             // Appelle le backend proxy: GET /api/recipes/{id}
-            var response = await _http.GetFromJsonAsync<ReponseRecette>($"recipes/{id}");
-            return response?.Meals?.FirstOrDefault();
+            // Le backend retourne un RecetteDTO unique (pas une liste)
+            var dto = await _http.GetFromJsonAsync<RecetteDTO>($"recipes/{id}");
+            return dto?.ToLocalRecette();
         }
         catch
         {
@@ -90,8 +94,9 @@ public class ServiceRecette : IServiceRecette
         try
         {
             // Appelle le backend proxy: GET /api/recipes/filter/category?category={category}
-            var response = await _http.GetFromJsonAsync<ReponseRecette>($"recipes/filter/category?category={Uri.EscapeDataString(category)}");
-            return response?.Meals ?? new List<Recette>();
+            // Le backend retourne une liste de RecetteDTO (recipeId, title, imageUrl, ...)
+            var dtos = await _http.GetFromJsonAsync<List<RecetteDTO>>($"recipes/filter/category?category={Uri.EscapeDataString(category)}");
+            return dtos.ToLocalRecettes();
         }
         catch
         {
@@ -104,8 +109,9 @@ public class ServiceRecette : IServiceRecette
         try
         {
             // Appelle le backend proxy: GET /api/recipes/filter/area?area={area}
-            var response = await _http.GetFromJsonAsync<ReponseRecette>($"recipes/filter/area?area={Uri.EscapeDataString(area)}");
-            return response?.Meals ?? new List<Recette>();
+            // Le backend retourne une liste de RecetteDTO (recipeId, title, imageUrl, ...)
+            var dtos = await _http.GetFromJsonAsync<List<RecetteDTO>>($"recipes/filter/area?area={Uri.EscapeDataString(area)}");
+            return dtos.ToLocalRecettes();
         }
         catch
         {

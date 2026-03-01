@@ -16,7 +16,8 @@ public static class RecetteDTOExtensions
         if (dto == null) return null;
         return new Recette
         {
-            IdMeal = dto.RecipeId,
+            // IdMeal doit contenir le MealDBId (ID TheMealDB) pour la navigation vers le détail
+            IdMeal = dto.MealDBId,
             StrMeal = dto.Title,
             StrCategory = dto.Category ?? string.Empty,
             StrArea = dto.Area ?? string.Empty,

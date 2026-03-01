@@ -1,5 +1,6 @@
 using menuMalin.Modeles;
 using menuMalin.DTOs;
+using menuMalin.Shared.Modeles.DTOs;
 
 namespace menuMalin.Services;
 
@@ -20,6 +21,7 @@ public class ServiceRecetteFrontend : IServiceRecetteFrontend
     {
         try
         {
+            // Le backend retourne directement un tableau [{IdMeal, StrMeal, StrMealThumb, ...}]
             var recipes = await _httpApiService.GetAsync<List<Recette>>($"{BaseUrl}/random");
             return recipes ?? new();
         }
@@ -37,6 +39,7 @@ public class ServiceRecetteFrontend : IServiceRecetteFrontend
             if (string.IsNullOrWhiteSpace(query))
                 return new();
 
+            // Le backend retourne directement un tableau [{IdMeal, StrMeal, StrMealThumb, ...}]
             var recipes = await _httpApiService.GetAsync<List<Recette>>($"{BaseUrl}/search?query={Uri.EscapeDataString(query)}");
             return recipes ?? new();
         }
@@ -54,7 +57,9 @@ public class ServiceRecetteFrontend : IServiceRecetteFrontend
             if (string.IsNullOrWhiteSpace(mealId))
                 return null;
 
-            return await _httpApiService.GetAsync<Recette>($"{BaseUrl}/{mealId}");
+            // Le backend retourne un RecetteDTO unique (recipeId, title, imageUrl, ...)
+            var dto = await _httpApiService.GetAsync<RecetteDTO>($"{BaseUrl}/{mealId}");
+            return dto?.ToLocalRecette();
         }
         catch
         {
@@ -98,8 +103,9 @@ public class ServiceRecetteFrontend : IServiceRecetteFrontend
             if (string.IsNullOrWhiteSpace(category))
                 return new();
 
-            var recipes = await _httpApiService.GetAsync<List<Recette>>($"{BaseUrl}/filter/category?category={Uri.EscapeDataString(category)}");
-            return recipes ?? new();
+            // Le backend retourne une liste de RecetteDTO (recipeId, title, imageUrl, ...)
+            var dtos = await _httpApiService.GetAsync<List<RecetteDTO>>($"{BaseUrl}/filter/category?category={Uri.EscapeDataString(category)}");
+            return dtos.ToLocalRecettes();
         }
         catch
         {
@@ -115,8 +121,9 @@ public class ServiceRecetteFrontend : IServiceRecetteFrontend
             if (string.IsNullOrWhiteSpace(area))
                 return new();
 
-            var recipes = await _httpApiService.GetAsync<List<Recette>>($"{BaseUrl}/filter/area?area={Uri.EscapeDataString(area)}");
-            return recipes ?? new();
+            // Le backend retourne une liste de RecetteDTO (recipeId, title, imageUrl, ...)
+            var dtos = await _httpApiService.GetAsync<List<RecetteDTO>>($"{BaseUrl}/filter/area?area={Uri.EscapeDataString(area)}");
+            return dtos.ToLocalRecettes();
         }
         catch
         {
