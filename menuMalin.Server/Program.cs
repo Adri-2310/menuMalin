@@ -39,8 +39,8 @@ builder.Services.AddAuthentication(options =>
     options.SlidingExpiration = true;
     options.Cookie.Name = ".AspNetCore.Cookies";
     options.Cookie.HttpOnly = true;
-    // En mode Hosted, frontend et backend sont sur le même port - utiliser Strict
-    options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict;
+    // En mode développement, frontend et backend sur ports différents - utiliser Lax pour permettre les cookies cross-site
+    options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
     options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.SameAsRequest;
     options.Cookie.Path = "/";
     options.Events.OnSignedIn += context =>
