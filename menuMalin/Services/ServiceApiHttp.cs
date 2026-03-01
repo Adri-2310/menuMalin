@@ -94,7 +94,7 @@ public class ServiceApiHttp : IServiceApiHttp
             var response = await _httpClient.SendAsync(request);
             return response.IsSuccessStatusCode;
         }
-        catch (Exception ex)
+        catch
         {
             // Logged in development
             return false;
@@ -122,7 +122,7 @@ public class ServiceApiHttp : IServiceApiHttp
             var responseContent = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<T>(responseContent, JsonOptions);
         }
-        catch (Exception ex)
+        catch
         {
             // Logged in development
             return default;

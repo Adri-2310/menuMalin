@@ -176,10 +176,11 @@
         Navigation.NavigateTo("/");
     }
 
-    async ValueTask IAsyncDisposable.DisposeAsync()
+    ValueTask IAsyncDisposable.DisposeAsync()
     {
         Navigation.LocationChanged -= OnLocationChanged;
         AuthState.AuthenticationChanged -= OnAuthenticationChanged;
         authCheckTimer?.Dispose();
+        return ValueTask.CompletedTask;
     }
 }

@@ -63,7 +63,7 @@ public class ServiceRecetteUtilisateur : IServiceRecetteUtilisateur
             var recipes = await _httpApiService.GetAsync<List<RecetteUtilisateurDTO>>($"{BaseUrl}/public");
             return recipes ?? new();
         }
-        catch (Exception ex)
+        catch
         {
             // Error handled silently
             return new();
@@ -80,7 +80,7 @@ public class ServiceRecetteUtilisateur : IServiceRecetteUtilisateur
             var recipe = await _httpApiService.GetAsync<RecetteUtilisateurDTO>($"{BaseUrl}/{userRecipeId}");
             return recipe;
         }
-        catch (Exception ex)
+        catch
         {
             // Error handled silently
             return null;
@@ -106,7 +106,7 @@ public class ServiceRecetteUtilisateur : IServiceRecetteUtilisateur
             var result = await _httpApiService.PatchAsync<RecetteUtilisateurDTO>($"{BaseUrl}/{userRecipeId}", request);
             return result;
         }
-        catch (Exception ex)
+        catch
         {
             // Error handled silently
             return null;
@@ -122,7 +122,7 @@ public class ServiceRecetteUtilisateur : IServiceRecetteUtilisateur
 
             return await _httpApiService.DeleteAsync($"{BaseUrl}/{userRecipeId}");
         }
-        catch (Exception ex)
+        catch
         {
             // Error handled silently
             return false;
@@ -140,7 +140,7 @@ public class ServiceRecetteUtilisateur : IServiceRecetteUtilisateur
             var result = await _httpApiService.PatchAsync<object>($"{BaseUrl}/{userRecipeId}/visibility", request);
             return result != null;
         }
-        catch (Exception ex)
+        catch
         {
             // Error handled silently
             return false;

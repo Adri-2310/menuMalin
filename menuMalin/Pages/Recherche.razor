@@ -292,7 +292,7 @@ else
 
             @* Priorité: si recherche texte → chercher par texte
                  Sinon: filtrer par catégorie ou zone *@
-            List<Recette> recipeResults = null;
+            List<Recette>? recipeResults = null;
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {

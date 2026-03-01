@@ -27,7 +27,7 @@ public class ServiceStockageLocal
             var profile = await _localStorage.GetItemAsync<ProfilUtilisateur>("user:profile");
             return profile;
         }
-        catch (Exception ex)
+        catch
         {
             // Logged in development
             return null;
@@ -43,7 +43,7 @@ public class ServiceStockageLocal
         {
             await _localStorage.SetItemAsync("user:profile", profile);
         }
-        catch (Exception ex)
+        catch
         {
             // Logged in development
         }
@@ -59,7 +59,7 @@ public class ServiceStockageLocal
             await _localStorage.RemoveItemAsync("user:profile");
             await _localStorage.RemoveItemAsync("user:tokens");
         }
-        catch (Exception ex)
+        catch
         {
             // Logged in development
         }
@@ -90,7 +90,7 @@ public class ServiceStockageLocal
         {
             await _localStorage.SetItemAsync("user:theme", theme);
         }
-        catch (Exception ex)
+        catch
         {
             // Logged in development
         }

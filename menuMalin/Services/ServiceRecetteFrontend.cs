@@ -23,7 +23,7 @@ public class ServiceRecetteFrontend : IServiceRecetteFrontend
             var recipes = await _httpApiService.GetAsync<List<Recette>>($"{BaseUrl}/random");
             return recipes ?? new();
         }
-        catch (Exception ex)
+        catch
         {
             // Logged in development
             return new();
@@ -40,7 +40,7 @@ public class ServiceRecetteFrontend : IServiceRecetteFrontend
             var recipes = await _httpApiService.GetAsync<List<Recette>>($"{BaseUrl}/search?query={Uri.EscapeDataString(query)}");
             return recipes ?? new();
         }
-        catch (Exception ex)
+        catch
         {
             // Logged in development
             return new();
@@ -56,7 +56,7 @@ public class ServiceRecetteFrontend : IServiceRecetteFrontend
 
             return await _httpApiService.GetAsync<Recette>($"{BaseUrl}/{mealId}");
         }
-        catch (Exception ex)
+        catch
         {
             // Logged in development
             return null;
@@ -70,7 +70,7 @@ public class ServiceRecetteFrontend : IServiceRecetteFrontend
             var categories = await _httpApiService.GetAsync<List<string>>($"{BaseUrl}/categories/list");
             return categories ?? new();
         }
-        catch (Exception ex)
+        catch
         {
             // Logged in development
             return new();
@@ -84,7 +84,7 @@ public class ServiceRecetteFrontend : IServiceRecetteFrontend
             var areas = await _httpApiService.GetAsync<List<string>>($"{BaseUrl}/areas/list");
             return areas ?? new();
         }
-        catch (Exception ex)
+        catch
         {
             // Logged in development
             return new();
@@ -101,7 +101,7 @@ public class ServiceRecetteFrontend : IServiceRecetteFrontend
             var recipes = await _httpApiService.GetAsync<List<Recette>>($"{BaseUrl}/filter/category?category={Uri.EscapeDataString(category)}");
             return recipes ?? new();
         }
-        catch (Exception ex)
+        catch
         {
             // Logged in development
             return new();
@@ -118,7 +118,7 @@ public class ServiceRecetteFrontend : IServiceRecetteFrontend
             var recipes = await _httpApiService.GetAsync<List<Recette>>($"{BaseUrl}/filter/area?area={Uri.EscapeDataString(area)}");
             return recipes ?? new();
         }
-        catch (Exception ex)
+        catch
         {
             // Logged in development
             return new();

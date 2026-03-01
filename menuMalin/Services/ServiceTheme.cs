@@ -55,7 +55,7 @@ public class ServiceTheme : IServiceTheme
         {
             await _jsRuntime.InvokeVoidAsync("applyTheme", theme);
         }
-        catch (Exception ex)
+        catch
         {
             // Logged in development
         }

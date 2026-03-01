@@ -338,7 +338,7 @@ else
             isLoadingCategories = true;
             categories = await RecipeService.GetCategoriesAsync();
         }
-        catch (Exception ex)
+        catch
         {
             errorMessage = "Erreur lors du chargement des catégories";
         }
@@ -355,7 +355,7 @@ else
             isLoadingAreas = true;
             areas = await RecipeService.GetAreasAsync();
         }
-        catch (Exception ex)
+        catch
         {
             errorMessage = "Erreur lors du chargement des régions";
         }
