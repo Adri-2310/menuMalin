@@ -11,7 +11,7 @@ namespace menuMalin.Server.Controleurs;
 /// Toutes les routes nécessitent une authentification cookie valide
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/favorites")]
 public class ControleurFavoris : ControllerBase
 {
     private readonly IServiceFavoris _favoriteService;
