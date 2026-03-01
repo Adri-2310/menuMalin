@@ -203,6 +203,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        // Charger l'état d'authentification depuis localStorage avant de vérifier
+        await AuthState.InitializeAuthStateAsync();
         await CheckAuthentication();
         if (isAuthenticated)
         {

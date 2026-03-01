@@ -98,6 +98,9 @@
         // S'abonner aux changements d'authentification
         AuthState.AuthenticationChanged += OnAuthenticationChanged;
 
+        // Charger l'état d'authentification depuis localStorage (persiste pendant 24h)
+        await AuthState.InitializeAuthStateAsync();
+
         // Initialiser l'authentification
         await CheckAuthentication();
 
@@ -166,8 +169,8 @@
     {
         await AuthService.LogoutAsync();
 
-        // Nettoyer l'état d'authentification global
-        AuthState.CurrentUser = null;
+        // Nettoyer l'état d'authentification global (y compris localStorage)
+        await AuthState.ClearAuthStateAsync();
 
         // Rediriger vers l'accueil
         Navigation.NavigateTo("/");
