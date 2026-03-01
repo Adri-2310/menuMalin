@@ -22,6 +22,11 @@ public class Utilisateur
     public string? Name { get; set; }
 
     /// <summary>
+    /// Hash du mot de passe (BCrypt, workFactor 12)
+    /// </summary>
+    public string? PasswordHash { get; set; }
+
+    /// <summary>
     /// Date de création du compte
     /// </summary>
     public DateTime DateCreation { get; set; } = DateTime.UtcNow;

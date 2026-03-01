@@ -95,6 +95,9 @@
     [Inject]
     private NavigationManager? NavigationManager { get; set; }
 
+    [Inject]
+    private ServiceEtatAuthentification? AuthState { get; set; }
+
     private string Name { get; set; } = string.Empty;
     private string Email { get; set; } = string.Empty;
     private string Password { get; set; } = string.Empty;
@@ -146,9 +149,12 @@
 
             if (result?.IsAuthenticated == true)
             {
+                // Mettre à jour l'état d'authentification global avec le result de l'inscription
+                AuthState!.CurrentUser = result;
+
                 SuccessMessage = "Compte créé avec succès! Redirection...";
-                await Task.Delay(2000);
-                NavigationManager!.NavigateTo("/", forceLoad: true);
+                await Task.Delay(1000);
+                NavigationManager!.NavigateTo("/");
             }
             else
             {

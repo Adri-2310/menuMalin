@@ -44,6 +44,9 @@ builder.Services.AddScoped<ServiceStockageLocal>();
 // ThemeService (pour le thème dark/light)
 builder.Services.AddScoped<IServiceTheme, ServiceTheme>();
 
+// État partagé d'authentification (Singleton pour cohérence globale)
+builder.Services.AddSingleton<ServiceEtatAuthentification>();
+
 // Services d'authentification (BFF) - avec HttpClient dédié
 builder.Services.AddHttpClient<IServiceAuthentification, ServiceAuthentification>(client =>
 {

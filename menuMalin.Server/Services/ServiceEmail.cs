@@ -2,9 +2,6 @@ using menuMalin.Server.Services.Interfaces;
 using System.Net;
 using System.Net.Mail;
 
-using menuMalin.Server.Services.Interfaces;
-using menuMalin.Server.Services.Interfaces;
-
 namespace menuMalin.Server.Services;
 
 /// <summary>

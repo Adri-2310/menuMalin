@@ -16,7 +16,7 @@ namespace menuMalin.Server.Controleurs;
 /// Authentification simple: Email + Password → Cookie HttpOnly
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/auth")]
 public class ControleurAuthentification : ControllerBase
 {
     private readonly IServiceUtilisateur _serviceUtilisateur;
@@ -51,16 +51,20 @@ public class ControleurAuthentification : ControllerBase
 
         try
         {
-            // Pour DEV: Accepter n'importe quel email/password (validation simple)
-            // En PROD: Faire bcrypt.VerifyHashedPassword(hashedPassword, request.Password)
-
-            // Créer ou récupérer l'utilisateur
-            var user = await _serviceUtilisateur.GetOrCreateUserAsync(request.Email, request.Email, request.Email.Split("@")[0]);
+            // Récupérer l'utilisateur par email
+            var user = await _serviceUtilisateur.GetUserByEmailAsync(request.Email);
 
             if (user == null)
             {
-                _logger.LogWarning("Failed to create/retrieve user: {Email}", request.Email);
-                return StatusCode(500, new { error = "Erreur lors de la création du compte" });
+                _logger.LogWarning("Login failed - user not found: {Email}", request.Email);
+                return BadRequest(new { error = "Email ou mot de passe incorrect" });
+            }
+
+            // Vérifier le password avec BCrypt
+            if (string.IsNullOrEmpty(user.PasswordHash) || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+            {
+                _logger.LogWarning("Login failed - incorrect password for user: {Email}", request.Email);
+                return BadRequest(new { error = "Email ou mot de passe incorrect" });
             }
 
             // Créer les claims pour le cookie

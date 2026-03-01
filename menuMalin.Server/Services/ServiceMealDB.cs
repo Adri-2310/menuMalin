@@ -1,7 +1,5 @@
 using System.Text.Json;
 using menuMalin.Shared.Modeles.DTOs;
-
-using menuMalin.Server.Services.Interfaces;
 using menuMalin.Server.Services.Interfaces;
 
 namespace menuMalin.Server.Services;
@@ -13,7 +11,7 @@ public class ServiceMealDB : IServiceMealDB
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<ServiceMealDB> _logger;
-    private const string BaseUrl = "https://www.themealdb.com/api/json/v1/1";
+    private const string BaseUrl = "https://www.themealdb.com/api/json/v1/1/";
 
     public ServiceMealDB(HttpClient httpClient, ILogger<ServiceMealDB> logger)
     {
@@ -26,7 +24,7 @@ public class ServiceMealDB : IServiceMealDB
     {
         try
         {
-            var response = await _httpClient.GetAsync("/random.php");
+            var response = await _httpClient.GetAsync("random.php");
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
@@ -48,7 +46,7 @@ public class ServiceMealDB : IServiceMealDB
             if (string.IsNullOrWhiteSpace(query))
                 return new();
 
-            var response = await _httpClient.GetAsync($"/search.php?s={query}");
+            var response = await _httpClient.GetAsync($"search.php?s={query}");
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
@@ -70,7 +68,7 @@ public class ServiceMealDB : IServiceMealDB
             if (string.IsNullOrWhiteSpace(mealId))
                 return null;
 
-            var response = await _httpClient.GetAsync($"/lookup.php?i={mealId}");
+            var response = await _httpClient.GetAsync($"lookup.php?i={mealId}");
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
@@ -89,7 +87,7 @@ public class ServiceMealDB : IServiceMealDB
     {
         try
         {
-            var response = await _httpClient.GetAsync("/categories.php");
+            var response = await _httpClient.GetAsync("categories.php");
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
@@ -122,7 +120,7 @@ public class ServiceMealDB : IServiceMealDB
     {
         try
         {
-            var response = await _httpClient.GetAsync("/list.php?a=list");
+            var response = await _httpClient.GetAsync("list.php?a=list");
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
@@ -157,7 +155,7 @@ public class ServiceMealDB : IServiceMealDB
             if (string.IsNullOrWhiteSpace(category))
                 return new();
 
-            var response = await _httpClient.GetAsync($"/filter.php?c={category}");
+            var response = await _httpClient.GetAsync($"filter.php?c={category}");
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
@@ -179,7 +177,7 @@ public class ServiceMealDB : IServiceMealDB
             if (string.IsNullOrWhiteSpace(area))
                 return new();
 
-            var response = await _httpClient.GetAsync($"/filter.php?a={area}");
+            var response = await _httpClient.GetAsync($"filter.php?a={area}");
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();

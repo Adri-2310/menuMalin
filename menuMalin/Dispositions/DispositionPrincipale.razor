@@ -2,6 +2,7 @@
 @using System
 @inject NavigationManager Navigation
 @inject IServiceAuthentification AuthService
+@inject ServiceEtatAuthentification AuthState
 @implements IAsyncDisposable
 
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm border-bottom">
@@ -27,19 +28,19 @@
                 @if (isAuthenticated)
                 {
                     <li class="nav-item">
-                        <NavLink class="nav-link px-3" href="my-recipes">Mes Favoris</NavLink>
+                        <NavLink class="nav-link px-3" href="mes-favoris">Mes Favoris</NavLink>
                     </li>
                     <li class="nav-item">
-                        <NavLink class="nav-link px-3" href="my-created-recipes">Mes Recettes</NavLink>
+                        <NavLink class="nav-link px-3" href="mes-creations">Mes Recettes</NavLink>
                     </li>
                     <li class="nav-item">
-                        <NavLink class="nav-link px-3" href="create-recipe">Créer une Recette</NavLink>
+                        <NavLink class="nav-link px-3" href="creer-recette">Créer une Recette</NavLink>
                     </li>
                 }
                 @if (isAuthenticated)
                 {
                     <li class="nav-item">
-                        <NavLink class="nav-link px-3" href="public-recipes">Recettes Partagées</NavLink>
+                        <NavLink class="nav-link px-3" href="recettes-publiques">Recettes Partagées</NavLink>
                     </li>
                 }
                 <li class="nav-item">
@@ -86,19 +87,44 @@
     private bool collapseNavMenu = true;
     private bool isAuthenticated = false;
     private UtilisateurAuth? currentUser;
+    private System.Threading.Timer? authCheckTimer;
 
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 
     protected override async Task OnInitializedAsync()
     {
         Navigation.LocationChanged += OnLocationChanged;
+
+        // S'abonner aux changements d'authentification
+        AuthState.AuthenticationChanged += OnAuthenticationChanged;
+
+        // Initialiser l'authentification
         await CheckAuthentication();
+
+        // Timer résiduel pour les cas où l'événement est manqué (backup de sécurité - réduction à 10s)
+        authCheckTimer = new System.Threading.Timer(state =>
+        {
+            _ = InvokeAsync(async () =>
+            {
+                await CheckAuthentication();
+                StateHasChanged();
+            });
+        }, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
     }
 
     private async Task CheckAuthentication()
     {
         try
         {
+            // D'abord utiliser l'état global (Singleton) s'il est disponible
+            if (AuthState?.CurrentUser != null)
+            {
+                currentUser = AuthState.CurrentUser;
+                isAuthenticated = AuthState.IsAuthenticated;
+                return;
+            }
+
+            // Sinon récupérer depuis le serveur
             currentUser = await AuthService.GetCurrentUserAsync();
             isAuthenticated = currentUser?.IsAuthenticated ?? false;
         }
@@ -106,6 +132,14 @@
         {
             isAuthenticated = false;
         }
+    }
+
+    private void OnAuthenticationChanged()
+    {
+        // Quand l'état d'authentification change, mettre à jour les propriétés locales
+        currentUser = AuthState.CurrentUser;
+        isAuthenticated = AuthState.IsAuthenticated;
+        StateHasChanged();
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
@@ -120,22 +154,29 @@
 
     private void Login()
     {
-        Navigation.NavigateTo("/login");
+        Navigation.NavigateTo("/connexion");
     }
 
     private void Register()
     {
-        Navigation.NavigateTo("/register");
+        Navigation.NavigateTo("/inscription");
     }
 
     private async Task Logout()
     {
         await AuthService.LogoutAsync();
+
+        // Nettoyer l'état d'authentification global
+        AuthState.CurrentUser = null;
+
+        // Rediriger vers l'accueil
+        Navigation.NavigateTo("/");
     }
 
-    ValueTask IAsyncDisposable.DisposeAsync()
+    async ValueTask IAsyncDisposable.DisposeAsync()
     {
         Navigation.LocationChanged -= OnLocationChanged;
-        return ValueTask.CompletedTask;
+        AuthState.AuthenticationChanged -= OnAuthenticationChanged;
+        authCheckTimer?.Dispose();
     }
 }

@@ -3,9 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using menuMalin.Server.Donnees;
 using menuMalin.Server.Modeles.Entites;
 
-using menuMalin.Server.Depots.Interfaces;
-using menuMalin.Server.Depots.Interfaces;
-
 namespace menuMalin.Server.Depots;
 
 /// <summary>

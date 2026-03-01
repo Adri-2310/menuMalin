@@ -60,6 +60,9 @@
     [Inject]
     private NavigationManager? NavigationManager { get; set; }
 
+    [Inject]
+    private ServiceEtatAuthentification? AuthState { get; set; }
+
     private string Email { get; set; } = string.Empty;
     private string Password { get; set; } = string.Empty;
     private string? ErrorMessage { get; set; }
@@ -94,8 +97,12 @@
 
             if (result?.IsAuthenticated == true)
             {
-                // Redirection vers la page d'accueil
-                NavigationManager!.NavigateTo("/", forceLoad: true);
+                // Mettre à jour l'état d'authentification global avec le result du login
+                // (pas besoin d'appeler GetCurrentUserAsync - on a déjà les données du serveur)
+                AuthState!.CurrentUser = result;
+
+                // Redirection vers la page d'accueil (sans reload - laisse le Singleton synchronisé)
+                NavigationManager!.NavigateTo("/");
             }
             else
             {

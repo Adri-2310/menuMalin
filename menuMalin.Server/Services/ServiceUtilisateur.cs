@@ -1,8 +1,6 @@
 using menuMalin.Server.Modeles.Entites;
 using menuMalin.Server.Depots;
 using menuMalin.Server.Depots.Interfaces;
-
-using menuMalin.Server.Services.Interfaces;
 using menuMalin.Server.Services.Interfaces;
 
 namespace menuMalin.Server.Services;
@@ -67,11 +65,15 @@ public class ServiceUtilisateur : IServiceUtilisateur
 
     public async Task<Utilisateur> CreateUserAsync(string email, string password, string name)
     {
+        // Hasher le password avec BCrypt (workFactor = 12)
+        var passwordHash = BCrypt.Net.BCrypt.HashPassword(password, workFactor: 12);
+
         var newUser = new Utilisateur
         {
             UserId = Guid.NewGuid().ToString("N"),
             Email = email,
             Name = name,
+            PasswordHash = passwordHash,
             DateCreation = DateTime.UtcNow
         };
 
