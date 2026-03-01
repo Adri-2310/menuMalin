@@ -34,7 +34,7 @@ public class ServiceRecetteUtilisateur : IServiceRecetteUtilisateur
             if (string.IsNullOrWhiteSpace(request.Instructions))
                 return null;
 
-            var result = await _httpApiService.PostAsync<ReponseRecette>(BaseUrl, request);
+            var result = await _httpApiService.PostAsync<RecetteUtilisateurDTO>(BaseUrl, request);
             return result;
         }
         catch
@@ -77,7 +77,7 @@ public class ServiceRecetteUtilisateur : IServiceRecetteUtilisateur
             if (string.IsNullOrWhiteSpace(userRecipeId))
                 return null;
 
-            var recipe = await _httpApiService.GetAsync<ReponseRecette>($"{BaseUrl}/{userRecipeId}");
+            var recipe = await _httpApiService.GetAsync<RecetteUtilisateurDTO>($"{BaseUrl}/{userRecipeId}");
             return recipe;
         }
         catch (Exception ex)
@@ -103,7 +103,7 @@ public class ServiceRecetteUtilisateur : IServiceRecetteUtilisateur
             if (string.IsNullOrWhiteSpace(request.Instructions))
                 return null;
 
-            var result = await _httpApiService.PatchAsync<ReponseRecette>($"{BaseUrl}/{userRecipeId}", request);
+            var result = await _httpApiService.PatchAsync<RecetteUtilisateurDTO>($"{BaseUrl}/{userRecipeId}", request);
             return result;
         }
         catch (Exception ex)

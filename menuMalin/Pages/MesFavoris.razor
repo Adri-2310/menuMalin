@@ -3,7 +3,6 @@
 @using menuMalin.Modeles
 @using menuMalin.Services
 @using menuMalin.Composants.Recette
-@using menuMalin.Shared.Modeles.DTOs
 @inject IServiceFavorisFrontend FavoriteService
 @inject IServiceAuthentification AuthService
 @inject NavigationManager Nav
@@ -94,7 +93,7 @@ else
         </div>
 
         @* AFFICHAGE GRILLE *@
-        <GrilleRecettesDto Recipes="filteredRecipes" />
+        <GrilleRecettes Recipes="filteredRecipes" />
 
         @* BOUTON RÉINITIALISER *@
         <div class="text-center mt-4">
@@ -107,8 +106,8 @@ else
 }
 
 @code {
-    private List<RecetteDTO>? favorites;
-    private List<RecetteDTO> filteredRecipes = new();
+    private List<Recette>? favorites;
+    private List<Recette> filteredRecipes = new();
     private List<string> categoryList = new();
     private string selectedCategory = "";
     private string sortOrder = "name-asc";
@@ -181,7 +180,7 @@ else
         }
 
         categoryList = favorites
-            .Select(r => r.Category)
+            .Select(r => r.StrCategory)
             .Where(c => !string.IsNullOrEmpty(c))
             .Distinct()
             .OrderBy(c => c)
@@ -192,7 +191,7 @@ else
     {
         if (favorites == null)
         {
-            filteredRecipes = new List<RecetteDTO>();
+            filteredRecipes = new List<Recette>();
             return;
         }
 
@@ -201,16 +200,16 @@ else
         // Filtre par catégorie
         if (!string.IsNullOrEmpty(selectedCategory))
         {
-            filtered = filtered.Where(r => r.Category == selectedCategory);
+            filtered = filtered.Where(r => r.StrCategory == selectedCategory);
         }
 
         // Tri
         filtered = sortOrder switch
         {
-            "name-asc" => filtered.OrderBy(r => r.Title),
-            "name-desc" => filtered.OrderByDescending(r => r.Title),
-            "category" => filtered.OrderBy(r => r.Category).ThenBy(r => r.Title),
-            _ => filtered.OrderBy(r => r.Title)
+            "name-asc" => filtered.OrderBy(r => r.StrMeal),
+            "name-desc" => filtered.OrderByDescending(r => r.StrMeal),
+            "category" => filtered.OrderBy(r => r.StrCategory).ThenBy(r => r.StrMeal),
+            _ => filtered.OrderBy(r => r.StrMeal)
         };
 
         filteredRecipes = filtered.ToList();

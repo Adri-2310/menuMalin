@@ -16,17 +16,12 @@ public static class RecetteDTOExtensions
         if (dto == null) return null;
         return new Recette
         {
-            RecipeId = dto.RecipeId,
-            Title = dto.Title,
-            Description = dto.Description,
-            Instructions = dto.Instructions,
-            ImageUrl = dto.ImageUrl,
-            MealDBId = dto.MealDBId,
-            Category = dto.Category,
-            Area = dto.Area,
-            Tags = dto.Tags,
-            DateCreation = dto.CreatedAt,
-            DateMaj = dto.UpdatedAt
+            IdMeal = dto.RecipeId,
+            StrMeal = dto.Title,
+            StrCategory = dto.Category ?? string.Empty,
+            StrArea = dto.Area ?? string.Empty,
+            StrInstructions = dto.Instructions ?? string.Empty,
+            StrMealThumb = dto.ImageUrl ?? string.Empty
         };
     }
 

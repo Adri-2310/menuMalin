@@ -52,7 +52,7 @@ public class ServiceMealDB : IServiceMealDB
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<RecetteRecetteMealResponse>(content);
+            var result = JsonSerializer.Deserialize<RecetteMealResponse>(content);
 
             return result?.Meals ?? new();
         }
@@ -74,7 +74,7 @@ public class ServiceMealDB : IServiceMealDB
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<RecetteRecetteMealResponse>(content);
+            var result = JsonSerializer.Deserialize<RecetteMealResponse>(content);
 
             return result?.Meals?.FirstOrDefault();
         }
@@ -161,7 +161,7 @@ public class ServiceMealDB : IServiceMealDB
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<RecetteRecetteMealResponse>(content);
+            var result = JsonSerializer.Deserialize<RecetteMealResponse>(content);
 
             return result?.Meals ?? new();
         }
@@ -183,7 +183,7 @@ public class ServiceMealDB : IServiceMealDB
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<RecetteRecetteMealResponse>(content);
+            var result = JsonSerializer.Deserialize<RecetteMealResponse>(content);
 
             return result?.Meals ?? new();
         }

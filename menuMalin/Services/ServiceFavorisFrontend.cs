@@ -1,4 +1,4 @@
-using menuMalin.DTOs;
+using menuMalin.Modeles;
 
 namespace menuMalin.Services;
 
@@ -15,11 +15,11 @@ public class ServiceFavorisFrontend : IServiceFavorisFrontend
         _httpApiService = httpApiService;
     }
 
-    public async Task<List<ReponseRecette>> GetUserFavoritesAsync()
+    public async Task<List<Recette>> GetUserFavoritesAsync()
     {
         try
         {
-            var favorites = await _httpApiService.GetAsync<List<ReponseRecette>>(BaseUrl);
+            var favorites = await _httpApiService.GetAsync<List<Recette>>(BaseUrl);
             if (favorites != null && favorites.Count > 0)
             {
                 Console.WriteLine($"✅ {favorites.Count} favoris chargés");

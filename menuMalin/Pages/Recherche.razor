@@ -2,7 +2,6 @@
 @using menuMalin.Modeles
 @using menuMalin.Services
 @using menuMalin.Composants.Recette
-@using menuMalin.DTOs
 @using menuMalin.Shared.Modeles.DTOs
 @inject IServiceRecetteFrontend RecipeService
 @inject IServiceRecetteUtilisateur UserRecipeService
@@ -214,7 +213,7 @@ else
     private string selectedArea = "";
     private List<string> categories = new();
     private List<string> areas = new();
-    private List<RecetteDTO>? recipes;
+    private List<Recette>? recipes;
     private List<RecetteUtilisateurDTO>? communityRecipes;
     private bool isLoading = false;
     private bool isAuthenticated = false;
@@ -281,7 +280,7 @@ else
 
             @* Priorité: si recherche texte → chercher par texte
                  Sinon: filtrer par catégorie ou zone *@
-            List<RecetteDTO> recipeResults = null;
+            List<Recette> recipeResults = null;
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
@@ -298,7 +297,7 @@ else
 
             if (recipeResults == null || !recipeResults.Any())
             {
-                recipes = new List<RecetteDTO>();
+                recipes = new List<Recette>();
             }
             else
             {

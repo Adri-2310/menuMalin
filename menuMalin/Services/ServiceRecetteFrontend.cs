@@ -1,5 +1,5 @@
+using menuMalin.Modeles;
 using menuMalin.DTOs;
-using menuMalin.Shared.Modeles.DTOs;
 
 namespace menuMalin.Services;
 
@@ -16,11 +16,11 @@ public class ServiceRecetteFrontend : IServiceRecetteFrontend
         _httpApiService = httpApiService;
     }
 
-    public async Task<List<RecetteDTO>> GetRandomRecipesAsync()
+    public async Task<List<Recette>> GetRandomRecipesAsync()
     {
         try
         {
-            var recipes = await _httpApiService.GetAsync<List<RecetteDTO>>($"{BaseUrl}/random");
+            var recipes = await _httpApiService.GetAsync<List<Recette>>($"{BaseUrl}/random");
             return recipes ?? new();
         }
         catch (Exception ex)
@@ -30,14 +30,14 @@ public class ServiceRecetteFrontend : IServiceRecetteFrontend
         }
     }
 
-    public async Task<List<RecetteDTO>> SearchRecipesAsync(string query)
+    public async Task<List<Recette>> SearchRecipesAsync(string query)
     {
         try
         {
             if (string.IsNullOrWhiteSpace(query))
                 return new();
 
-            var recipes = await _httpApiService.GetAsync<List<RecetteDTO>>($"{BaseUrl}/search?query={Uri.EscapeDataString(query)}");
+            var recipes = await _httpApiService.GetAsync<List<Recette>>($"{BaseUrl}/search?query={Uri.EscapeDataString(query)}");
             return recipes ?? new();
         }
         catch (Exception ex)
@@ -47,14 +47,14 @@ public class ServiceRecetteFrontend : IServiceRecetteFrontend
         }
     }
 
-    public async Task<RecetteDTO?> GetRecipeDetailsAsync(string mealId)
+    public async Task<Recette?> GetRecipeDetailsAsync(string mealId)
     {
         try
         {
             if (string.IsNullOrWhiteSpace(mealId))
                 return null;
 
-            return await _httpApiService.GetAsync<RecetteDTO>($"{BaseUrl}/{mealId}");
+            return await _httpApiService.GetAsync<Recette>($"{BaseUrl}/{mealId}");
         }
         catch (Exception ex)
         {
@@ -91,14 +91,14 @@ public class ServiceRecetteFrontend : IServiceRecetteFrontend
         }
     }
 
-    public async Task<List<RecetteDTO>> FilterByCategoryAsync(string category)
+    public async Task<List<Recette>> FilterByCategoryAsync(string category)
     {
         try
         {
             if (string.IsNullOrWhiteSpace(category))
                 return new();
 
-            var recipes = await _httpApiService.GetAsync<List<RecetteDTO>>($"{BaseUrl}/filter/category?category={Uri.EscapeDataString(category)}");
+            var recipes = await _httpApiService.GetAsync<List<Recette>>($"{BaseUrl}/filter/category?category={Uri.EscapeDataString(category)}");
             return recipes ?? new();
         }
         catch (Exception ex)
@@ -108,14 +108,14 @@ public class ServiceRecetteFrontend : IServiceRecetteFrontend
         }
     }
 
-    public async Task<List<RecetteDTO>> FilterByAreaAsync(string area)
+    public async Task<List<Recette>> FilterByAreaAsync(string area)
     {
         try
         {
             if (string.IsNullOrWhiteSpace(area))
                 return new();
 
-            var recipes = await _httpApiService.GetAsync<List<RecetteDTO>>($"{BaseUrl}/filter/area?area={Uri.EscapeDataString(area)}");
+            var recipes = await _httpApiService.GetAsync<List<Recette>>($"{BaseUrl}/filter/area?area={Uri.EscapeDataString(area)}");
             return recipes ?? new();
         }
         catch (Exception ex)

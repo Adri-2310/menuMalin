@@ -11,7 +11,7 @@ namespace menuMalin.Server.Controleurs;
 /// Contrôleur pour la gestion des recettes utilisateur
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/userrecipes")]
 public class ControleurRecettesUtilisateur : ControllerBase
 {
     private readonly IServiceRecetteUtilisateur _serviceRecetteUtilisateurService;
