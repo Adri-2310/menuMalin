@@ -1,7 +1,7 @@
 using menuMalin.Server.Modeles.Entites;
 using menuMalin.Server.Depots;
 using menuMalin.Server.Depots.Interfaces;
-using menuMalin.Shared.Models.Dtos;
+using menuMalin.Shared.Modeles.DTOs;
 
 using menuMalin.Server.Services.Interfaces;
 using menuMalin.Server.Services.Interfaces;
@@ -32,7 +32,7 @@ public class ServiceRecette : IServiceRecette
     /// </summary>
     /// <param name="recipeId">L'ID de la recette</param>
     /// <returns>La recette avec les détails mappés en DTO, ou null si non trouvée</returns>
-    public async Task<RecipeDto?> GetRecipeByIdAsync(string recipeId)
+    public async Task<RecetteDTO?> GetRecipeByIdAsync(string recipeId)
     {
         var recipe = await _recipeRepository.GetByIdAsync(recipeId);
         return recipe == null ? null : MapToDto(recipe);
@@ -41,8 +41,8 @@ public class ServiceRecette : IServiceRecette
     /// <summary>
     /// Récupère toutes les recettes
     /// </summary>
-    /// <returns>Une collection de tous les RecipeDto</returns>
-    public async Task<IEnumerable<RecipeDto>> GetAllRecipesAsync()
+    /// <returns>Une collection de tous les RecetteDTO</returns>
+    public async Task<IEnumerable<RecetteDTO>> GetAllRecipesAsync()
     {
         var recipes = await _recipeRepository.GetAllAsync();
         return recipes.Select(MapToDto);
@@ -52,8 +52,8 @@ public class ServiceRecette : IServiceRecette
     /// Récupère toutes les recettes d'une catégorie
     /// </summary>
     /// <param name="category">Le nom de la catégorie</param>
-    /// <returns>Une collection de RecipeDto pour la catégorie spécifiée</returns>
-    public async Task<IEnumerable<RecipeDto>> GetRecipesByCategoryAsync(string category)
+    /// <returns>Une collection de RecetteDTO pour la catégorie spécifiée</returns>
+    public async Task<IEnumerable<RecetteDTO>> GetRecipesByCategoryAsync(string category)
     {
         var recipes = await _recipeRepository.GetByCategoryAsync(category);
         return recipes.Select(MapToDto);
@@ -63,8 +63,8 @@ public class ServiceRecette : IServiceRecette
     /// Crée une nouvelle recette ou met à jour une existante
     /// </summary>
     /// <param name="mealDto">Les données de la recette à créer ou mettre à jour</param>
-    /// <returns>Le RecipeDto créé ou mis à jour</returns>
-    public async Task<RecipeDto> CreateOrUpdateRecipeAsync(MealDto mealDto)
+    /// <returns>Le RecetteDTO créé ou mis à jour</returns>
+    public async Task<RecetteDTO> CreateOrUpdateRecipeAsync(RecetteMealDTO mealDto)
     {
         // Vérifier si la recette existe déjà
         var existingRecipe = await _recipeRepository.GetByMealDbIdAsync(mealDto.IdMeal);
@@ -114,13 +114,13 @@ public class ServiceRecette : IServiceRecette
     }
 
     /// <summary>
-    /// Mappe une entité Recette en RecipeDto
+    /// Mappe une entité Recette en RecetteDTO
     /// </summary>
     /// <param name="recipe">L'entité Recette à mapper</param>
-    /// <returns>Le RecipeDto mappé</returns>
-    private static RecipeDto MapToDto(Recette recipe)
+    /// <returns>Le RecetteDTO mappé</returns>
+    private static RecetteDTO MapToDto(Recette recipe)
     {
-        return new RecipeDto
+        return new RecetteDTO
         {
             RecipeId = recipe.RecipeId,
             Title = recipe.Title,

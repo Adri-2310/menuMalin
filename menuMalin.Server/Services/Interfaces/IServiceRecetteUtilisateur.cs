@@ -1,5 +1,5 @@
-using menuMalin.Shared.Models.Dtos;
-using menuMalin.Shared.Models.Requests;
+using menuMalin.Shared.Modeles.DTOs;
+using menuMalin.Shared.Modeles.Requetes;
 
 namespace menuMalin.Server.Services.Interfaces;
 
@@ -13,28 +13,28 @@ public interface IServiceRecetteUtilisateur
     /// </summary>
     /// <param name="userId">L'ID de l'utilisateur qui crée la recette</param>
     /// <param name="request">Les données de la recette à créer</param>
-    /// <returns>Le UserRecipeDto créé</returns>
-    Task<UserRecipeDto> CreateAsync(string userId, CreateUserRecipeRequest request);
+    /// <returns>Le RecetteUtilisateurDTO créé</returns>
+    Task<RecetteUtilisateurDTO> CreateAsync(string userId, RequeteCreationRecetteUtilisateur request);
 
     /// <summary>
     /// Récupère toutes les recettes créées par un utilisateur
     /// </summary>
     /// <param name="userId">L'ID de l'utilisateur</param>
-    /// <returns>Une collection de UserRecipeDto créés par cet utilisateur</returns>
-    Task<IEnumerable<UserRecipeDto>> GetMyRecipesAsync(string userId);
+    /// <returns>Une collection de RecetteUtilisateurDTO créés par cet utilisateur</returns>
+    Task<IEnumerable<RecetteUtilisateurDTO>> GetMyRecipesAsync(string userId);
 
     /// <summary>
     /// Récupère toutes les recettes publiques
     /// </summary>
-    /// <returns>Une collection de UserRecipeDto marquées comme publiques</returns>
-    Task<IEnumerable<UserRecipeDto>> GetPublicRecipesAsync();
+    /// <returns>Une collection de RecetteUtilisateurDTO marquées comme publiques</returns>
+    Task<IEnumerable<RecetteUtilisateurDTO>> GetPublicRecipesAsync();
 
     /// <summary>
     /// Récupère les détails d'une recette par son ID
     /// </summary>
     /// <param name="userRecipeId">L'ID de la recette</param>
-    /// <returns>Le UserRecipeDto ou null si non trouvée</returns>
-    Task<UserRecipeDto?> GetByIdAsync(string userRecipeId);
+    /// <returns>Le RecetteUtilisateurDTO ou null si non trouvée</returns>
+    Task<RecetteUtilisateurDTO?> GetByIdAsync(string userRecipeId);
 
     /// <summary>
     /// Supprime une recette (seul le propriétaire peut la supprimer)
@@ -51,9 +51,9 @@ public interface IServiceRecetteUtilisateur
     /// <param name="userRecipeId">L'ID de la recette</param>
     /// <param name="userId">L'ID de l'utilisateur qui demande le changement</param>
     /// <param name="request">Les nouvelles données de la recette</param>
-    /// <returns>Le UserRecipeDto mis à jour ou null si non trouvée</returns>
+    /// <returns>Le RecetteUtilisateurDTO mis à jour ou null si non trouvée</returns>
     /// <exception cref="UnauthorizedAccessException">Levée si l'utilisateur n'est pas propriétaire</exception>
-    Task<UserRecipeDto?> UpdateAsync(string userRecipeId, string userId, CreateUserRecipeRequest request);
+    Task<RecetteUtilisateurDTO?> UpdateAsync(string userRecipeId, string userId, RequeteCreationRecetteUtilisateur request);
 
     /// <summary>
     /// Bascule la visibilité (public/privé) d'une recette

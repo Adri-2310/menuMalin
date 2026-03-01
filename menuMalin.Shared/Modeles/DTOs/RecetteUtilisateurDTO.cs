@@ -1,9 +1,9 @@
-namespace menuMalin.Shared.Models.Dtos;
+namespace menuMalin.Shared.Modeles.DTOs;
 
 /// <summary>
 /// DTO pour les recettes créées par les utilisateurs
 /// </summary>
-public class UserRecipeDto
+public class RecetteUtilisateurDTO
 {
     public string UserRecipeId { get; set; } = string.Empty;
 
@@ -19,7 +19,7 @@ public class UserRecipeDto
 
     public string? ImageUrl { get; set; }
 
-    public List<string> Ingredients { get; set; } = new();
+    public List<string>? Ingredients { get; set; } = new();
 
     public bool IsPublic { get; set; }
 

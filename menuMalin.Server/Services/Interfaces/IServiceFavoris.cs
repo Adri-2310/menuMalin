@@ -1,4 +1,4 @@
-using menuMalin.Shared.Models.Dtos;
+using menuMalin.Shared.Modeles.DTOs;
 
 namespace menuMalin.Server.Services.Interfaces;
 
@@ -10,7 +10,7 @@ public interface IServiceFavoris
     /// <summary>
     /// Ajoute un favori pour un utilisateur
     /// </summary>
-    Task<RecipeDto> AddFavoriteAsync(string userId, string recipeId);
+    Task<RecetteDTO> AddFavoriteAsync(string userId, string recipeId);
 
     /// <summary>
     /// Supprime un favori
@@ -20,7 +20,7 @@ public interface IServiceFavoris
     /// <summary>
     /// Récupère tous les favoris d'un utilisateur
     /// </summary>
-    Task<IEnumerable<RecipeDto>> GetUserFavorisAsync(string userId);
+    Task<IEnumerable<RecetteDTO>> GetUserFavorisAsync(string userId);
 
     /// <summary>
     /// Vérifie si une recette est favorite pour un utilisateur

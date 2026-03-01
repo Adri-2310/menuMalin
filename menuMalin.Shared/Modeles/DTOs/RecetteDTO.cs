@@ -1,9 +1,9 @@
-namespace menuMalin.Shared.Models.Dtos;
+namespace menuMalin.Shared.Modeles.DTOs;
 
 /// <summary>
 /// DTO pour les recettes
 /// </summary>
-public class RecipeDto
+public class RecetteDTO
 {
     public string RecipeId { get; set; } = string.Empty;
 
@@ -23,7 +23,7 @@ public class RecipeDto
 
     public string? Tags { get; set; }
 
-    public List<IngredientDto> Ingredients { get; set; } = new();
+    public List<IngredientDTO> Ingredients { get; set; } = new();
 
     public DateTime CreatedAt { get; set; }
 

@@ -3,7 +3,7 @@
 @using menuMalin.Modeles
 @using menuMalin.Services
 @using menuMalin.Composants.Recette
-@using menuMalin.Shared.Models.Dtos
+@using menuMalin.Shared.Modeles.DTOs
 @inject IServiceFavorisFrontend FavoriteService
 @inject IServiceAuthentification AuthService
 @inject NavigationManager Nav
@@ -107,8 +107,8 @@ else
 }
 
 @code {
-    private List<RecipeDto>? favorites;
-    private List<RecipeDto> filteredRecipes = new();
+    private List<RecetteDTO>? favorites;
+    private List<RecetteDTO> filteredRecipes = new();
     private List<string> categoryList = new();
     private string selectedCategory = "";
     private string sortOrder = "name-asc";
@@ -192,7 +192,7 @@ else
     {
         if (favorites == null)
         {
-            filteredRecipes = new List<RecipeDto>();
+            filteredRecipes = new List<RecetteDTO>();
             return;
         }
 

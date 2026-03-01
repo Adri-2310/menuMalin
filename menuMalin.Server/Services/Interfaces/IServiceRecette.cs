@@ -1,4 +1,4 @@
-using menuMalin.Shared.Models.Dtos;
+using menuMalin.Shared.Modeles.DTOs;
 
 namespace menuMalin.Server.Services.Interfaces;
 
@@ -12,22 +12,22 @@ public interface IServiceRecette
     /// <summary>
     /// Récupère une recette par son ID
     /// </summary>
-    Task<RecipeDto?> GetRecipeByIdAsync(string recipeId);
+    Task<RecetteDTO?> GetRecipeByIdAsync(string recipeId);
 
     /// <summary>
     /// Récupère toutes les recettes
     /// </summary>
-    Task<IEnumerable<RecipeDto>> GetAllRecipesAsync();
+    Task<IEnumerable<RecetteDTO>> GetAllRecipesAsync();
 
     /// <summary>
     /// Récupère les recettes par catégorie
     /// </summary>
-    Task<IEnumerable<RecipeDto>> GetRecipesByCategoryAsync(string category);
+    Task<IEnumerable<RecetteDTO>> GetRecipesByCategoryAsync(string category);
 
     /// <summary>
     /// Crée ou met en cache une recette depuis TheMealDB
     /// </summary>
-    Task<RecipeDto> CreateOrUpdateRecipeAsync(MealDto mealDto);
+    Task<RecetteDTO> CreateOrUpdateRecipeAsync(RecetteMealDTO mealDto);
 
     /// <summary>
     /// Vérifie si une recette existe en cache

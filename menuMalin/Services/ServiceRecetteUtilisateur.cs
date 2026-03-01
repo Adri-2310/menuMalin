@@ -1,4 +1,6 @@
 using menuMalin.DTOs;
+using menuMalin.Shared.Modeles.DTOs;
+using menuMalin.Shared.Modeles.Requetes;
 
 namespace menuMalin.Services;
 
@@ -19,7 +21,7 @@ public class ServiceRecetteUtilisateur : IServiceRecetteUtilisateur
         _httpApiService = httpApiService;
     }
 
-    public async Task<ReponseRecette?> CreateAsync(RequeteCreationRecetteUtilisateur request)
+    public async Task<RecetteUtilisateurDTO?> CreateAsync(RequeteCreationRecetteUtilisateur request)
     {
         try
         {
@@ -41,11 +43,11 @@ public class ServiceRecetteUtilisateur : IServiceRecetteUtilisateur
         }
     }
 
-    public async Task<List<ReponseRecette>> GetMyRecipesAsync()
+    public async Task<List<RecetteUtilisateurDTO>> GetMyRecipesAsync()
     {
         try
         {
-            var recipes = await _httpApiService.GetAsync<List<UserRecipeDto>>($"{BaseUrl}/my");
+            var recipes = await _httpApiService.GetAsync<List<RecetteUtilisateurDTO>>($"{BaseUrl}/my");
             return recipes ?? new();
         }
         catch
@@ -54,11 +56,11 @@ public class ServiceRecetteUtilisateur : IServiceRecetteUtilisateur
         }
     }
 
-    public async Task<List<ReponseRecette>> GetPublicRecipesAsync()
+    public async Task<List<RecetteUtilisateurDTO>> GetPublicRecipesAsync()
     {
         try
         {
-            var recipes = await _httpApiService.GetAsync<List<UserRecipeDto>>($"{BaseUrl}/public");
+            var recipes = await _httpApiService.GetAsync<List<RecetteUtilisateurDTO>>($"{BaseUrl}/public");
             return recipes ?? new();
         }
         catch (Exception ex)
@@ -68,7 +70,7 @@ public class ServiceRecetteUtilisateur : IServiceRecetteUtilisateur
         }
     }
 
-    public async Task<ReponseRecette?> GetByIdAsync(string userRecipeId)
+    public async Task<RecetteUtilisateurDTO?> GetByIdAsync(string userRecipeId)
     {
         try
         {
@@ -85,7 +87,7 @@ public class ServiceRecetteUtilisateur : IServiceRecetteUtilisateur
         }
     }
 
-    public async Task<ReponseRecette?> UpdateAsync(string userRecipeId, RequeteCreationRecetteUtilisateur request)
+    public async Task<RecetteUtilisateurDTO?> UpdateAsync(string userRecipeId, RequeteCreationRecetteUtilisateur request)
     {
         try
         {

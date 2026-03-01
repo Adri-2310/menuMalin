@@ -3,7 +3,7 @@
 @using menuMalin.Services
 @using menuMalin.Composants.Recette
 @using menuMalin.DTOs
-@using menuMalin.Shared.Models.Dtos
+@using menuMalin.Shared.Modeles.DTOs
 @inject IServiceRecetteFrontend RecipeService
 @inject IServiceRecetteUtilisateur UserRecipeService
 @inject IServiceAuthentification AuthService
@@ -214,8 +214,8 @@ else
     private string selectedArea = "";
     private List<string> categories = new();
     private List<string> areas = new();
-    private List<Recette>? recipes;
-    private List<UserRecipeDto>? communityRecipes;
+    private List<RecetteDTO>? recipes;
+    private List<RecetteUtilisateurDTO>? communityRecipes;
     private bool isLoading = false;
     private bool isAuthenticated = false;
     private bool isCheckingAuth = true;
@@ -281,7 +281,7 @@ else
 
             @* Priorité: si recherche texte → chercher par texte
                  Sinon: filtrer par catégorie ou zone *@
-            List<RecipeDto> recipeResults = null;
+            List<RecetteDTO> recipeResults = null;
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
@@ -298,18 +298,11 @@ else
 
             if (recipeResults == null || !recipeResults.Any())
             {
-                recipes = new List<Recette>();
+                recipes = new List<RecetteDTO>();
             }
             else
             {
-                // Convertir RecipeDto en Recette pour compatibilité avec RecipeGrid
-                recipes = recipeResults.Select(r => new Recette
-                {
-                    IdMeal = r.MealDBId,
-                    StrMeal = r.Title,
-                    StrMealThumb = r.ImageUrl,
-                    StrCategory = r.Category
-                }).ToList();
+                recipes = recipeResults;
             }
         }
         catch (Exception ex)
@@ -360,7 +353,7 @@ else
         }
     }
 
-    private List<UserRecipeDto> FilteredCommunityRecipes()
+    private List<RecetteUtilisateurDTO> FilteredCommunityRecipes()
     {
         if (communityRecipes == null || !communityRecipes.Any())
             return new();

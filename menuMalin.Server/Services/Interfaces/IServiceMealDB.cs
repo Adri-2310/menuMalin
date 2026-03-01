@@ -1,4 +1,4 @@
-using menuMalin.Shared.Models.Dtos;
+using menuMalin.Shared.Modeles.DTOs;
 
 namespace menuMalin.Server.Services.Interfaces;
 
@@ -10,17 +10,17 @@ public interface IServiceMealDB
     /// <summary>
     /// Récupère une recette aléatoire
     /// </summary>
-    Task<MealDto?> GetRandomAsync();
+    Task<RecetteMealDTO?> GetRandomAsync();
 
     /// <summary>
     /// Recherche des recettes par nom
     /// </summary>
-    Task<List<MealDto>> SearchByNameAsync(string query);
+    Task<List<RecetteMealDTO>> SearchByNameAsync(string query);
 
     /// <summary>
     /// Récupère les détails d'une recette par ID
     /// </summary>
-    Task<MealDto?> GetByIdAsync(string mealId);
+    Task<RecetteMealDTO?> GetByIdAsync(string mealId);
 
     /// <summary>
     /// Récupère toutes les catégories
@@ -35,10 +35,10 @@ public interface IServiceMealDB
     /// <summary>
     /// Filtre les recettes par catégorie
     /// </summary>
-    Task<List<MealDto>> FilterByCategoryAsync(string category);
+    Task<List<RecetteMealDTO>> FilterByCategoryAsync(string category);
 
     /// <summary>
     /// Filtre les recettes par zone/cuisine
     /// </summary>
-    Task<List<MealDto>> FilterByAreaAsync(string area);
+    Task<List<RecetteMealDTO>> FilterByAreaAsync(string area);
 }

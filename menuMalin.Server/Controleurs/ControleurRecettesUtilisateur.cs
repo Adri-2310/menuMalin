@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using menuMalin.Server.Services;
 using menuMalin.Server.Services.Interfaces;
-using menuMalin.Shared.Models.Requests;
+using menuMalin.Shared.Modeles.Requetes;
 
 namespace menuMalin.Server.Controleurs;
 
@@ -34,7 +34,7 @@ public class ControleurRecettesUtilisateur : ControllerBase
     /// <response code="400">Données invalides</response>
     /// <response code="401">Utilisateur non authentifié</response>
     [HttpPost]
-    public async Task<IActionResult> CreateRecipe([FromBody] CreateUserRecipeRequest request)
+    public async Task<IActionResult> CreateRecipe([FromBody] RequeteCreationRecetteUtilisateur request)
     {
         var userId = ExtractUserId();
         if (userId == null)
@@ -171,7 +171,7 @@ public class ControleurRecettesUtilisateur : ControllerBase
     /// <response code="403">Non autorisé (pas propriétaire)</response>
     /// <response code="401">Utilisateur non authentifié</response>
     [HttpPatch("{id}")]
-    public async Task<IActionResult> UpdateRecipe(string id, [FromBody] CreateUserRecipeRequest request)
+    public async Task<IActionResult> UpdateRecipe(string id, [FromBody] RequeteCreationRecetteUtilisateur request)
     {
         var userId = ExtractUserId();
         if (userId == null)

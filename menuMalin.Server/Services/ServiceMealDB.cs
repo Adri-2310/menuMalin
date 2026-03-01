@@ -1,5 +1,5 @@
 using System.Text.Json;
-using menuMalin.Shared.Models.Dtos;
+using menuMalin.Shared.Modeles.DTOs;
 
 using menuMalin.Server.Services.Interfaces;
 using menuMalin.Server.Services.Interfaces;
@@ -22,7 +22,7 @@ public class ServiceMealDB : IServiceMealDB
         _httpClient.BaseAddress = new Uri(BaseUrl);
     }
 
-    public async Task<MealDto?> GetRandomAsync()
+    public async Task<RecetteMealDTO?> GetRandomAsync()
     {
         try
         {
@@ -30,7 +30,7 @@ public class ServiceMealDB : IServiceMealDB
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<MealResponse>(content);
+            var result = JsonSerializer.Deserialize<RecetteMealResponse>(content);
 
             return result?.Meals?.FirstOrDefault();
         }
@@ -41,7 +41,7 @@ public class ServiceMealDB : IServiceMealDB
         }
     }
 
-    public async Task<List<MealDto>> SearchByNameAsync(string query)
+    public async Task<List<RecetteMealDTO>> SearchByNameAsync(string query)
     {
         try
         {
@@ -52,7 +52,7 @@ public class ServiceMealDB : IServiceMealDB
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<MealResponse>(content);
+            var result = JsonSerializer.Deserialize<RecetteRecetteMealResponse>(content);
 
             return result?.Meals ?? new();
         }
@@ -63,7 +63,7 @@ public class ServiceMealDB : IServiceMealDB
         }
     }
 
-    public async Task<MealDto?> GetByIdAsync(string mealId)
+    public async Task<RecetteMealDTO?> GetByIdAsync(string mealId)
     {
         try
         {
@@ -74,7 +74,7 @@ public class ServiceMealDB : IServiceMealDB
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<MealResponse>(content);
+            var result = JsonSerializer.Deserialize<RecetteRecetteMealResponse>(content);
 
             return result?.Meals?.FirstOrDefault();
         }
@@ -150,7 +150,7 @@ public class ServiceMealDB : IServiceMealDB
         }
     }
 
-    public async Task<List<MealDto>> FilterByCategoryAsync(string category)
+    public async Task<List<RecetteMealDTO>> FilterByCategoryAsync(string category)
     {
         try
         {
@@ -161,7 +161,7 @@ public class ServiceMealDB : IServiceMealDB
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<MealResponse>(content);
+            var result = JsonSerializer.Deserialize<RecetteRecetteMealResponse>(content);
 
             return result?.Meals ?? new();
         }
@@ -172,7 +172,7 @@ public class ServiceMealDB : IServiceMealDB
         }
     }
 
-    public async Task<List<MealDto>> FilterByAreaAsync(string area)
+    public async Task<List<RecetteMealDTO>> FilterByAreaAsync(string area)
     {
         try
         {
@@ -183,7 +183,7 @@ public class ServiceMealDB : IServiceMealDB
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<MealResponse>(content);
+            var result = JsonSerializer.Deserialize<RecetteRecetteMealResponse>(content);
 
             return result?.Meals ?? new();
         }

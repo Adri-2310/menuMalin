@@ -1,6 +1,6 @@
 @page "/mes-creations"
 @using menuMalin.Services
-@using menuMalin.Shared.Models.Dtos
+@using menuMalin.Shared.Modeles.DTOs
 @inject IServiceRecetteUtilisateur UserRecipeService
 @inject IServiceAuthentification AuthService
 @inject NavigationManager Nav
@@ -228,7 +228,7 @@ else
 }
 
 @code {
-    private List<UserRecipeDto>? recipes;
+    private List<RecetteUtilisateurDTO>? recipes;
     private string? successMessage;
     private string? errorMessage;
     private bool isAuthenticated = false;

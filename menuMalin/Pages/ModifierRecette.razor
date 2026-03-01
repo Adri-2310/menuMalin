@@ -1,7 +1,8 @@
 @page "/modifier-recette/{RecipeId}"
 @using menuMalin.Services
 @using menuMalin.DTOs
-@using menuMalin.Shared.Models.Dtos
+@using menuMalin.Shared.Modeles.DTOs
+@using menuMalin.Shared.Modeles.Requetes
 @using Microsoft.AspNetCore.Components.Forms
 @inject IServiceRecetteUtilisateur UserRecipeService
 @inject IServiceRecette RecipeService
@@ -298,7 +299,7 @@ else
     [Parameter]
     public string? RecipeId { get; set; }
 
-    private UserRecipeDto? recipe;
+    private RecetteUtilisateurDTO? recipe;
     private bool isLoading = true;
     private bool isSaving = false;
     private string? errorMessage;

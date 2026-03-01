@@ -3,8 +3,8 @@ using System.Net;
 using menuMalin.Server.Modeles.Entites;
 using menuMalin.Server.Depots;
 using menuMalin.Server.Depots.Interfaces;
-using menuMalin.Shared.Models.Dtos;
-using menuMalin.Shared.Models.Requests;
+using menuMalin.Shared.Modeles.DTOs;
+using menuMalin.Shared.Modeles.Requetes;
 
 using menuMalin.Server.Services.Interfaces;
 using menuMalin.Server.Services.Interfaces;
@@ -31,7 +31,7 @@ public class ServiceRecetteUtilisateur : IServiceRecetteUtilisateur
         _hostEnvironment = hostEnvironment;
     }
 
-    public async Task<UserRecipeDto> CreateAsync(string userId, CreateUserRecipeRequest request)
+    public async Task<RecetteUtilisateurDTO> CreateAsync(string userId, RequeteCreationRecetteUtilisateur request)
     {
         // Valider les données requises
         if (string.IsNullOrWhiteSpace(request.Title))
@@ -78,19 +78,19 @@ public class ServiceRecetteUtilisateur : IServiceRecetteUtilisateur
         return MapToDto(created);
     }
 
-    public async Task<IEnumerable<UserRecipeDto>> GetMyRecipesAsync(string userId)
+    public async Task<IEnumerable<RecetteUtilisateurDTO>> GetMyRecipesAsync(string userId)
     {
         var recipes = await _userRecipeRepository.GetByUserIdAsync(userId);
         return recipes.Select(MapToDto).ToList();
     }
 
-    public async Task<IEnumerable<UserRecipeDto>> GetPublicRecipesAsync()
+    public async Task<IEnumerable<RecetteUtilisateurDTO>> GetPublicRecipesAsync()
     {
         var recipes = await _userRecipeRepository.GetPublicAsync();
         return recipes.Select(MapToDto).ToList();
     }
 
-    public async Task<UserRecipeDto?> GetByIdAsync(string userRecipeId)
+    public async Task<RecetteUtilisateurDTO?> GetByIdAsync(string userRecipeId)
     {
         var recipe = await _userRecipeRepository.GetByIdAsync(userRecipeId);
         return recipe != null ? MapToDto(recipe) : null;
@@ -127,7 +127,7 @@ public class ServiceRecetteUtilisateur : IServiceRecetteUtilisateur
         return result;
     }
 
-    public async Task<UserRecipeDto?> UpdateAsync(string userRecipeId, string userId, CreateUserRecipeRequest request)
+    public async Task<RecetteUtilisateurDTO?> UpdateAsync(string userRecipeId, string userId, RequeteCreationRecetteUtilisateur request)
     {
         // Valider les données requises
         if (string.IsNullOrWhiteSpace(request.Title))
@@ -291,11 +291,11 @@ public class ServiceRecetteUtilisateur : IServiceRecetteUtilisateur
     }
 
     /// <summary>
-    /// Convertit une entité RecetteUtilisateur en DTO UserRecipeDto
+    /// Convertit une entité RecetteUtilisateur en DTO RecetteUtilisateurDTO
     /// </summary>
     /// <param name="userRecipe">L'entité à convertir</param>
     /// <returns>Le DTO correspondant</returns>
-    private static UserRecipeDto MapToDto(RecetteUtilisateur userRecipe)
+    private static RecetteUtilisateurDTO MapToDto(RecetteUtilisateur userRecipe)
     {
         // Désérialiser les ingrédients depuis le JSON
         var ingredients = new List<string>();
@@ -312,7 +312,7 @@ public class ServiceRecetteUtilisateur : IServiceRecetteUtilisateur
             ingredients = new List<string>();
         }
 
-        return new UserRecipeDto
+        return new RecetteUtilisateurDTO
         {
             UserRecipeId = userRecipe.UserRecipeId,
             UserId = userRecipe.UserId,

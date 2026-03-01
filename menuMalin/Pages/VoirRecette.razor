@@ -1,6 +1,6 @@
 @page "/voir-recette/{RecipeId}"
 @using menuMalin.Services
-@using menuMalin.Shared.Models.Dtos
+@using menuMalin.Shared.Modeles.DTOs
 @using System.Text.Json
 @inject IServiceRecetteUtilisateur UserRecipeService
 @inject NavigationManager Nav
@@ -145,7 +145,7 @@ else
     [Parameter]
     public string? RecipeId { get; set; }
 
-    private UserRecipeDto? recipe;
+    private RecetteUtilisateurDTO? recipe;
     private List<string> ingredients = new();
     private bool isLoading = true;
 

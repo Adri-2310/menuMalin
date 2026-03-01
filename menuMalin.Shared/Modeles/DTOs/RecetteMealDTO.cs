@@ -1,11 +1,11 @@
 using System.Text.Json.Serialization;
 
-namespace menuMalin.Shared.Models.Dtos;
+namespace menuMalin.Shared.Modeles.DTOs;
 
 /// <summary>
 /// DTO pour les repas de l'API TheMealDB
 /// </summary>
-public class MealDto
+public class RecetteMealDTO
 {
     [JsonPropertyName("idMeal")]
     public string IdMeal { get; set; } = string.Empty;
@@ -69,8 +69,8 @@ public class MealDto
 /// <summary>
 /// Réponse de l'API TheMealDB
 /// </summary>
-public class MealResponse
+public class RecetteMealResponse
 {
     [JsonPropertyName("meals")]
-    public List<MealDto>? Meals { get; set; }
+    public List<RecetteMealDTO>? Meals { get; set; }
 }

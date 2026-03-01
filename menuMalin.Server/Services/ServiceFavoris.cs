@@ -1,7 +1,7 @@
 using menuMalin.Server.Modeles.Entites;
 using menuMalin.Server.Depots;
 using menuMalin.Server.Depots.Interfaces;
-using menuMalin.Shared.Models.Dtos;
+using menuMalin.Shared.Modeles.DTOs;
 
 using menuMalin.Server.Services.Interfaces;
 using menuMalin.Server.Services.Interfaces;
@@ -41,9 +41,9 @@ public class ServiceFavoris : IServiceFavoris
     /// </summary>
     /// <param name="userId">L'ID de l'utilisateur</param>
     /// <param name="recipeId">L'ID de la recette à ajouter</param>
-    /// <returns>Le RecipeDto ajouté aux favoris</returns>
+    /// <returns>Le RecetteDTO ajouté aux favoris</returns>
     /// <exception cref="InvalidOperationException">Levée si la recette n'existe pas</exception>
-    public async Task<RecipeDto> AddFavoriteAsync(string userId, string recipeId)
+    public async Task<RecetteDTO> AddFavoriteAsync(string userId, string recipeId)
     {
         // Chercher si la recette existe déjà par MealDBId (recipeId est le MealDBId)
         var recipeExists = await _recipeRepository.GetByMealDbIdAsync(recipeId);
@@ -104,7 +104,7 @@ public class ServiceFavoris : IServiceFavoris
         }
 
         // Retourner la recette complète
-        return new RecipeDto
+        return new RecetteDTO
         {
             RecipeId = recipeExists.RecipeId,
             Title = recipeExists.Title ?? string.Empty,
@@ -131,11 +131,11 @@ public class ServiceFavoris : IServiceFavoris
     /// Récupère tous les favoris d'un utilisateur
     /// </summary>
     /// <param name="userId">L'ID de l'utilisateur</param>
-    /// <returns>Une collection de RecipeDto correspondant aux favoris de l'utilisateur</returns>
-    public async Task<IEnumerable<RecipeDto>> GetUserFavorisAsync(string userId)
+    /// <returns>Une collection de RecetteDTO correspondant aux favoris de l'utilisateur</returns>
+    public async Task<IEnumerable<RecetteDTO>> GetUserFavorisAsync(string userId)
     {
         var favorites = await _favoriteRepository.GetByUserIdAsync(userId);
-        var recipes = new List<RecipeDto>();
+        var recipes = new List<RecetteDTO>();
         var placeholderIds = new List<string>(); // IDs des placeholders à mettre à jour
 
         // Première passe : traiter les recettes chargées (pas de N+1, elles sont incluses via Include)
@@ -152,7 +152,7 @@ public class ServiceFavoris : IServiceFavoris
 
             if (!isPlaceholder)
             {
-                recipes.Add(new RecipeDto
+                recipes.Add(new RecetteDTO
                 {
                     RecipeId = recipe.RecipeId,
                     MealDBId = recipe.MealDBId,
@@ -183,7 +183,7 @@ public class ServiceFavoris : IServiceFavoris
                 else
                 {
                     // Si TheMealDB retourne null, afficher un placeholder avec message
-                    recipes.Add(new RecipeDto
+                    recipes.Add(new RecetteDTO
                     {
                         RecipeId = mealDbId,
                         MealDBId = mealDbId,
@@ -199,7 +199,7 @@ public class ServiceFavoris : IServiceFavoris
             {
                 System.Console.WriteLine($"⚠️ Erreur mise à jour placeholder {mealDbId}: {ex.Message}");
                 // Afficher un placeholder en cas d'erreur au lieu de filtrer
-                recipes.Add(new RecipeDto
+                recipes.Add(new RecetteDTO
                 {
                     RecipeId = mealDbId,
                     MealDBId = mealDbId,
