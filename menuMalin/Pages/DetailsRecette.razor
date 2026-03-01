@@ -1,0 +1,179 @@
+﻿@page "/recipe/{Id}"
+@using menuMalin.Modeles
+@using menuMalin.Services
+@inject IServiceRecette RecipeService
+@inject IServiceFavorisFrontend FavoriteService
+@inject NavigationManager Nav
+
+<PageTitle>@(recipe?.StrMeal ?? "Recette") - menuMalin</PageTitle>
+
+<div class="container mt-4 mb-5 animate-fade-in">
+    @if (recipe == null && !recipeNotFound)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-success"></div>
+            <p class="mt-2 text-muted">Récupération de la recette...</p>
+        </div>
+    }
+    else if (recipeNotFound)
+    {
+        <div class="text-center py-5">
+            <h2 class="text-danger">❌ Recette introuvable</h2>
+            <p class="text-muted mb-4">La recette que vous recherchez n'existe pas ou a été supprimée.</p>
+            <button class="btn btn-success" @onclick="GoBack">Retour aux recettes</button>
+        </div>
+    }
+    else if (recipe != null)
+    {
+        @* Bouton Retour *@
+        <button class="btn btn-link text-dark text-decoration-none mb-4 ps-0" @onclick="GoBack">
+            <i class="bi bi-arrow-left me-2"></i>Retour aux recettes
+        </button>
+
+        <div class="row g-5">
+            @* --- COLONNE GAUCHE : VISUEL ET INFOS --- *@
+            <div class="col-lg-5">
+                <div class="position-sticky" style="top: 2rem;">
+                    <img src="@recipe.StrMealThumb" class="img-fluid rounded-4 shadow-lg mb-4 w-100" alt="@recipe.StrMeal">
+                    
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        <span class="badge rounded-pill bg-success px-3 py-2">
+                            <i class="bi bi-tag-fill me-1"></i> @recipe.StrCategory
+                        </span>
+                        <span class="badge rounded-pill bg-secondary px-3 py-2">
+                            <i class="bi bi-geo-alt-fill me-1"></i> @recipe.StrArea
+                        </span>
+                    </div>
+
+                    <div class="card border-0 bg-light rounded-4 p-3">
+                        <h5 class="fw-bold mb-3 text-success"><i class="bi bi-cart-check me-2"></i>Ingrédients</h5>
+                        <ul class="list-group list-group-flush bg-transparent">
+                            @foreach (var ing in parsedIngredients)
+                            {
+                                <li class="list-group-item bg-transparent border-0 px-0 py-1 d-flex justify-content-between">
+                                    <span class="text-dark">@ing.Name</span>
+                                    <span class="fw-bold text-muted">@ing.Measure</span>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            @* --- COLONNE DROITE : INSTRUCTIONS --- *@
+            <div class="col-lg-7">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h1 class="display-5 fw-bold text-dark">@recipe.StrMeal</h1>
+                    <button class="btn @(isFavorite ? "btn-danger" : "btn-outline-danger") rounded-circle p-3 shadow-sm" @onclick="ToggleFavorite">
+                        <i class="bi @(isFavorite ? "bi-heart-fill" : "bi-heart") fs-4"></i>
+                    </button>
+                </div>
+
+                <hr class="my-4 opacity-10">
+
+                <h4 class="fw-bold mb-4 text-success">
+                    <i class="bi bi-journal-text me-2"></i>Instructions de préparation
+                </h4>
+
+                @if (instructionSteps.Count > 0)
+                {
+                    <div class="instruction-list">
+                        @for (int i = 0; i < instructionSteps.Count; i++)
+                        {
+                            <div class="d-flex mb-4">
+                                <div class="step-number me-3 text-success fw-bold fs-4">@(i + 1)</div>
+                                <div class="step-text pt-1 border-bottom pb-3 w-100">@instructionSteps[i]</div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string? Id { get; set; }
+    private Recette? recipe;
+    private bool isFavorite = false;
+    private bool recipeNotFound = false;
+    private List<(string Name, string Measure)> parsedIngredients = new();
+    private List<string> instructionSteps = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        recipeNotFound = false;
+        parsedIngredients.Clear();
+        instructionSteps.Clear();
+
+        if (string.IsNullOrEmpty(Id))
+        {
+            recipeNotFound = true;
+            return;
+        }
+
+        recipe = await RecipeService.GetRecipeByIdAsync(Id);
+
+        if (recipe == null)
+        {
+            recipeNotFound = true;
+            return;
+        }
+
+        // Parser les ingrédients
+        ParseIngredients();
+
+        // Parser les instructions
+        ParseInstructions();
+
+        isFavorite = await FavoriteService.IsFavoriteAsync(recipe.IdMeal);
+    }
+
+    private void ParseIngredients()
+    {
+        if (recipe == null) return;
+
+        for (int i = 1; i <= 20; i++)
+        {
+            var ingredient = recipe.GetType().GetProperty($"StrIngredient{i}")?.GetValue(recipe) as string;
+            var measure = recipe.GetType().GetProperty($"StrMeasure{i}")?.GetValue(recipe) as string;
+
+            if (!string.IsNullOrWhiteSpace(ingredient))
+            {
+                parsedIngredients.Add((ingredient, measure ?? ""));
+            }
+        }
+    }
+
+    private void ParseInstructions()
+    {
+        if (recipe == null || string.IsNullOrEmpty(recipe.StrInstructions)) return;
+
+        var steps = recipe.StrInstructions.Split(new[] { ". ", "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+        instructionSteps = steps.ToList();
+    }
+
+    private async Task ToggleFavorite()
+    {
+        if (recipe == null) return;
+
+        var previousState = isFavorite;
+        isFavorite = !isFavorite;
+
+        try
+        {
+            if (previousState)
+                await FavoriteService.RemoveFavoriteAsync(recipe.IdMeal);
+            else
+                await FavoriteService.AddFavoriteAsync(recipe.IdMeal);
+        }
+        catch (Exception ex)
+        {
+            // En cas d'erreur, revenir à l'état précédent
+            System.Console.WriteLine($"❌ Erreur lors du toggle favori: {ex.Message}");
+            isFavorite = previousState;
+        }
+    }
+
+    private void GoBack() => Nav.NavigateTo("/");
+}

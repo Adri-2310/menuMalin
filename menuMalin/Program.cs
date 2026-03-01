@@ -21,7 +21,7 @@ var frontendUrl = config["ApiConfig:FrontendUrl"] ?? "https://localhost:7777";
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
 // 2. Client HTTP pour l'API Backend (avec credentials pour cookies)
-builder.Services.AddHttpClient<IHttpApiService, HttpApiService>(client =>
+builder.Services.AddHttpClient<IServiceApiHttp, ServiceApiHttp>(client =>
 {
     client.BaseAddress = new Uri($"{backendUrl}/api/");
     client.Timeout = TimeSpan.FromSeconds(30);
@@ -39,32 +39,32 @@ builder.Services.AddHttpClient<IHttpApiService, HttpApiService>(client =>
 builder.Services.AddBlazoredLocalStorage();
 
 // LocalStorageService (pour le profil utilisateur)
-builder.Services.AddScoped<LocalStorageService>();
+builder.Services.AddScoped<ServiceStockageLocal>();
 
 // ThemeService (pour le thème dark/light)
-builder.Services.AddScoped<IThemeService, ThemeService>();
+builder.Services.AddScoped<IServiceTheme, ServiceTheme>();
 
 // Services d'authentification (BFF) - avec HttpClient dédié
-builder.Services.AddHttpClient<IAuthService, AuthService>(client =>
+builder.Services.AddHttpClient<IServiceAuthentification, ServiceAuthentification>(client =>
 {
     client.BaseAddress = new Uri($"{backendUrl}/");
     client.Timeout = TimeSpan.FromSeconds(30);
 });
 
 // Services métier (Frontend)
-builder.Services.AddScoped<IContactService, ContactService>();
-builder.Services.AddHttpClient<IRecipeService, RecipeService>(client =>
+builder.Services.AddScoped<IServiceContact, ServiceContact>();
+builder.Services.AddHttpClient<IServiceRecette, ServiceRecette>(client =>
 {
     client.BaseAddress = new Uri($"{backendUrl}/api/");
     client.Timeout = TimeSpan.FromSeconds(30);
 });
-builder.Services.AddScoped<IRecipeServiceFrontend, RecipeServiceFrontend>();
-builder.Services.AddScoped<IFavoriteServiceFrontend, FavoriteServiceFrontend>();
-builder.Services.AddScoped<IUserRecipeService, UserRecipeService>();
-builder.Services.AddScoped<IPageAuthService, PageAuthService>();
+builder.Services.AddScoped<IServiceRecetteFrontend, ServiceRecetteFrontend>();
+builder.Services.AddScoped<IServiceFavorisFrontend, ServiceFavorisFrontend>();
+builder.Services.AddScoped<IServiceRecetteUtilisateur, ServiceRecetteUtilisateur>();
+builder.Services.AddScoped<IServiceAuthPage, ServiceAuthPage>();
 
 // Service d'upload d'images
-builder.Services.AddHttpClient<IUploadService, UploadService>(client =>
+builder.Services.AddHttpClient<IServiceTeleversement, ServiceTeleversement>(client =>
 {
     client.BaseAddress = new Uri($"{backendUrl}/api/");
 });

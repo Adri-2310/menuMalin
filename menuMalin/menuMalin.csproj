@@ -7,6 +7,8 @@
         <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
         <!-- Allow SRI failures during development/release to avoid boot.json hash mismatches -->
         <BlazorWebAssemblyAssetsCompressionLevel>9</BlazorWebAssemblyAssetsCompressionLevel>
+        <!-- Disable ICU/Globalization to avoid ICU data loading issues -->
+        <InvariantGlobalization>true</InvariantGlobalization>
     </PropertyGroup>
 
     <ItemGroup>

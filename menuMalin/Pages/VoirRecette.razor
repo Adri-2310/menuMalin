@@ -1,0 +1,192 @@
+@page "/voir-recette/{RecipeId}"
+@using menuMalin.Services
+@using menuMalin.Shared.Models.Dtos
+@using System.Text.Json
+@inject IServiceRecetteUtilisateur UserRecipeService
+@inject NavigationManager Nav
+
+<PageTitle>MenuMalin - Voir Recette</PageTitle>
+
+@if (isLoading)
+{
+    <div class="container mt-5">
+        <div class="text-center py-5">
+            <div class="spinner-border text-success"></div>
+            <p class="mt-2 text-muted">Chargement de la recette...</p>
+        </div>
+    </div>
+}
+else if (recipe == null)
+{
+    <div class="container mt-5">
+        <div class="alert alert-danger" role="alert">
+            <h4 class="alert-heading">Recette non trouvée</h4>
+            <p>Cette recette n'existe pas ou vous n'avez pas accès à celle-ci.</p>
+            <a href="/" class="btn btn-primary">Retour à l'accueil</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container mt-4 mb-5">
+        <button class="btn btn-link text-dark text-decoration-none mb-4 ps-0" @onclick="GoBack">
+            <i class="bi bi-arrow-left me-2"></i>Retour
+        </button>
+
+        <div class="row">
+            <div class="col-lg-8">
+                @if (!string.IsNullOrEmpty(recipe.ImageUrl))
+                {
+                    <img src="@recipe.ImageUrl" alt="@recipe.Title" class="img-fluid rounded mb-4" style="max-height: 400px; object-fit: cover; width: 100%;" />
+                }
+                else
+                {
+                    <div class="bg-light rounded p-5 text-center mb-4" style="height: 400px; display: flex; align-items: center; justify-content: center;">
+                        <div>
+                            <i class="bi bi-image" style="font-size: 5rem; color: #ccc;"></i>
+                            <p class="text-muted mt-2">Pas d'image disponible</p>
+                        </div>
+                    </div>
+                }
+
+                <h1 class="mb-3">@recipe.Title</h1>
+
+                <div class="mb-4">
+                    @if (!string.IsNullOrEmpty(recipe.Category))
+                    {
+                        <span class="badge bg-info me-2 p-2">
+                            <i class="bi bi-tag me-1"></i>@recipe.Category
+                        </span>
+                    }
+                    @if (!string.IsNullOrEmpty(recipe.Area))
+                    {
+                        <span class="badge bg-secondary p-2 me-2">
+                            <i class="bi bi-geo-alt me-1"></i>@recipe.Area
+                        </span>
+                    }
+                    @if (recipe.IsPublic)
+                    {
+                        <span class="badge bg-success p-2">
+                            <i class="bi bi-globe me-1"></i>Public
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary p-2">
+                            <i class="bi bi-lock me-1"></i>Privé
+                        </span>
+                    }
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Instructions</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text" style="white-space: pre-wrap;">@recipe.Instructions</p>
+                    </div>
+                </div>
+
+                @if (ingredients.Any())
+                {
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Ingrédients</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-unstyled">
+                                @foreach (var ingredient in ingredients)
+                                {
+                                    <li class="mb-2">
+                                        <i class="bi bi-check-circle text-success me-2"></i>@ingredient
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card shadow-sm sticky-top" style="top: 20px;">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Informations</h5>
+                        <div class="mb-3">
+                            <small class="text-muted d-block">Créée le</small>
+                            <strong>@recipe.CreatedAt.ToString("dd/MM/yyyy à HH:mm")</strong>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted d-block">Dernière modification</small>
+                            <strong>@recipe.UpdatedAt.ToString("dd/MM/yyyy à HH:mm")</strong>
+                        </div>
+                        <div>
+                            <small class="text-muted d-block mb-2">Visibilité</small>
+                            @if (recipe.IsPublic)
+                            {
+                                <span class="badge bg-success p-2">
+                                    <i class="bi bi-globe me-1"></i>Publique
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary p-2">
+                                    <i class="bi bi-lock me-1"></i>Privée
+                                </span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string? RecipeId { get; set; }
+
+    private UserRecipeDto? recipe;
+    private List<string> ingredients = new();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRecipe();
+    }
+
+    private async Task LoadRecipe()
+    {
+        try
+        {
+            isLoading = true;
+            if (string.IsNullOrEmpty(RecipeId))
+            {
+                return;
+            }
+
+            recipe = await UserRecipeService.GetByIdAsync(RecipeId);
+            if (recipe != null)
+            {
+                ParseIngredients(recipe.Ingredients);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ParseIngredients(List<string>? ingredientsList)
+    {
+        if (ingredientsList != null && ingredientsList.Any())
+        {
+            ingredients = ingredientsList;
+        }
+    }
+
+    private void GoBack() => Nav.NavigateTo("/mes-creations");
+}

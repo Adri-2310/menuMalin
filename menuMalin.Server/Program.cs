@@ -2,9 +2,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using menuMalin.Server.Data;
-using menuMalin.Server.Repositories;
+using menuMalin.Server.Donnees;
+using menuMalin.Server.Depots;
+using menuMalin.Server.Depots.Interfaces;
 using menuMalin.Server.Services;
+using menuMalin.Server.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,7 +46,7 @@ builder.Services.AddAuthentication(options =>
     options.Events.OnSignedIn += context =>
     {
         // Logs pour debug
-        System.Console.WriteLine($"✅ User signed in: {context.Principal?.Identity?.Name}");
+        System.Console.WriteLine($"✅ Utilisateur signed in: {context.Principal?.Identity?.Name}");
         System.Console.WriteLine($"   Cookie created with SameSite=None; Secure; Path=/");
         return System.Threading.Tasks.Task.CompletedTask;
     };
@@ -78,27 +80,27 @@ builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 
 // Enregistrer TheMealDB HttpClient
-builder.Services.AddHttpClient<ITheMealDBService, TheMealDBService>()
+builder.Services.AddHttpClient<IServiceMealDB, ServiceMealDB>()
     .ConfigureHttpClient(client =>
     {
         client.Timeout = TimeSpan.FromSeconds(10);
     });
 
-// Enregistrer les Repositories (Scoped)
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
-builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();
-builder.Services.AddScoped<IUserRecipeRepository, UserRecipeRepository>();
-builder.Services.AddScoped<IContactRepository, ContactRepository>();
+// Enregistrer les Dépôts (Scoped)
+builder.Services.AddScoped<IDepotUtilisateur, DepotUtilisateur>();
+builder.Services.AddScoped<IDepotRecette, DepotRecette>();
+builder.Services.AddScoped<IDepotFavori, DepotFavori>();
+builder.Services.AddScoped<IDepotRecetteUtilisateur, DepotRecetteUtilisateur>();
+builder.Services.AddScoped<IDepotMessage, DepotMessage>();
 
 // Enregistrer les Services (Scoped)
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IRecipeService, RecipeService>();
-builder.Services.AddScoped<IFavoriteService, FavoriteService>();
-builder.Services.AddScoped<IUserRecipeService, UserRecipeService>();
+builder.Services.AddScoped<IServiceUtilisateur, ServiceUtilisateur>();
+builder.Services.AddScoped<IServiceRecette, ServiceRecette>();
+builder.Services.AddScoped<IServiceFavoris, ServiceFavoris>();
+builder.Services.AddScoped<IServiceRecetteUtilisateur, ServiceRecetteUtilisateur>();
 
 // Enregistrer le Service Email (Scoped pour éviter les problèmes avec les dépendances Scoped)
-builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IServiceEmail, ServiceEmail>();
 
 // Note: CORS n'est plus nécessaire en mode Hosted Blazor (frontend + backend sur le même port)
 
