@@ -167,3 +167,41 @@ code {
 .recipe-grid-item:hover {
     transform: scale(1.02);
 }
+
+/* Toasts - Thème menuMalin */
+.blazored-toast-container {
+    z-index: 9999;
+}
+
+.blazored-toast-success {
+    background-color: #2d6a4f !important;
+    border-left: 4px solid #1b4332 !important;
+    color: #ffffff !important;
+}
+
+.blazored-toast-error {
+    background-color: #dc3545 !important;
+    border-left: 4px solid #a71d2a !important;
+    color: #ffffff !important;
+}
+
+.blazored-toast-warning {
+    background-color: #ffc107 !important;
+    border-left: 4px solid #cc9a06 !important;
+    color: #212529 !important;
+}
+
+.blazored-toast-info {
+    background-color: #17a2b8 !important;
+    border-left: 4px solid #0d5f7f !important;
+    color: #ffffff !important;
+}
+
+.blazored-toast-close {
+    color: inherit !important;
+    opacity: 0.8 !important;
+}
+
+.blazored-toast-close:hover {
+    opacity: 1 !important;
+}

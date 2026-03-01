@@ -1,28 +1,9 @@
 @using menuMalin.Services
 @inject IServiceContact ContactService
 @inject IServiceAuthentification AuthService
+@inject IServiceNotification NotifService
 
 <form @onsubmit="HandleSubmit" class="card border-0 shadow-sm rounded-4 p-5">
-    @* Message de succès *@
-    @if (showSuccess)
-    {
-        <div class="alert alert-success alert-dismissible fade show rounded-4" role="alert">
-            <i class="bi bi-check-circle me-2"></i>
-            <strong>Succès !</strong> Votre message a été envoyé avec succès. Merci !
-            <button type="button" class="btn-close" @onclick="() => showSuccess = false"></button>
-        </div>
-    }
-
-    @* Message d'erreur *@
-    @if (!string.IsNullOrEmpty(errorMessage))
-    {
-        <div class="alert alert-danger alert-dismissible fade show rounded-4" role="alert">
-            <i class="bi bi-exclamation-triangle me-2"></i>
-            <strong>Erreur !</strong> @errorMessage
-            <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
-        </div>
-    }
-
     @* Email (pré-rempli si connecté) *@
     <div class="mb-3">
         <label for="email" class="form-label fw-bold">Email</label>
@@ -115,8 +96,6 @@
     private ContactFormModel model = new();
     private bool isUserConnected = false;
     private bool isSubmitting = false;
-    private bool showSuccess = false;
-    private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -152,7 +131,6 @@
         try
         {
             isSubmitting = true;
-            errorMessage = null;
 
             bool success = await ContactService.SendMessageAsync(
                 model.Email,
@@ -164,7 +142,7 @@
 
             if (success)
             {
-                showSuccess = true;
+                NotifService.AfficherSucces("Votre message a été envoyé avec succès. Merci !", "Message envoyé");
                 // Réinitialiser le formulaire
                 model = new ContactFormModel();
                 if (isUserConnected)
@@ -180,13 +158,13 @@
             }
             else
             {
-                errorMessage = "Erreur lors de l'envoi du message. Veuillez réessayer.";
+                NotifService.AfficherErreur("Erreur lors de l'envoi du message. Veuillez réessayer.", "Envoi échoué");
             }
         }
         catch (Exception ex)
         {
-            errorMessage = $"Erreur: {ex.Message}";
             Console.WriteLine($"Erreur lors de l'envoi: {ex}");
+            NotifService.AfficherErreur(ex.Message, "Erreur d'envoi");
         }
         finally
         {

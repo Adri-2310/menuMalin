@@ -9,6 +9,7 @@
 @inject IServiceTeleversement UploadService
 @inject IServiceRecette RecipeService
 @inject NavigationManager Nav
+@inject IServiceNotification NotifService
 
 <PageTitle>MenuMalin - Créer une Recette</PageTitle>
 
@@ -56,26 +57,6 @@ else
             else
             {
                 <form @onsubmit="HandleSubmit" class="card border-0 shadow-sm rounded-4 p-5">
-                    @* Message de succès *@
-                    @if (showSuccess)
-                    {
-                        <div class="alert alert-success alert-dismissible fade show rounded-4" role="alert">
-                            <i class="bi bi-check-circle me-2"></i>
-                            <strong>Succès !</strong> Votre recette a été créée avec succès.
-                            <button type="button" class="btn-close" @onclick="() => showSuccess = false"></button>
-                        </div>
-                    }
-
-                    @* Message d'erreur *@
-                    @if (!string.IsNullOrEmpty(errorMessage))
-                    {
-                        <div class="alert alert-danger alert-dismissible fade show rounded-4" role="alert">
-                            <i class="bi bi-exclamation-triangle me-2"></i>
-                            <strong>Erreur !</strong> @errorMessage
-                            <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
-                        </div>
-                    }
-
                     @* Titre (requis) *@
                     <div class="mb-4">
                         <label for="title" class="form-label fw-bold">Titre <span class="text-danger">*</span></label>
@@ -308,8 +289,6 @@ else
 @code {
     private RequeteCreationRecetteUtilisateur model = new();
     private bool isSubmitting = false;
-    private bool showSuccess = false;
-    private string? errorMessage;
     private bool isAuthenticated = false;
     private bool isCheckingAuth = true;
     private string? urlInput;
@@ -338,9 +317,13 @@ else
             isLoadingCategories = true;
             categories = await RecipeService.GetCategoriesAsync();
         }
+        catch (ErreurReseauException)
+        {
+            NotifService.AfficherErreurReseau();
+        }
         catch
         {
-            errorMessage = "Erreur lors du chargement des catégories";
+            NotifService.AfficherErreur("Erreur lors du chargement des catégories");
         }
         finally
         {
@@ -355,9 +338,13 @@ else
             isLoadingAreas = true;
             areas = await RecipeService.GetAreasAsync();
         }
+        catch (ErreurReseauException)
+        {
+            NotifService.AfficherErreurReseau();
+        }
         catch
         {
-            errorMessage = "Erreur lors du chargement des régions";
+            NotifService.AfficherErreur("Erreur lors du chargement des régions");
         }
         finally
         {
@@ -411,13 +398,13 @@ else
             // Validation basique
             if (string.IsNullOrWhiteSpace(model.Title))
             {
-                errorMessage = "Le titre est requis";
+                NotifService.AfficherAvertissement("Le titre est requis");
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(model.Instructions))
             {
-                errorMessage = "Les instructions sont requises";
+                NotifService.AfficherAvertissement("Les instructions sont requises");
                 return;
             }
 
@@ -425,27 +412,31 @@ else
             model.Ingredients = model.Ingredients.Where(i => !string.IsNullOrWhiteSpace(i)).ToList();
 
             isSubmitting = true;
-            errorMessage = null;
 
             var result = await UserRecipeService.CreateAsync(model);
 
             if (result != null)
             {
-                showSuccess = true;
-                // Réinitialiser le formulaire
+                NotifService.AfficherSucces("Votre recette a été créée avec succès.", "Recette créée");
                 model = new RequeteCreationRecetteUtilisateur();
-
-                // Redirection immédiate (afficher toast de succès avant navigation)
                 Nav.NavigateTo("/mes-creations");
             }
             else
             {
-                errorMessage = "Erreur lors de la création de la recette. Veuillez réessayer.";
+                NotifService.AfficherErreur("Erreur lors de la création de la recette. Veuillez réessayer.");
             }
+        }
+        catch (ErreurApiException ex)
+        {
+            NotifService.AfficherErreurHttp(ex.StatusCode, "Création de recette");
+        }
+        catch (ErreurReseauException)
+        {
+            NotifService.AfficherErreurReseau();
         }
         catch (Exception ex)
         {
-            errorMessage = $"Erreur: {ex.Message}";
+            NotifService.AfficherErreur($"Erreur: {ex.Message}");
         }
         finally
         {
@@ -467,7 +458,7 @@ else
                 const long maxFileSize = 5 * 1024 * 1024; // 5MB
                 if (file.Size > maxFileSize)
                 {
-                    errorMessage = "L'image est trop grande (max 5MB)";
+                    NotifService.AfficherErreur("L'image est trop grande (max 5MB)");
                     return;
                 }
 
@@ -475,7 +466,7 @@ else
                 var validTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
                 if (!validTypes.Contains(file.ContentType))
                 {
-                    errorMessage = "Format d'image non supporté";
+                    NotifService.AfficherErreur("Format d'image non supporté");
                     return;
                 }
 
@@ -485,17 +476,24 @@ else
                 if (!string.IsNullOrEmpty(imageUrl))
                 {
                     model.ImageUrl = imageUrl;
-                    errorMessage = null;
                 }
                 else
                 {
-                    errorMessage = "Erreur lors de l'upload de l'image";
+                    NotifService.AfficherErreur("Erreur lors de l'upload de l'image");
                 }
             }
         }
+        catch (ErreurApiException ex)
+        {
+            NotifService.AfficherErreurHttp(ex.StatusCode, "Upload d'image");
+        }
+        catch (ErreurReseauException)
+        {
+            NotifService.AfficherErreurReseau();
+        }
         catch (Exception ex)
         {
-            errorMessage = $"Erreur lors du chargement de l'image : {ex.Message}";
+            NotifService.AfficherErreur($"Erreur lors du chargement de l'image : {ex.Message}");
         }
     }
 
@@ -508,12 +506,11 @@ else
                 (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
             {
                 model.ImageUrl = url;
-                errorMessage = null;
                 imageLoadFailed = false;
             }
             else
             {
-                errorMessage = "L'URL n'est pas valide. Veuillez entrer une URL HTTP ou HTTPS complète";
+                NotifService.AfficherErreur("L'URL n'est pas valide. Veuillez entrer une URL HTTP ou HTTPS complète");
             }
         }
     }

@@ -1,0 +1,60 @@
+@if (estVisible)
+{
+    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-light border-bottom">
+                    <h5 class="modal-title fw-bold">@Titre</h5>
+                    <button type="button" class="btn-close" @onclick="Annuler"></button>
+                </div>
+                <div class="modal-body">
+                    @Message
+                </div>
+                <div class="modal-footer bg-light border-top">
+                    <button type="button" class="btn btn-secondary" @onclick="Annuler">
+                        <i class="bi bi-x-circle me-2"></i>Annuler
+                    </button>
+                    <button type="button" class="btn btn-danger" @onclick="Confirmer">
+                        <i class="bi bi-exclamation-circle me-2"></i>@TexteBoutonConfirmer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string Titre { get; set; } = "Confirmation";
+
+    [Parameter]
+    public string Message { get; set; } = "";
+
+    [Parameter]
+    public string TexteBoutonConfirmer { get; set; } = "Confirmer";
+
+    [Parameter]
+    public EventCallback OnConfirme { get; set; }
+
+    [Parameter]
+    public EventCallback OnAnnule { get; set; }
+
+    private bool estVisible = false;
+
+    public void Ouvrir()
+    {
+        estVisible = true;
+    }
+
+    private async Task Confirmer()
+    {
+        estVisible = false;
+        await OnConfirme.InvokeAsync();
+    }
+
+    private void Annuler()
+    {
+        estVisible = false;
+        OnAnnule.InvokeAsync();
+    }
+}

@@ -5,7 +5,7 @@
 @inject IServiceAuthentification AuthService
 @inject ServiceEtatAuthentification AuthState
 @inject NavigationManager Nav
-@inject IJSRuntime JSRuntime
+@inject IServiceNotification NotifService
 
 <PageTitle>MenuMalin - Mes Recettes Créées</PageTitle>
 
@@ -104,25 +104,6 @@ else
                 <i class="bi bi-plus-circle me-2"></i>Ajouter une recette
             </a>
         </div>
-
-        @* Messages d'erreur/succès *@
-        @if (!string.IsNullOrEmpty(successMessage))
-        {
-            <div class="alert alert-success alert-dismissible fade show rounded-4 mb-4" role="alert">
-                <i class="bi bi-check-circle me-2"></i>
-                @successMessage
-                <button type="button" class="btn-close" @onclick="() => successMessage = null"></button>
-            </div>
-        }
-
-        @if (!string.IsNullOrEmpty(errorMessage))
-        {
-            <div class="alert alert-danger alert-dismissible fade show rounded-4 mb-4" role="alert">
-                <i class="bi bi-exclamation-triangle me-2"></i>
-                @errorMessage
-                <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
-            </div>
-        }
 
         @if (recipes == null)
         {
@@ -230,8 +211,6 @@ else
 
 @code {
     private List<RecetteUtilisateurDTO>? recipes;
-    private string? successMessage;
-    private string? errorMessage;
     private bool isAuthenticated = false;
     private bool isCheckingAuth = true;
 
@@ -280,7 +259,8 @@ else
         }
         catch (Exception ex)
         {
-            errorMessage = $"Erreur lors du chargement : {ex.Message}";
+            Console.WriteLine($"Erreur lors du chargement des recettes: {ex.Message}");
+            NotifService.AfficherErreur("Impossible de charger vos recettes. Veuillez réessayer.");
         }
     }
 

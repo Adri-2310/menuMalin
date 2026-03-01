@@ -3,13 +3,14 @@
 @using menuMalin.DTOs
 @using menuMalin.Shared.Modeles.DTOs
 @using menuMalin.Shared.Modeles.Requetes
+@using menuMalin.Composants.Partagé
 @using Microsoft.AspNetCore.Components.Forms
 @inject IServiceRecetteUtilisateur UserRecipeService
 @inject IServiceRecette RecipeService
 @inject IServiceTeleversement UploadService
 @inject IServiceAuthentification AuthService
 @inject NavigationManager Nav
-@inject IJSRuntime JSRuntime
+@inject IServiceNotification NotifService
 
 <PageTitle>MenuMalin - Modifier Recette</PageTitle>
 
@@ -42,24 +43,6 @@ else
         <div class="row">
             <div class="col-lg-8">
                 <h1 class="mb-4">Modifier la recette</h1>
-
-                @if (!string.IsNullOrEmpty(errorMessage))
-                {
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <i class="bi bi-exclamation-triangle me-2"></i>
-                        @errorMessage
-                        <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
-                    </div>
-                }
-
-                @if (!string.IsNullOrEmpty(successMessage))
-                {
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <i class="bi bi-check-circle me-2"></i>
-                        @successMessage
-                        <button type="button" class="btn-close" @onclick="() => successMessage = null"></button>
-                    </div>
-                }
 
                 <div class="card shadow-sm mb-4">
                     <div class="card-body p-4">
@@ -293,6 +276,8 @@ else
             </div>
         </div>
     </div>
+
+    <ModaleConfirmation @ref="modaleConfirmation" OnConfirme="DeleteRecipe" />
 }
 
 @code {
@@ -302,8 +287,7 @@ else
     private RecetteUtilisateurDTO? recipe;
     private bool isLoading = true;
     private bool isSaving = false;
-    private string? errorMessage;
-    private string? successMessage;
+    private ModaleConfirmation modaleConfirmation = default!;
     private List<string> categories = new();
     private List<string> areas = new();
     private bool isLoadingCategories = false;
@@ -326,23 +310,27 @@ else
             isLoading = true;
             if (string.IsNullOrEmpty(RecipeId))
             {
-                errorMessage = "ID de recette manquant";
+                NotifService.AfficherErreur("ID de recette manquant");
                 return;
             }
 
             recipe = await UserRecipeService.GetByIdAsync(RecipeId);
-            if (recipe == null)
-            {
-                errorMessage = "Recette non trouvée";
-            }
-            else
+            if (recipe != null)
             {
                 originalImageUrl = recipe.ImageUrl;
             }
         }
+        catch (ErreurApiException ex)
+        {
+            NotifService.AfficherErreurHttp(ex.StatusCode, "Chargement de recette");
+        }
+        catch (ErreurReseauException)
+        {
+            NotifService.AfficherErreurReseau();
+        }
         catch (Exception ex)
         {
-            errorMessage = $"Erreur: {ex.Message}";
+            NotifService.AfficherErreur($"Erreur: {ex.Message}");
         }
         finally
         {
@@ -357,9 +345,13 @@ else
             isLoadingCategories = true;
             categories = await RecipeService.GetCategoriesAsync();
         }
+        catch (ErreurReseauException)
+        {
+            NotifService.AfficherErreurReseau();
+        }
         catch
         {
-            errorMessage = "Erreur lors du chargement des catégories";
+            NotifService.AfficherErreur("Erreur lors du chargement des catégories");
         }
         finally
         {
@@ -374,9 +366,13 @@ else
             isLoadingAreas = true;
             areas = await RecipeService.GetAreasAsync();
         }
+        catch (ErreurReseauException)
+        {
+            NotifService.AfficherErreurReseau();
+        }
         catch
         {
-            errorMessage = "Erreur lors du chargement des régions";
+            NotifService.AfficherErreur("Erreur lors du chargement des régions");
         }
         finally
         {
@@ -396,7 +392,7 @@ else
                 const long maxFileSize = 5 * 1024 * 1024; // 5MB
                 if (file.Size > maxFileSize)
                 {
-                    errorMessage = "L'image est trop grande (max 5MB)";
+                    NotifService.AfficherErreur("L'image est trop grande (max 5MB)");
                     return;
                 }
 
@@ -404,7 +400,7 @@ else
                 var validTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
                 if (!validTypes.Contains(file.ContentType))
                 {
-                    errorMessage = "Format d'image non supporté";
+                    NotifService.AfficherErreur("Format d'image non supporté");
                     return;
                 }
 
@@ -414,18 +410,25 @@ else
                 if (!string.IsNullOrEmpty(imageUrl))
                 {
                     recipe!.ImageUrl = imageUrl;
-                    errorMessage = null;
                     imageLoadFailed = false;
                 }
                 else
                 {
-                    errorMessage = "Erreur lors de l'upload de l'image";
+                    NotifService.AfficherErreur("Erreur lors de l'upload de l'image");
                 }
             }
         }
+        catch (ErreurApiException ex)
+        {
+            NotifService.AfficherErreurHttp(ex.StatusCode, "Upload d'image");
+        }
+        catch (ErreurReseauException)
+        {
+            NotifService.AfficherErreurReseau();
+        }
         catch (Exception ex)
         {
-            errorMessage = $"Erreur lors du chargement de l'image : {ex.Message}";
+            NotifService.AfficherErreur($"Erreur lors du chargement de l'image : {ex.Message}");
         }
     }
 
@@ -438,12 +441,11 @@ else
                 (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
             {
                 recipe!.ImageUrl = url;
-                errorMessage = null;
                 imageLoadFailed = false;
             }
             else
             {
-                errorMessage = "L'URL n'est pas valide. Veuillez entrer une URL HTTP ou HTTPS complète";
+                NotifService.AfficherErreur("L'URL n'est pas valide. Veuillez entrer une URL HTTP ou HTTPS complète");
             }
         }
     }
@@ -465,18 +467,16 @@ else
         try
         {
             isSaving = true;
-            errorMessage = null;
-            successMessage = null;
 
             if (recipe == null || string.IsNullOrWhiteSpace(recipe.Title))
             {
-                errorMessage = "Le titre est obligatoire";
+                NotifService.AfficherAvertissement("Le titre est obligatoire");
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(recipe.Instructions))
             {
-                errorMessage = "Les instructions sont obligatoires";
+                NotifService.AfficherAvertissement("Les instructions sont obligatoires");
                 return;
             }
 
@@ -497,17 +497,25 @@ else
 
             if (result != null)
             {
-                successMessage = "Recette mise à jour avec succès";
+                NotifService.AfficherSucces("Votre recette a été mise à jour avec succès.", "Recette mise à jour");
                 Nav.NavigateTo("/mes-creations");
             }
             else
             {
-                errorMessage = "Erreur lors de la mise à jour";
+                NotifService.AfficherErreur("Erreur lors de la mise à jour");
             }
+        }
+        catch (ErreurApiException ex)
+        {
+            NotifService.AfficherErreurHttp(ex.StatusCode, "Mise à jour de recette");
+        }
+        catch (ErreurReseauException)
+        {
+            NotifService.AfficherErreurReseau();
         }
         catch (Exception ex)
         {
-            errorMessage = $"Erreur: {ex.Message}";
+            NotifService.AfficherErreur($"Erreur: {ex.Message}");
         }
         finally
         {
@@ -515,18 +523,15 @@ else
         }
     }
 
-    private async Task ConfirmDelete()
+    private void ConfirmDelete()
     {
         if (recipe == null)
             return;
 
-        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm",
-            "Êtes-vous sûr de vouloir supprimer cette recette ? Cette action est irréversible.");
-
-        if (confirmed)
-        {
-            await DeleteRecipe();
-        }
+        modaleConfirmation.Titre = "Supprimer cette recette ?";
+        modaleConfirmation.Message = "Cette action est irréversible. L'image et toutes les données seront supprimées.";
+        modaleConfirmation.TexteBoutonConfirmer = "Supprimer";
+        modaleConfirmation.Ouvrir();
     }
 
     private async Task DeleteRecipe()
@@ -534,7 +539,6 @@ else
         try
         {
             isSaving = true;
-            errorMessage = null;
 
             if (recipe == null)
                 return;
@@ -543,17 +547,25 @@ else
 
             if (result)
             {
-                successMessage = "Recette supprimée avec succès";
+                NotifService.AfficherSucces("Votre recette a été supprimée.", "Recette supprimée");
                 Nav.NavigateTo("/mes-creations");
             }
             else
             {
-                errorMessage = "Erreur lors de la suppression. Veuillez réessayer.";
+                NotifService.AfficherErreur("Erreur lors de la suppression. Veuillez réessayer.");
             }
+        }
+        catch (ErreurApiException ex)
+        {
+            NotifService.AfficherErreurHttp(ex.StatusCode, "Suppression de recette");
+        }
+        catch (ErreurReseauException)
+        {
+            NotifService.AfficherErreurReseau();
         }
         catch (Exception ex)
         {
-            errorMessage = $"Erreur: {ex.Message}";
+            NotifService.AfficherErreur($"Erreur: {ex.Message}");
         }
         finally
         {

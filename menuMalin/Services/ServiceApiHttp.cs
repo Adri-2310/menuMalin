@@ -1,6 +1,6 @@
-using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.AspNetCore.Components.WebAssembly.Http;
+using menuMalin.Services.Exceptions;
 
 namespace menuMalin.Services;
 
@@ -32,18 +32,23 @@ public class ServiceApiHttp : IServiceApiHttp
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
-                Console.WriteLine($"❌ GET {url} - Status: {response.StatusCode}");
-                Console.WriteLine($"Erreur: {errorContent}");
-                return default;
+                throw new ErreurApiException(response.StatusCode, errorContent);
             }
 
             var content = await response.Content.ReadAsStringAsync();
             return System.Text.Json.JsonSerializer.Deserialize<T>(content, JsonOptions);
         }
-        catch (Exception ex)
+        catch (ErreurApiException)
         {
-            Console.WriteLine($"❌ Erreur dans GetAsync: {ex.Message}");
-            return default;
+            throw;
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new ErreurReseauException(ex);
+        }
+        catch (TaskCanceledException ex)
+        {
+            throw new ErreurReseauException(ex);
         }
     }
 
@@ -51,8 +56,6 @@ public class ServiceApiHttp : IServiceApiHttp
     {
         try
         {
-            HttpResponseMessage response;
-
             using var request = new HttpRequestMessage(HttpMethod.Post, url);
             request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
 
@@ -64,24 +67,28 @@ public class ServiceApiHttp : IServiceApiHttp
                     "application/json");
             }
 
-            response = await _httpClient.SendAsync(request);
+            var response = await _httpClient.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
-                Console.WriteLine($"❌ POST {url} - Status: {response.StatusCode}");
-                Console.WriteLine($"Erreur: {errorContent}");
-                Console.WriteLine($"Headers: {string.Join(", ", response.Headers.Select(h => $"{h.Key}={h.Value}"))}");
-                return default;
+                throw new ErreurApiException(response.StatusCode, errorContent);
             }
 
             var content = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<T>(content, JsonOptions);
         }
-        catch (Exception ex)
+        catch (ErreurApiException)
         {
-            Console.WriteLine($"❌ Erreur dans PostAsync: {ex.Message}");
-            return default;
+            throw;
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new ErreurReseauException(ex);
+        }
+        catch (TaskCanceledException ex)
+        {
+            throw new ErreurReseauException(ex);
         }
     }
 
@@ -92,12 +99,26 @@ public class ServiceApiHttp : IServiceApiHttp
             using var request = new HttpRequestMessage(HttpMethod.Delete, url);
             request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
             var response = await _httpClient.SendAsync(request);
-            return response.IsSuccessStatusCode;
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new ErreurApiException(response.StatusCode, errorContent);
+            }
+
+            return true;
         }
-        catch
+        catch (ErreurApiException)
         {
-            // Logged in development
-            return false;
+            throw;
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new ErreurReseauException(ex);
+        }
+        catch (TaskCanceledException ex)
+        {
+            throw new ErreurReseauException(ex);
         }
     }
 
@@ -117,15 +138,25 @@ public class ServiceApiHttp : IServiceApiHttp
             var response = await _httpClient.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
-                return default;
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new ErreurApiException(response.StatusCode, errorContent);
+            }
 
             var responseContent = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<T>(responseContent, JsonOptions);
         }
-        catch
+        catch (ErreurApiException)
         {
-            // Logged in development
-            return default;
+            throw;
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new ErreurReseauException(ex);
+        }
+        catch (TaskCanceledException ex)
+        {
+            throw new ErreurReseauException(ex);
         }
     }
 

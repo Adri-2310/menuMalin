@@ -1,4 +1,5 @@
 using Blazored.LocalStorage;
+using Blazored.Toast;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using menuMalin;
@@ -37,6 +38,8 @@ builder.Services.AddHttpClient<IServiceApiHttp, ServiceApiHttp>(client =>
 
 // LocalStorage (Blazored.LocalStorage)
 builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddBlazoredToast();
+builder.Services.AddScoped<IServiceNotification, ServiceNotification>();
 
 // LocalStorageService (pour le profil utilisateur)
 builder.Services.AddScoped<ServiceStockageLocal>();
