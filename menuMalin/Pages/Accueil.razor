@@ -4,6 +4,7 @@
 @using menuMalin.Composants.Recette
 @inject IServiceRecette RecipeService
 @inject IServiceAuthentification AuthService
+@inject ServiceEtatAuthentification AuthState
 @inject NavigationManager Nav
 
 <PageTitle>MenuMalin - Accueil</PageTitle>
@@ -186,8 +187,18 @@ else
     {
         try
         {
-            currentUser = await AuthService.GetCurrentUserAsync();
-            isAuthenticated = currentUser?.IsAuthenticated ?? false;
+            // Vérifier d'abord l'état global (Singleton)
+            if (AuthState?.CurrentUser != null && AuthState.IsAuthenticated)
+            {
+                currentUser = AuthState.CurrentUser;
+                isAuthenticated = true;
+            }
+            else
+            {
+                // Sinon appeler l'API
+                currentUser = await AuthService.GetCurrentUserAsync();
+                isAuthenticated = currentUser?.IsAuthenticated ?? false;
+            }
         }
         catch
         {
