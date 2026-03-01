@@ -124,6 +124,20 @@
                     NotifService.AfficherSucces($"'{Title}' ajouté à vos favoris", "Favori ajouté");
                 }
             }
+            catch (ErreurApiException ex)
+            {
+                // Réverser l'état si l'appel a échoué
+                isFavorite = previousState;
+                Console.WriteLine($"❌ Erreur API lors du toggle favori: {ex.ContenuErreur}");
+                NotifService.AfficherErreurHttp(ex.StatusCode, "Favori");
+            }
+            catch (ErreurReseauException ex)
+            {
+                // Réverser l'état si l'appel a échoué
+                isFavorite = previousState;
+                Console.WriteLine($"❌ Erreur réseau lors du toggle favori: {ex.Message}");
+                NotifService.AfficherErreurReseau();
+            }
             catch (Exception ex)
             {
                 // Réverser l'état si l'appel a échoué
