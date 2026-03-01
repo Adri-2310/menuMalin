@@ -32,7 +32,7 @@ public class ControleurRecettes : ControllerBase
     [HttpGet("random")]
     public async Task<IActionResult> GetRandomRecipes()
     {
-        var recipes = new List<object>();
+        var recipes = new List<dynamic>();
 
         for (int i = 0; i < 6; i++)
         {
@@ -41,7 +41,18 @@ public class ControleurRecettes : ControllerBase
             {
                 // Créer ou mettre à jour en cache
                 var recipe = await _serviceRecetteService.CreateOrUpdateRecipeAsync(meal);
-                recipes.Add(recipe);
+                recipes.Add(new
+                {
+                    IdMeal = recipe.MealDBId,
+                    StrMeal = recipe.Title,
+                    StrMealThumb = recipe.ImageUrl,
+                    StrCategory = recipe.Category,
+                    StrArea = recipe.Area,
+                    StrInstructions = recipe.Instructions,
+                    StrTags = recipe.Tags,
+                    RecipeId = recipe.RecipeId,
+                    MealDBId = recipe.MealDBId
+                });
             }
         }
 
@@ -60,12 +71,23 @@ public class ControleurRecettes : ControllerBase
             return BadRequest("La requête de recherche ne peut pas être vide");
 
         var meals = await _serviceMealDBService.SearchByNameAsync(query);
-        var recipes = new List<object>();
+        var recipes = new List<dynamic>();
 
         foreach (var meal in meals)
         {
             var recipe = await _serviceRecetteService.CreateOrUpdateRecipeAsync(meal);
-            recipes.Add(recipe);
+            recipes.Add(new
+            {
+                IdMeal = recipe.MealDBId,
+                StrMeal = recipe.Title,
+                StrMealThumb = recipe.ImageUrl,
+                StrCategory = recipe.Category,
+                StrArea = recipe.Area,
+                StrInstructions = recipe.Instructions,
+                StrTags = recipe.Tags,
+                RecipeId = recipe.RecipeId,
+                MealDBId = recipe.MealDBId
+            });
         }
 
         return Ok(recipes);
