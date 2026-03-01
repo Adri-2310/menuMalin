@@ -2,6 +2,7 @@
 @inject IServiceFavorisFrontend FavoriteService
 @inject IServiceAuthentification AuthService
 @inject NavigationManager Nav
+@inject IServiceNotification NotifService
 
 <div class="card h-100 border-0 shadow-sm recipe-card transition-all">
     @* Image de la recette *@
@@ -78,6 +79,7 @@
             var user = await AuthService.GetCurrentUserAsync();
             if (user?.IsAuthenticated != true)
             {
+                NotifService.AfficherAvertissement("Vous devez être connecté pour ajouter un favori", "Authentification requise");
                 Nav.NavigateTo("/");
                 return;
             }
@@ -96,6 +98,7 @@
                         throw new InvalidOperationException("Impossible de retirer le favori");
                     }
                     isFavorite = false;
+                    NotifService.AfficherSucces($"'{Title}' retiré de vos favoris", "Favori supprimé");
                 }
                 else
                 {
@@ -106,6 +109,7 @@
                         throw new InvalidOperationException("Impossible d'ajouter le favori");
                     }
                     isFavorite = true;
+                    NotifService.AfficherSucces($"'{Title}' ajouté à vos favoris", "Favori ajouté");
                 }
             }
             catch (Exception ex)
@@ -113,12 +117,13 @@
                 // Réverser l'état si l'appel a échoué
                 isFavorite = previousState;
                 Console.WriteLine($"❌ Erreur lors du toggle favori: {ex.Message}");
-                // En production, afficher une notification à l'utilisateur
+                NotifService.AfficherErreur(ex.Message, "Erreur favori");
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"❌ Erreur non gérée lors du toggle favori: {ex.Message}");
+            NotifService.AfficherErreur(ex.Message, "Erreur favori");
         }
         finally
         {
