@@ -8,7 +8,7 @@ namespace menuMalin.Server.Controleurs;
 /// Contrôleur pour les recettes
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/recipes")]
 public class ControleurRecettes : ControllerBase
 {
     private readonly IServiceMealDB _serviceMealDBService;
