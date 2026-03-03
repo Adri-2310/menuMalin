@@ -26,19 +26,27 @@ public class ControleurRecettes : ControllerBase
     }
 
     /// <summary>
-    /// Récupère 6 recettes aléatoires
+    /// Récupère des recettes aléatoires
     /// </summary>
-    /// <returns>Liste de 6 recettes aléatoires</returns>
+    /// <param name="count">Nombre de recettes à récupérer (par défaut 6)</param>
+    /// <returns>Liste de recettes aléatoires</returns>
     [HttpGet("random")]
-    public async Task<IActionResult> GetRandomRecipes()
+    public async Task<IActionResult> GetRandomRecipes(int count = 6)
     {
         var recipes = new List<dynamic>();
+        var mealDbIds = new HashSet<string>(); // Pour éviter les doublons
+        int attempts = 0;
+        int maxAttempts = count * 3; // Limiter les tentatives pour éviter une boucle infinie
 
-        for (int i = 0; i < 6; i++)
+        while (recipes.Count < count && attempts < maxAttempts)
         {
+            attempts++;
             var meal = await _serviceMealDBService.GetRandomAsync();
-            if (meal != null)
+
+            if (meal != null && !mealDbIds.Contains(meal.IdMeal))
             {
+                mealDbIds.Add(meal.IdMeal);
+
                 // Créer ou mettre à jour en cache
                 var recipe = await _serviceRecetteService.CreateOrUpdateRecipeAsync(meal);
                 recipes.Add(new
