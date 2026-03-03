@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication;
@@ -77,7 +78,12 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddOpenApi();
 
 // Ajouter les contrôleurs
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
 
 // Enregistrer TheMealDB HttpClient
 builder.Services.AddHttpClient<IServiceMealDB, ServiceMealDB>()
