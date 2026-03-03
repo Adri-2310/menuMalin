@@ -2,15 +2,20 @@
 // This is because caching would make development more difficult (changes would not
 // be reflected on the first load after each change).
 self.addEventListener('fetch', (event) => {
-    // En développement, ne pas intercepter — laisser passer au réseau
-    // Cela évite l'avertissement "no-op fetch handler"
-    // Ignorer les erreurs 404 sur les fichiers .pdb (symboles de debug)
+    // Ignorer silencieusement les requêtes pour les fichiers .pdb (symboles de debug)
+    // Ces fichiers ne sont pas nécessaires en développement
+    // Retourner 200 au lieu de 404 pour éviter que le framework Blazor les traite comme une erreur
+    if (event.request.url.includes('.pdb')) {
+        event.respondWith(
+            new Response('', { status: 200, statusText: 'OK', headers: { 'Content-Type': 'application/octet-stream' } })
+        );
+        return;
+    }
+
+    // Pour les autres requêtes, laisser passer au réseau
     event.respondWith(
         fetch(event.request).catch((error) => {
-            // Si c'est un fichier .pdb, retourner une réponse vide au lieu de lever une erreur
-            if (event.request.url.includes('.pdb')) {
-                return new Response('', { status: 404, statusText: 'Not Found' });
-            }
+            console.warn('Fetch failed for:', event.request.url, error);
             throw error;
         })
     );
