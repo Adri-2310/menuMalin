@@ -14,12 +14,14 @@ namespace menuMalin.Server.Controleurs;
 public class ControleurTeleversement : ControllerBase
 {
     private readonly IWebHostEnvironment _hostEnvironment;
+    private readonly ILogger<ControleurTeleversement> _logger;
     private const string UploadsFolder = "uploads";
     private const long MaxFileSize = 5 * 1024 * 1024; // 5MB
 
-    public ControleurTeleversement(IWebHostEnvironment hostEnvironment)
+    public ControleurTeleversement(IWebHostEnvironment hostEnvironment, ILogger<ControleurTeleversement> logger)
     {
         _hostEnvironment = hostEnvironment;
+        _logger = logger;
     }
 
     /// <summary>
@@ -78,13 +80,13 @@ public class ControleurTeleversement : ControllerBase
 
             // Retourner le chemin relatif
             var relativePath = $"/{UploadsFolder}/{fileName}";
-            System.Console.WriteLine($"✅ Image uploadée: {relativePath}");
+            _logger.LogInformation("Image uploaded successfully: {RelativePath}", relativePath);
 
             return Ok(new { imageUrl = relativePath, message = "Image uploadée avec succès" });
         }
         catch (Exception ex)
         {
-            System.Console.WriteLine($"❌ Erreur lors de l'upload: {ex.Message}");
+            _logger.LogError(ex, "Error uploading image");
             return StatusCode(500, new { error = "Erreur serveur lors de l'upload" });
         }
     }

@@ -12,6 +12,7 @@ namespace menuMalin.Server.Controleurs;
 /// </summary>
 [ApiController]
 [Route("api/favorites")]
+[Authorize]
 public class ControleurFavoris : ControllerBase
 {
     private readonly IServiceFavoris _favoriteService;

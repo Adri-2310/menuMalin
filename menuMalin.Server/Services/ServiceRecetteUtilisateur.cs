@@ -16,6 +16,7 @@ public class ServiceRecetteUtilisateur : IServiceRecetteUtilisateur
 {
     private readonly IDepotRecetteUtilisateur _userRecipeRepository;
     private readonly IWebHostEnvironment _hostEnvironment;
+    private readonly ILogger<ServiceRecetteUtilisateur> _logger;
     private const string UploadsFolder = "uploads";
 
     /// <summary>
@@ -23,10 +24,12 @@ public class ServiceRecetteUtilisateur : IServiceRecetteUtilisateur
     /// </summary>
     /// <param name="userRecipeRepository">Le repository des recettes utilisateur</param>
     /// <param name="hostEnvironment">L'environnement de l'hôte web</param>
-    public ServiceRecetteUtilisateur(IDepotRecetteUtilisateur userRecipeRepository, IWebHostEnvironment hostEnvironment)
+    /// <param name="logger">Le service de logging</param>
+    public ServiceRecetteUtilisateur(IDepotRecetteUtilisateur userRecipeRepository, IWebHostEnvironment hostEnvironment, ILogger<ServiceRecetteUtilisateur> logger)
     {
         _userRecipeRepository = userRecipeRepository;
         _hostEnvironment = hostEnvironment;
+        _logger = logger;
     }
 
     public async Task<RecetteUtilisateurDTO> CreateAsync(string userId, RequeteCreationRecetteUtilisateur request)
@@ -100,19 +103,19 @@ public class ServiceRecetteUtilisateur : IServiceRecetteUtilisateur
         var recipe = await _userRecipeRepository.GetByIdAsync(userRecipeId);
         if (recipe == null)
         {
-            System.Console.WriteLine($"❌ Recette {userRecipeId} non trouvée");
+            _logger.LogWarning("Recipe {RecipeId} not found", userRecipeId);
             return false;
         }
 
         // Vérifier que l'utilisateur est le propriétaire
         if (recipe.UserId != userId)
         {
-            System.Console.WriteLine($"❌ Propriétaire invalide. Recette.UserId: {recipe.UserId}, UserId: {userId}");
+            _logger.LogWarning("Invalid owner. Recipe.UserId: {RecipeUserId}, UserId: {UserId}", recipe.UserId, userId);
             throw new UnauthorizedAccessException("Vous n'êtes pas autorisé à supprimer cette recette");
         }
 
         // Supprimer la recette
-        System.Console.WriteLine($"🗑️ Suppression de la recette {userRecipeId}");
+        _logger.LogInformation("Deleting recipe {RecipeId}", userRecipeId);
 
         // Supprimer l'image du serveur si elle existe et provient du dossier uploads
         if (!string.IsNullOrEmpty(recipe.ImageUrl))
@@ -121,7 +124,7 @@ public class ServiceRecetteUtilisateur : IServiceRecetteUtilisateur
         }
 
         var result = await _userRecipeRepository.DeleteAsync(userRecipeId);
-        System.Console.WriteLine($"✅ Recette supprimée: {result}");
+        _logger.LogInformation("Recipe deleted successfully: {Result}", result);
         return result;
     }
 
@@ -185,7 +188,7 @@ public class ServiceRecetteUtilisateur : IServiceRecetteUtilisateur
             // Vérifier que l'image provient du dossier uploads interne
             if (!imageUrl.StartsWith($"/{UploadsFolder}/"))
             {
-                System.Console.WriteLine($"⚠️ Image externe, non suppression: {imageUrl}");
+                _logger.LogInformation("External image, skipping deletion: {ImageUrl}", imageUrl);
                 return;
             }
 
@@ -196,17 +199,17 @@ public class ServiceRecetteUtilisateur : IServiceRecetteUtilisateur
             // Vérifier que le fichier existe
             if (!File.Exists(filePath))
             {
-                System.Console.WriteLine($"⚠️ Fichier image non trouvé: {filePath}");
+                _logger.LogWarning("Image file not found: {FilePath}", filePath);
                 return;
             }
 
             // Supprimer le fichier
             File.Delete(filePath);
-            System.Console.WriteLine($"✅ Image supprimée: {filePath}");
+            _logger.LogInformation("Image deleted: {FilePath}", filePath);
         }
         catch (Exception ex)
         {
-            System.Console.WriteLine($"❌ Erreur lors de la suppression de l'image: {ex.Message}");
+            _logger.LogError(ex, "Error deleting image");
             // Ne pas lever d'exception - la recette doit être supprimée même si l'image ne l'est pas
         }
     }

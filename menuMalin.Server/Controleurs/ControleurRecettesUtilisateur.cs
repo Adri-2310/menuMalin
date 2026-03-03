@@ -12,17 +12,21 @@ namespace menuMalin.Server.Controleurs;
 /// </summary>
 [ApiController]
 [Route("api/userrecipes")]
+[Authorize]
 public class ControleurRecettesUtilisateur : ControllerBase
 {
     private readonly IServiceRecetteUtilisateur _serviceRecetteUtilisateurService;
+    private readonly ILogger<ControleurRecettesUtilisateur> _logger;
 
     /// <summary>
     /// Initialise une nouvelle instance de RecettesUtilisateurController
     /// </summary>
     /// <param name="userRecipeService">Le service de gestion des recettes utilisateur</param>
-    public ControleurRecettesUtilisateur(IServiceRecetteUtilisateur userRecipeService)
+    /// <param name="logger">Le service de logging</param>
+    public ControleurRecettesUtilisateur(IServiceRecetteUtilisateur userRecipeService, ILogger<ControleurRecettesUtilisateur> logger)
     {
         _serviceRecetteUtilisateurService = userRecipeService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -70,12 +74,12 @@ public class ControleurRecettesUtilisateur : ControllerBase
         if (userId == null)
             return Unauthorized();
 
-        System.Console.WriteLine($"📝 GET /api/userrecipes/my - UserId: {userId}");
+        _logger.LogInformation("GET /api/userrecipes/my - UserId: {UserId}", userId);
         var recipes = await _serviceRecetteUtilisateurService.GetMyRecipesAsync(userId);
-        System.Console.WriteLine($"📝 Recettes trouvées: {recipes.Count()}");
+        _logger.LogInformation("Recettes trouvées: {Count}", recipes.Count());
         foreach (var recipe in recipes)
         {
-            System.Console.WriteLine($"   - ID: {recipe.UserRecipeId}, Title: {recipe.Title}, UserId: {recipe.UserId}");
+            _logger.LogDebug("Recipe - ID: {RecipeId}, Title: {Title}, UserId: {UserId}", recipe.UserRecipeId, recipe.Title, recipe.UserId);
         }
         return Ok(recipes);
     }
@@ -85,8 +89,8 @@ public class ControleurRecettesUtilisateur : ControllerBase
     /// </summary>
     /// <returns>Liste des recettes publiques</returns>
     /// <response code="200">Succès</response>
-    /// <response code="401">Utilisateur non authentifié</response>
     [HttpGet("public")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetPublicRecipes()
     {
         var recipes = await _serviceRecetteUtilisateurService.GetPublicRecipesAsync();
@@ -100,8 +104,8 @@ public class ControleurRecettesUtilisateur : ControllerBase
     /// <returns>Les détails de la recette</returns>
     /// <response code="200">Succès</response>
     /// <response code="404">Recette non trouvée</response>
-    /// <response code="401">Utilisateur non authentifié</response>
     [HttpGet("{id}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetRecipe(string id)
     {
         if (string.IsNullOrWhiteSpace(id))
@@ -145,26 +149,25 @@ public class ControleurRecettesUtilisateur : ControllerBase
 
         try
         {
-            System.Console.WriteLine($"🗑️ DELETE /api/userrecipes/{id} - UserId: {userId}");
+            _logger.LogInformation("DELETE /api/userrecipes/{RecipeId} - UserId: {UserId}", id, userId);
             var result = await _serviceRecetteUtilisateurService.DeleteAsync(id, userId);
             if (!result)
             {
-                System.Console.WriteLine($"❌ Recette non trouvée ou erreur lors de la suppression");
+                _logger.LogWarning("Recipe not found or deletion error for recipe {RecipeId}", id);
                 return NotFound();
             }
 
-            System.Console.WriteLine($"✅ Recette supprimée avec succès");
+            _logger.LogInformation("Recipe {RecipeId} deleted successfully", id);
             return Ok(new { message = "Recette supprimée avec succès" });
         }
         catch (UnauthorizedAccessException ex)
         {
-            System.Console.WriteLine($"❌ Accès non autorisé: {ex.Message}");
+            _logger.LogWarning(ex, "Unauthorized access to delete recipe {RecipeId}", id);
             return Forbid();  // 403 Forbidden
         }
         catch (Exception ex)
         {
-            System.Console.WriteLine($"❌ Erreur lors de la suppression: {ex.Message}");
-            System.Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            _logger.LogError(ex, "Error deleting recipe {RecipeId}", id);
             return StatusCode(500, new { message = $"Erreur serveur: {ex.Message}" });
         }
     }
