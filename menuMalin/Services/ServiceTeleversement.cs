@@ -19,7 +19,10 @@ public class ServiceTeleversement : IServiceTeleversement
     {
         using var content = new MultipartFormDataContent();
         using var stream = file.OpenReadStream(5 * 1024 * 1024);
-        content.Add(new StreamContent(stream), "file", file.Name);
+
+        var streamContent = new StreamContent(stream);
+        streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+        content.Add(streamContent, "file", file.Name);
 
         var request = new HttpRequestMessage(HttpMethod.Post, "upload/recipe-image");
         request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);

@@ -109,8 +109,9 @@ public class ControleurTeleversement : ControllerBase
         var expectedMagic = imageMagicBytes[file.ContentType];
         var buffer = new byte[expectedMagic.Length];
 
-        file.OpenReadStream().Seek(0, SeekOrigin.Begin);
-        var bytesRead = await file.OpenReadStream().ReadAsync(buffer, 0, buffer.Length);
+        using var stream = file.OpenReadStream();
+        stream.Seek(0, SeekOrigin.Begin);
+        var bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
 
         if (bytesRead < expectedMagic.Length)
             return false;
