@@ -13,16 +13,19 @@ public class ControleurRecettes : ControllerBase
 {
     private readonly IServiceMealDB _serviceMealDBService;
     private readonly IServiceRecette _serviceRecetteService;
+    private readonly ILogger<ControleurRecettes> _logger;
 
     /// <summary>
     /// Initialise une nouvelle instance de RecipesController
     /// </summary>
     /// <param name="mealDbService">Le service TheMealDB pour les données externes</param>
     /// <param name="recipeService">Le service de gestion des recettes</param>
-    public ControleurRecettes(IServiceMealDB mealDbService, IServiceRecette recipeService)
+    /// <param name="logger">Le service de logging</param>
+    public ControleurRecettes(IServiceMealDB mealDbService, IServiceRecette recipeService, ILogger<ControleurRecettes> logger)
     {
         _serviceMealDBService = mealDbService;
         _serviceRecetteService = recipeService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -33,21 +36,66 @@ public class ControleurRecettes : ControllerBase
     [HttpGet("random")]
     public async Task<IActionResult> GetRandomRecipes(int count = 6)
     {
-        var recipes = new List<dynamic>();
-        var mealDbIds = new HashSet<string>(); // Pour éviter les doublons
-        int attempts = 0;
-        int maxAttempts = count * 3; // Limiter les tentatives pour éviter une boucle infinie
-
-        while (recipes.Count < count && attempts < maxAttempts)
+        try
         {
-            attempts++;
-            var meal = await _serviceMealDBService.GetRandomAsync();
+            var recipes = new List<dynamic>();
+            var mealDbIds = new HashSet<string>(); // Pour éviter les doublons
+            int attempts = 0;
+            int maxAttempts = count * 3; // Limiter les tentatives pour éviter une boucle infinie
 
-            if (meal != null && !mealDbIds.Contains(meal.IdMeal))
+            while (recipes.Count < count && attempts < maxAttempts)
             {
-                mealDbIds.Add(meal.IdMeal);
+                attempts++;
+                var meal = await _serviceMealDBService.GetRandomAsync();
 
-                // Créer ou mettre à jour en cache
+                if (meal != null && !mealDbIds.Contains(meal.IdMeal))
+                {
+                    mealDbIds.Add(meal.IdMeal);
+
+                    // Créer ou mettre à jour en cache
+                    var recipe = await _serviceRecetteService.CreateOrUpdateRecipeAsync(meal);
+                    recipes.Add(new
+                    {
+                        IdMeal = recipe.MealDBId,
+                        StrMeal = recipe.Title,
+                        StrMealThumb = recipe.ImageUrl,
+                        StrCategory = recipe.Category,
+                        StrArea = recipe.Area,
+                        StrInstructions = recipe.Instructions,
+                        StrTags = recipe.Tags,
+                        RecipeId = recipe.RecipeId,
+                        MealDBId = recipe.MealDBId
+                    });
+                }
+            }
+
+            return Ok(recipes);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la récupération des recettes aléatoires");
+            return StatusCode(503, new { message = "Service indisponible. Veuillez réessayer plus tard." });
+        }
+    }
+
+    /// <summary>
+    /// Recherche des recettes par nom
+    /// </summary>
+    /// <param name="query">Le terme de recherche</param>
+    /// <returns>Liste des recettes correspondant au terme de recherche</returns>
+    [HttpGet("search")]
+    public async Task<IActionResult> SearchRecipes([FromQuery] string query)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(query))
+                return BadRequest("La requête de recherche ne peut pas être vide");
+
+            var meals = await _serviceMealDBService.SearchByNameAsync(query);
+            var recipes = new List<dynamic>();
+
+            foreach (var meal in meals)
+            {
                 var recipe = await _serviceRecetteService.CreateOrUpdateRecipeAsync(meal);
                 recipes.Add(new
                 {
@@ -62,43 +110,14 @@ public class ControleurRecettes : ControllerBase
                     MealDBId = recipe.MealDBId
                 });
             }
+
+            return Ok(recipes);
         }
-
-        return Ok(recipes);
-    }
-
-    /// <summary>
-    /// Recherche des recettes par nom
-    /// </summary>
-    /// <param name="query">Le terme de recherche</param>
-    /// <returns>Liste des recettes correspondant au terme de recherche</returns>
-    [HttpGet("search")]
-    public async Task<IActionResult> SearchRecipes([FromQuery] string query)
-    {
-        if (string.IsNullOrWhiteSpace(query))
-            return BadRequest("La requête de recherche ne peut pas être vide");
-
-        var meals = await _serviceMealDBService.SearchByNameAsync(query);
-        var recipes = new List<dynamic>();
-
-        foreach (var meal in meals)
+        catch (Exception ex)
         {
-            var recipe = await _serviceRecetteService.CreateOrUpdateRecipeAsync(meal);
-            recipes.Add(new
-            {
-                IdMeal = recipe.MealDBId,
-                StrMeal = recipe.Title,
-                StrMealThumb = recipe.ImageUrl,
-                StrCategory = recipe.Category,
-                StrArea = recipe.Area,
-                StrInstructions = recipe.Instructions,
-                StrTags = recipe.Tags,
-                RecipeId = recipe.RecipeId,
-                MealDBId = recipe.MealDBId
-            });
+            _logger.LogError(ex, "Erreur lors de la recherche de recettes avec la requête: {Query}", query);
+            return StatusCode(503, new { message = "Service indisponible. Veuillez réessayer plus tard." });
         }
-
-        return Ok(recipes);
     }
 
     /// <summary>
@@ -109,15 +128,23 @@ public class ControleurRecettes : ControllerBase
     [HttpGet("{mealId}")]
     public async Task<IActionResult> GetRecipeDetails(string mealId)
     {
-        if (string.IsNullOrWhiteSpace(mealId))
-            return BadRequest("L'ID de la recette ne peut pas être vide");
+        try
+        {
+            if (string.IsNullOrWhiteSpace(mealId))
+                return BadRequest("L'ID de la recette ne peut pas être vide");
 
-        var meal = await _serviceMealDBService.GetByIdAsync(mealId);
-        if (meal == null)
-            return NotFound();
+            var meal = await _serviceMealDBService.GetByIdAsync(mealId);
+            if (meal == null)
+                return NotFound();
 
-        var recipe = await _serviceRecetteService.CreateOrUpdateRecipeAsync(meal);
-        return Ok(recipe);
+            var recipe = await _serviceRecetteService.CreateOrUpdateRecipeAsync(meal);
+            return Ok(recipe);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la récupération des détails de la recette: {MealId}", mealId);
+            return StatusCode(503, new { message = "Service indisponible. Veuillez réessayer plus tard." });
+        }
     }
 
     /// <summary>
@@ -127,8 +154,16 @@ public class ControleurRecettes : ControllerBase
     [HttpGet("categories/list")]
     public async Task<IActionResult> GetCategories()
     {
-        var categories = await _serviceMealDBService.GetCategoriesAsync();
-        return Ok(categories);
+        try
+        {
+            var categories = await _serviceMealDBService.GetCategoriesAsync();
+            return Ok(categories);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la récupération des catégories");
+            return StatusCode(503, new { message = "Service indisponible. Veuillez réessayer plus tard." });
+        }
     }
 
     /// <summary>
@@ -138,8 +173,16 @@ public class ControleurRecettes : ControllerBase
     [HttpGet("areas/list")]
     public async Task<IActionResult> GetAreas()
     {
-        var areas = await _serviceMealDBService.GetAreasAsync();
-        return Ok(areas);
+        try
+        {
+            var areas = await _serviceMealDBService.GetAreasAsync();
+            return Ok(areas);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la récupération des zones");
+            return StatusCode(503, new { message = "Service indisponible. Veuillez réessayer plus tard." });
+        }
     }
 
     /// <summary>
@@ -150,19 +193,27 @@ public class ControleurRecettes : ControllerBase
     [HttpGet("filter/category")]
     public async Task<IActionResult> FilterByCategory([FromQuery] string category)
     {
-        if (string.IsNullOrWhiteSpace(category))
-            return BadRequest("La catégorie ne peut pas être vide");
-
-        var meals = await _serviceMealDBService.FilterByCategoryAsync(category);
-        var recipes = new List<object>();
-
-        foreach (var meal in meals)
+        try
         {
-            var recipe = await _serviceRecetteService.CreateOrUpdateRecipeAsync(meal);
-            recipes.Add(recipe);
-        }
+            if (string.IsNullOrWhiteSpace(category))
+                return BadRequest("La catégorie ne peut pas être vide");
 
-        return Ok(recipes);
+            var meals = await _serviceMealDBService.FilterByCategoryAsync(category);
+            var recipes = new List<object>();
+
+            foreach (var meal in meals)
+            {
+                var recipe = await _serviceRecetteService.CreateOrUpdateRecipeAsync(meal);
+                recipes.Add(recipe);
+            }
+
+            return Ok(recipes);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors du filtrage des recettes par catégorie: {Category}", category);
+            return StatusCode(503, new { message = "Service indisponible. Veuillez réessayer plus tard." });
+        }
     }
 
     /// <summary>
@@ -173,18 +224,26 @@ public class ControleurRecettes : ControllerBase
     [HttpGet("filter/area")]
     public async Task<IActionResult> FilterByArea([FromQuery] string area)
     {
-        if (string.IsNullOrWhiteSpace(area))
-            return BadRequest("La zone ne peut pas être vide");
-
-        var meals = await _serviceMealDBService.FilterByAreaAsync(area);
-        var recipes = new List<object>();
-
-        foreach (var meal in meals)
+        try
         {
-            var recipe = await _serviceRecetteService.CreateOrUpdateRecipeAsync(meal);
-            recipes.Add(recipe);
-        }
+            if (string.IsNullOrWhiteSpace(area))
+                return BadRequest("La zone ne peut pas être vide");
 
-        return Ok(recipes);
+            var meals = await _serviceMealDBService.FilterByAreaAsync(area);
+            var recipes = new List<object>();
+
+            foreach (var meal in meals)
+            {
+                var recipe = await _serviceRecetteService.CreateOrUpdateRecipeAsync(meal);
+                recipes.Add(recipe);
+            }
+
+            return Ok(recipes);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors du filtrage des recettes par zone: {Area}", area);
+            return StatusCode(503, new { message = "Service indisponible. Veuillez réessayer plus tard." });
+        }
     }
 }

@@ -144,6 +144,34 @@ if (app.Environment.IsProduction())
     app.UseHttpsRedirection();
 }
 
+// Middleware global d'error handling (doit être avant les autres middlewares)
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        var exceptionHandlerPathFeature = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerPathFeature>();
+        var exception = exceptionHandlerPathFeature?.Error;
+        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+
+        // Logger l'exception
+        if (exception != null)
+        {
+            logger.LogError(exception, "Une erreur non gérée s'est produite lors du traitement de la requête {Path}",
+                exceptionHandlerPathFeature?.Path ?? "unknown");
+        }
+
+        // Retourner une réponse JSON générique 500
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = "application/json";
+
+        await context.Response.WriteAsJsonAsync(new
+        {
+            message = "Une erreur serveur s'est produite. Veuillez réessayer plus tard.",
+            traceId = context.TraceIdentifier
+        });
+    });
+});
+
 // Servir les fichiers statiques du frontend Blazor WASM (doit être avant UseAuthentication)
 app.UseStaticFiles();
 

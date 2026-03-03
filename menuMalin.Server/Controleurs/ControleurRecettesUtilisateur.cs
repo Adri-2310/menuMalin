@@ -168,7 +168,7 @@ public class ControleurRecettesUtilisateur : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting recipe {RecipeId}", id);
-            return StatusCode(500, new { message = $"Erreur serveur: {ex.Message}" });
+            return StatusCode(500, new { message = "Erreur serveur lors de la suppression. Veuillez réessayer plus tard." });
         }
     }
 

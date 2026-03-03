@@ -88,7 +88,7 @@ public class ControleurFavoris : ControllerBase
         catch (InvalidOperationException ex)
         {
             _logger.LogWarning(ex, "Erreur lors de l'ajout du favori");
-            return BadRequest(ex.Message);
+            return BadRequest(new { message = "Cette recette est déjà dans vos favoris." });
         }
         catch (Exception ex)
         {

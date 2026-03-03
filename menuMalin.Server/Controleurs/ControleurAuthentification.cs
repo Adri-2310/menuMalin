@@ -187,7 +187,7 @@ public class ControleurAuthentification : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during registration for email: {Email}", request.Email);
-            return StatusCode(500, new { message = $"Erreur serveur: {ex.Message}" });
+            return StatusCode(500, new { message = "Erreur serveur lors de l'inscription. Veuillez réessayer plus tard." });
         }
     }
 

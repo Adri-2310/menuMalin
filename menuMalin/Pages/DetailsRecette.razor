@@ -4,6 +4,8 @@
 @inject IServiceRecette RecipeService
 @inject IServiceFavorisFrontend FavoriteService
 @inject NavigationManager Nav
+@inject IServiceNotification NotifService
+@implements IAsyncDisposable
 
 <PageTitle>@(recipe?.StrMeal ?? "Recette") - menuMalin</PageTitle>
 
@@ -112,21 +114,66 @@
             return;
         }
 
-        recipe = await RecipeService.GetRecipeByIdAsync(Id);
-
-        if (recipe == null)
+        try
         {
-            recipeNotFound = true;
-            return;
+            recipe = await RecipeService.GetRecipeByIdAsync(Id);
+
+            if (recipe == null)
+            {
+                recipeNotFound = true;
+                return;
+            }
+
+            // Parser les ingrédients
+            ParseIngredients();
+
+            // Parser les instructions
+            ParseInstructions();
+
+            try
+            {
+                isFavorite = await FavoriteService.IsFavoriteAsync(recipe.IdMeal);
+            }
+            catch (ErreurReseauException)
+            {
+                NotifService.AfficherErreurReseau();
+                isFavorite = false;
+            }
+            catch (ErreurApiException ex)
+            {
+                NotifService.AfficherErreurHttp(ex.StatusCode, "Favoris");
+                isFavorite = false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Erreur lors de la vérification des favoris: {ex.Message}");
+                NotifService.AfficherErreur("Impossible de charger vos favoris", "Erreur");
+                isFavorite = false;
+            }
         }
-
-        // Parser les ingrédients
-        ParseIngredients();
-
-        // Parser les instructions
-        ParseInstructions();
-
-        isFavorite = await FavoriteService.IsFavoriteAsync(recipe.IdMeal);
+        catch (ErreurReseauException)
+        {
+            NotifService.AfficherErreurReseau();
+            recipeNotFound = true;
+        }
+        catch (ErreurApiException ex)
+        {
+            if ((int)ex.StatusCode == 404)
+            {
+                recipeNotFound = true;
+            }
+            else
+            {
+                NotifService.AfficherErreurHttp(ex.StatusCode, "Recette");
+                recipeNotFound = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Erreur lors du chargement de la recette: {ex.Message}");
+            NotifService.AfficherErreur("Impossible de charger la recette", "Erreur");
+            recipeNotFound = true;
+        }
     }
 
     private void ParseIngredients()
@@ -159,21 +206,48 @@
 
         var previousState = isFavorite;
         isFavorite = !isFavorite;
+        StateHasChanged();
 
         try
         {
             if (previousState)
-                await FavoriteService.RemoveFavoriteAsync(recipe.IdMeal);
+            {
+                var success = await FavoriteService.RemoveFavoriteAsync(recipe.IdMeal);
+                if (!success) throw new InvalidOperationException("Impossible de retirer le favori");
+                NotifService.AfficherSucces("La recette a été retirée de vos favoris", "Favori supprimé");
+            }
             else
-                await FavoriteService.AddFavoriteAsync(recipe.IdMeal);
+            {
+                var success = await FavoriteService.AddFavoriteAsync(recipe.IdMeal);
+                if (!success) throw new InvalidOperationException("Impossible d'ajouter le favori");
+                NotifService.AfficherSucces("La recette a été ajoutée à vos favoris", "Favori ajouté");
+            }
+        }
+        catch (ErreurReseauException)
+        {
+            isFavorite = previousState;
+            NotifService.AfficherErreurReseau();
+            StateHasChanged();
+        }
+        catch (ErreurApiException ex)
+        {
+            isFavorite = previousState;
+            NotifService.AfficherErreurHttp(ex.StatusCode, "Favori");
+            StateHasChanged();
         }
         catch (Exception ex)
         {
-            // En cas d'erreur, revenir à l'état précédent
-            System.Console.WriteLine($"❌ Erreur lors du toggle favori: {ex.Message}");
             isFavorite = previousState;
+            Console.WriteLine($"❌ Erreur lors du toggle favori: {ex.Message}");
+            NotifService.AfficherErreur("Erreur lors de la modification du favori", "Erreur favori");
+            StateHasChanged();
         }
     }
 
     private void GoBack() => Nav.NavigateTo("/");
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        await ValueTask.CompletedTask;
+    }
 }
