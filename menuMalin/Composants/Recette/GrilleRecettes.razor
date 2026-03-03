@@ -24,7 +24,7 @@ else
     </div>
 
     @* COMPTEUR DE RÉSULTATS *@
-    @if (Recipes!.Count > 0)
+    @if (ShowPagination && Recipes!.Count > 0)
     {
         <p class="text-muted small text-center mb-4">
             Affichage @PageStart–@PageEnd sur @Recipes.Count recettes
@@ -32,7 +32,7 @@ else
     }
 
     @* PAGINATION *@
-    @if (TotalPages > 1)
+    @if (ShowPagination && TotalPages > 1)
     {
         <nav aria-label="Pagination" class="d-flex justify-content-center">
             <ul class="pagination flex-wrap">
@@ -74,6 +74,9 @@ else
 @code {
     [Parameter]
     public int ItemsPerPage { get; set; } = 6;
+
+    [Parameter]
+    public bool ShowPagination { get; set; } = true;
 
     [Parameter]
     public List<Recette>? Recipes { get; set; }
