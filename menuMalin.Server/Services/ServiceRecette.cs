@@ -43,7 +43,7 @@ public class ServiceRecette : IServiceRecette
     public async Task<IEnumerable<RecetteDTO>> GetAllRecipesAsync()
     {
         var recipes = await _recipeRepository.GetAllAsync();
-        return recipes.Select(MapToDto);
+        return recipes.Select(r => MapToDto(r));
     }
 
     /// <summary>
@@ -54,7 +54,7 @@ public class ServiceRecette : IServiceRecette
     public async Task<IEnumerable<RecetteDTO>> GetRecipesByCategoryAsync(string category)
     {
         var recipes = await _recipeRepository.GetByCategoryAsync(category);
-        return recipes.Select(MapToDto);
+        return recipes.Select(r => MapToDto(r));
     }
 
     /// <summary>
@@ -79,7 +79,7 @@ public class ServiceRecette : IServiceRecette
             existingRecipe.DateMaj = DateTime.UtcNow;
 
             await _recipeRepository.UpdateAsync(existingRecipe);
-            return MapToDto(existingRecipe);
+            return MapToDto(existingRecipe, mealDto);
         }
 
         // Créer une nouvelle recette
@@ -98,7 +98,7 @@ public class ServiceRecette : IServiceRecette
         };
 
         await _recipeRepository.AddAsync(newRecipe);
-        return MapToDto(newRecipe);
+        return MapToDto(newRecipe, mealDto);
     }
 
     /// <summary>
@@ -116,8 +116,25 @@ public class ServiceRecette : IServiceRecette
     /// </summary>
     /// <param name="recipe">L'entité Recette à mapper</param>
     /// <returns>Le RecetteDTO mappé</returns>
-    private static RecetteDTO MapToDto(Recette recipe)
+    private static RecetteDTO MapToDto(Recette recipe, RecetteMealDTO? mealDto = null)
     {
+        var ingredients = new List<IngredientDTO>();
+
+        // Mapper les ingrédients depuis RecetteMealDTO si disponible
+        if (mealDto != null)
+        {
+            for (int i = 1; i <= 20; i++)
+            {
+                var ingredient = mealDto.GetType().GetProperty($"StrIngredient{i}")?.GetValue(mealDto) as string;
+                var measure = mealDto.GetType().GetProperty($"StrMeasure{i}")?.GetValue(mealDto) as string;
+
+                if (!string.IsNullOrWhiteSpace(ingredient))
+                {
+                    ingredients.Add(new IngredientDTO { Name = ingredient, Measure = measure ?? "" });
+                }
+            }
+        }
+
         return new RecetteDTO
         {
             RecipeId = recipe.RecipeId,
@@ -131,7 +148,7 @@ public class ServiceRecette : IServiceRecette
             Tags = recipe.Tags,
             CreatedAt = recipe.DateCreation,
             UpdatedAt = recipe.DateMaj,
-            Ingredients = new()
+            Ingredients = ingredients
         };
     }
 }

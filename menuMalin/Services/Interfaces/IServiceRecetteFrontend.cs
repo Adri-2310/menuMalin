@@ -4,7 +4,7 @@ namespace menuMalin.Services;
 
 public interface IServiceRecetteFrontend
 {
-    Task<List<Recette>> GetRandomRecipesAsync();
+    Task<List<Recette>> GetRandomRecipesAsync(int count = 6);
     Task<List<Recette>> SearchRecipesAsync(string query);
     Task<Recette?> GetRecipeDetailsAsync(string mealId);
     Task<List<string>> GetCategoriesAsync();

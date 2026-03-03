@@ -17,10 +17,10 @@ public class ServiceRecetteFrontend : IServiceRecetteFrontend
         _httpApiService = httpApiService;
     }
 
-    public async Task<List<Recette>> GetRandomRecipesAsync()
+    public async Task<List<Recette>> GetRandomRecipesAsync(int count = 6)
     {
         // Le backend retourne directement un tableau [{IdMeal, StrMeal, StrMealThumb, ...}]
-        var recipes = await _httpApiService.GetAsync<List<Recette>>($"{BaseUrl}/random");
+        var recipes = await _httpApiService.GetAsync<List<Recette>>($"{BaseUrl}/random?count={count}");
         return recipes ?? new();
     }
 
