@@ -110,7 +110,7 @@
                         throw new InvalidOperationException("Impossible de retirer le favori");
                     }
                     isFavorite = false;
-                    NotifService.AfficherSucces($"'{Title}' retiré de vos favoris", "Favori supprimé");
+                    NotifService.AfficherSucces("La recette a été retirée de vos favoris", "Favori supprimé");
                 }
                 else
                 {
@@ -121,7 +121,7 @@
                         throw new InvalidOperationException("Impossible d'ajouter le favori");
                     }
                     isFavorite = true;
-                    NotifService.AfficherSucces($"'{Title}' ajouté à vos favoris", "Favori ajouté");
+                    NotifService.AfficherSucces("La recette a été ajoutée à vos favoris", "Favori ajouté");
                 }
             }
             catch (ErreurApiException ex)
