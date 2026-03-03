@@ -248,6 +248,14 @@ else
             categories = await RecipeService.GetCategoriesAsync();
             areas = await RecipeService.GetAreasAsync();
         }
+        catch (ErreurReseauException)
+        {
+            NotifService.AfficherErreurReseau();
+        }
+        catch (ErreurApiException ex)
+        {
+            NotifService.AfficherErreurHttp(ex.StatusCode, "Filtres");
+        }
         catch (Exception ex)
         {
             Console.WriteLine($"Erreur lors du chargement des filtres: {ex.Message}");
@@ -290,11 +298,26 @@ else
             if (recipeResults == null || !recipeResults.Any())
             {
                 recipes = new List<Recette>();
+                // Afficher un message informatif si aucun résultat
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    NotifService.AfficherInfo($"Aucune recette trouvée pour '{searchTerm}'", "Pas de résultats");
+                }
             }
             else
             {
                 recipes = recipeResults;
             }
+        }
+        catch (ErreurReseauException)
+        {
+            NotifService.AfficherErreurReseau();
+            recipes = null;
+        }
+        catch (ErreurApiException ex)
+        {
+            NotifService.AfficherErreurHttp(ex.StatusCode, "Recherche");
+            recipes = null;
         }
         catch (Exception ex)
         {
@@ -335,6 +358,17 @@ else
         try
         {
             communityRecipes = await UserRecipeService.GetPublicRecipesAsync();
+        }
+        catch (ErreurReseauException)
+        {
+            // Silencieusement - les recettes de la communauté sont optionnelles
+            Console.WriteLine("Impossible de charger les recettes de la communauté (réseau)");
+            communityRecipes = new();
+        }
+        catch (ErreurApiException ex)
+        {
+            Console.WriteLine($"Impossible de charger les recettes de la communauté (HTTP {ex.StatusCode})");
+            communityRecipes = new();
         }
         catch (Exception ex)
         {
