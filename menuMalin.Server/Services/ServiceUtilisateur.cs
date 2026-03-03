@@ -11,10 +11,12 @@ namespace menuMalin.Server.Services;
 public class ServiceUtilisateur : IServiceUtilisateur
 {
     private readonly IDepotUtilisateur _userRepository;
+    private readonly ILogger<ServiceUtilisateur> _logger;
 
-    public ServiceUtilisateur(IDepotUtilisateur userRepository)
+    public ServiceUtilisateur(IDepotUtilisateur userRepository, ILogger<ServiceUtilisateur> logger)
     {
         _userRepository = userRepository;
+        _logger = logger;
     }
 
     public async Task<Utilisateur> GetOrCreateUserAsync(string emailOrUserId, string? email = null, string? name = null)
@@ -38,7 +40,7 @@ public class ServiceUtilisateur : IServiceUtilisateur
             DateCreation = DateTime.UtcNow
         };
 
-        System.Console.WriteLine($"👤 Création d'un nouvel utilisateur: {userEmail}");
+        _logger.LogInformation("Creating new user: {UserEmail}", userEmail);
 
         try
         {
@@ -48,7 +50,7 @@ public class ServiceUtilisateur : IServiceUtilisateur
         {
             // Race condition : un autre thread/requête a créé l'utilisateur en même temps
             // Récupérer l'utilisateur qui a été créé
-            System.Console.WriteLine($"⚠️ Race condition détectée pour {userEmail}, récupération de l'utilisateur créé");
+            _logger.LogWarning("Race condition detected for {UserEmail}, retrieving created user", userEmail);
             var raceCreatedUser = await _userRepository.GetByEmailAsync(userEmail);
             if (raceCreatedUser != null)
             {
@@ -77,7 +79,7 @@ public class ServiceUtilisateur : IServiceUtilisateur
             DateCreation = DateTime.UtcNow
         };
 
-        System.Console.WriteLine($"👤 Création d'un nouvel utilisateur: {email}");
+        _logger.LogInformation("Creating new user: {Email}", email);
         return await _userRepository.AddAsync(newUser);
     }
 

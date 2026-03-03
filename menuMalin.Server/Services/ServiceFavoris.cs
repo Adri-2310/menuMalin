@@ -18,6 +18,7 @@ public class ServiceFavoris : IServiceFavoris
     private readonly IServiceRecette _serviceRecetteService;
     private readonly IDepotRecette _recipeRepository;
     private readonly IServiceMealDB _theMealDBService;
+    private readonly ILogger<ServiceFavoris> _logger;
 
     /// <summary>
     /// Initialise une nouvelle instance de FavoriteService
@@ -26,12 +27,14 @@ public class ServiceFavoris : IServiceFavoris
     /// <param name="recipeService">Le service des recettes</param>
     /// <param name="recipeRepository">Le repository des recettes</param>
     /// <param name="theMealDBService">Le service TheMealDB pour récupérer les données externes</param>
-    public ServiceFavoris(IDepotFavori favoriteRepository, IServiceRecette recipeService, IDepotRecette recipeRepository, IServiceMealDB theMealDBService)
+    /// <param name="logger">Le service de logging</param>
+    public ServiceFavoris(IDepotFavori favoriteRepository, IServiceRecette recipeService, IDepotRecette recipeRepository, IServiceMealDB theMealDBService, ILogger<ServiceFavoris> logger)
     {
         _favoriteRepository = favoriteRepository;
         _serviceRecetteService = recipeService;
         _recipeRepository = recipeRepository;
         _theMealDBService = theMealDBService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -62,7 +65,7 @@ public class ServiceFavoris : IServiceFavoris
                 catch (Exception ex) when (ex.InnerException?.Message.Contains("Duplicate") ?? false)
                 {
                     // Race condition : un autre thread a créé la recette en même temps
-                    System.Console.WriteLine($"⚠️ Race condition sur recette {recipeId}, récupération...");
+                    _logger.LogWarning("Race condition on recipe {RecipeId}, retrieving...", recipeId);
                     recipeExists = await _recipeRepository.GetByMealDbIdAsync(recipeId);
                 }
             }
@@ -98,7 +101,7 @@ public class ServiceFavoris : IServiceFavoris
         catch (Exception ex) when (ex.InnerException?.Message.Contains("Duplicate") ?? false)
         {
             // Favori déjà existant - c'est un ajout duplex, juste retourner la recette
-            System.Console.WriteLine($"⚠️ Favori déjà existant pour {userId}/{recipeId}");
+            _logger.LogWarning("Duplicate favorite already exists for {UserId}/{RecipeId}", userId, recipeId);
         }
 
         // Retourner la recette complète
@@ -195,7 +198,7 @@ public class ServiceFavoris : IServiceFavoris
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine($"⚠️ Erreur mise à jour placeholder {mealDbId}: {ex.Message}");
+                _logger.LogError(ex, "Error updating placeholder recipe {MealDbId}", mealDbId);
                 // Afficher un placeholder en cas d'erreur au lieu de filtrer
                 recipes.Add(new RecetteDTO
                 {
