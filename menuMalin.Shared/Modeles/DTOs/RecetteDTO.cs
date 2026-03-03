@@ -15,7 +15,7 @@ public class RecetteDTO
 
     public string? ImageUrl { get; set; }
 
-    public string MealDBId { get; set; } = string.Empty;
+    public string? MealDBId { get; set; }
 
     public string? Category { get; set; }
 

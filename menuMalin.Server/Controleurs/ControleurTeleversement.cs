@@ -9,7 +9,8 @@ namespace menuMalin.Server.Controleurs;
 /// Contrôleur pour l'upload de fichiers
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/upload")]
+[Authorize]
 public class ControleurTeleversement : ControllerBase
 {
     private readonly IWebHostEnvironment _hostEnvironment;
@@ -27,12 +28,6 @@ public class ControleurTeleversement : ControllerBase
     [HttpPost("recipe-image")]
     public async Task<IActionResult> UploadRecipeImage(IFormFile file)
     {
-        // Vérifier l'authentification
-        if (!User.Identity?.IsAuthenticated ?? false)
-        {
-            return Unauthorized(new { error = "Authentication required" });
-        }
-
         try
         {
             // Vérifier que le fichier n'est pas null

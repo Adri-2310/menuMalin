@@ -38,30 +38,23 @@ public class ControleurFavoris : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetUserFavoris()
     {
-        var auth0Id = GetAuth0IdFromClaims();
-        if (string.IsNullOrEmpty(auth0Id))
+        var userId = GetCurrentUserId();
+        if (string.IsNullOrEmpty(userId))
         {
-            _logger.LogWarning("Impossible d'extraire l'ID Auth0 des claims JWT");
+            _logger.LogWarning("Impossible d'extraire l'ID utilisateur des claims");
             return Unauthorized();
         }
 
-        var user = await _serviceUtilisateurService.GetUserByAuth0IdAsync(auth0Id);
-        if (user == null)
-        {
-            _logger.LogWarning("Utilisateur Auth0 {Auth0Id} non trouvé en base de données", auth0Id);
-            return Unauthorized();
-        }
-
-        _logger.LogInformation("Récupération des favoris pour l'utilisateur: {UserId}", user.UserId);
+        _logger.LogInformation("Récupération des favoris pour l'utilisateur: {UserId}", userId);
 
         try
         {
-            var favorites = await _favoriteService.GetUserFavorisAsync(user.UserId);
+            var favorites = await _favoriteService.GetUserFavorisAsync(userId);
             return Ok(favorites);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erreur lors de la récupération des favoris pour {UserId}", user.UserId);
+            _logger.LogError(ex, "Erreur lors de la récupération des favoris pour {UserId}", userId);
             return StatusCode(500, "Internal server error");
         }
     }
@@ -74,28 +67,21 @@ public class ControleurFavoris : ControllerBase
     [HttpPost]
     public async Task<IActionResult> AddFavorite([FromBody] AddFavoriteRequest request)
     {
-        var auth0Id = GetAuth0IdFromClaims();
-        if (string.IsNullOrEmpty(auth0Id))
+        var userId = GetCurrentUserId();
+        if (string.IsNullOrEmpty(userId))
         {
-            _logger.LogWarning("Impossible d'extraire l'ID Auth0 pour ajouter un favori");
+            _logger.LogWarning("Impossible d'extraire l'ID utilisateur pour ajouter un favori");
             return Unauthorized();
         }
 
         if (string.IsNullOrWhiteSpace(request.RecipeId))
             return BadRequest("L'ID de la recette est requis");
 
-        var user = await _serviceUtilisateurService.GetUserByAuth0IdAsync(auth0Id);
-        if (user == null)
-        {
-            _logger.LogWarning("Utilisateur Auth0 {Auth0Id} non trouvé en base de données", auth0Id);
-            return Unauthorized();
-        }
-
-        _logger.LogInformation("Ajout du favori {RecipeId} pour l'utilisateur {UserId}", request.RecipeId, user.UserId);
+        _logger.LogInformation("Ajout du favori {RecipeId} pour l'utilisateur {UserId}", request.RecipeId, userId);
 
         try
         {
-            var recipe = await _favoriteService.AddFavoriteAsync(user.UserId, request.RecipeId);
+            var recipe = await _favoriteService.AddFavoriteAsync(userId, request.RecipeId);
             return Ok(recipe);
         }
         catch (InvalidOperationException ex)
@@ -118,25 +104,18 @@ public class ControleurFavoris : ControllerBase
     [HttpDelete("{recipeId}")]
     public async Task<IActionResult> RemoveFavorite(string recipeId)
     {
-        var auth0Id = GetAuth0IdFromClaims();
-        if (string.IsNullOrEmpty(auth0Id))
+        var userId = GetCurrentUserId();
+        if (string.IsNullOrEmpty(userId))
         {
-            _logger.LogWarning("Impossible d'extraire l'ID Auth0 pour supprimer un favori");
+            _logger.LogWarning("Impossible d'extraire l'ID utilisateur pour supprimer un favori");
             return Unauthorized();
         }
 
-        var user = await _serviceUtilisateurService.GetUserByAuth0IdAsync(auth0Id);
-        if (user == null)
-        {
-            _logger.LogWarning("Utilisateur Auth0 {Auth0Id} non trouvé en base de données", auth0Id);
-            return Unauthorized();
-        }
-
-        _logger.LogInformation("Suppression du favori {RecipeId} pour l'utilisateur {UserId}", recipeId, user.UserId);
+        _logger.LogInformation("Suppression du favori {RecipeId} pour l'utilisateur {UserId}", recipeId, userId);
 
         try
         {
-            var result = await _favoriteService.RemoveFavoriteAsync(user.UserId, recipeId);
+            var result = await _favoriteService.RemoveFavoriteAsync(userId, recipeId);
             if (!result)
                 return NotFound();
 
@@ -157,23 +136,16 @@ public class ControleurFavoris : ControllerBase
     [HttpGet("{recipeId}/exists")]
     public async Task<IActionResult> IsFavorite(string recipeId)
     {
-        var auth0Id = GetAuth0IdFromClaims();
-        if (string.IsNullOrEmpty(auth0Id))
+        var userId = GetCurrentUserId();
+        if (string.IsNullOrEmpty(userId))
         {
-            _logger.LogWarning("Impossible d'extraire l'ID Auth0 pour vérifier un favori");
-            return Unauthorized();
-        }
-
-        var user = await _serviceUtilisateurService.GetUserByAuth0IdAsync(auth0Id);
-        if (user == null)
-        {
-            _logger.LogWarning("Utilisateur Auth0 {Auth0Id} non trouvé en base de données", auth0Id);
+            _logger.LogWarning("Impossible d'extraire l'ID utilisateur pour vérifier un favori");
             return Unauthorized();
         }
 
         try
         {
-            var isFavorite = await _favoriteService.IsFavoriteAsync(user.UserId, recipeId);
+            var isFavorite = await _favoriteService.IsFavoriteAsync(userId, recipeId);
             return Ok(new { isFavorite });
         }
         catch (Exception ex)
@@ -184,33 +156,19 @@ public class ControleurFavoris : ControllerBase
     }
 
     /// <summary>
-    /// Extrait l'Auth0Id des claims du cookie d'authentification
+    /// Extrait l'ID utilisateur des claims du cookie d'authentification
     /// </summary>
-    /// <returns>L'Auth0Id (sub claim d'Auth0) ou null si absent</returns>
-    private string? GetAuth0IdFromClaims()
+    /// <returns>L'ID utilisateur ou null si absent</returns>
+    private string? GetCurrentUserId()
     {
-        // Log le nombre de claims disponibles en debug uniquement
-        var allClaims = User.Claims.ToList();
-        _logger.LogDebug("Claims disponibles: Nombre={Count}", allClaims.Count);
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-        // Auth0 utilise "sub" comme claim principal pour l'ID utilisateur
-        // Essayer plusieurs sources possibles pour la compatibilité
-        var auth0Id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
-                      User.FindFirst("sub")?.Value ??
-                      User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value ??
-                      User.FindFirst("user_id")?.Value;
-
-        if (string.IsNullOrEmpty(auth0Id))
+        if (string.IsNullOrEmpty(userId))
         {
-            var availableClaims = string.Join(", ", allClaims.Select(c => c.Type));
-            _logger.LogError("❌ Aucun claim d'Auth0Id trouvé! Claims: {Claims}", availableClaims);
-        }
-        else
-        {
-            _logger.LogInformation("✅ Auth0Id trouvé: {Auth0Id}", auth0Id);
+            _logger.LogWarning("Aucun NameIdentifier trouvé dans les claims");
         }
 
-        return auth0Id;
+        return userId;
     }
 }
 

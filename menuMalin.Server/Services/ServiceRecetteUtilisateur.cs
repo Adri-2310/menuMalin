@@ -150,6 +150,7 @@ public class ServiceRecetteUtilisateur : IServiceRecetteUtilisateur
         recipe.Category = request.Category;
         recipe.Area = request.Area;
         recipe.Instructions = request.Instructions;
+        recipe.ImageUrl = request.ImageUrl;
         recipe.IngredientsJson = ingredientsJson;
         recipe.IsPublic = request.IsPublic;
         recipe.DateMaj = DateTime.UtcNow;

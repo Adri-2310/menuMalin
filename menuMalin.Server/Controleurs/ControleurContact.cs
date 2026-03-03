@@ -14,7 +14,7 @@ namespace menuMalin.Server.Controleurs;
 /// Contrôleur pour les messages de contact
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/contact")]
 public class ControleurContact : ControllerBase
 {
     private readonly IDepotMessage _contactRepository;

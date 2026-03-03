@@ -78,8 +78,7 @@ public class ControleurAuthentification : ControllerBase
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var authProperties = new AuthenticationProperties
             {
-                IsPersistent = true,
-                ExpiresUtc = DateTimeOffset.UtcNow.AddHours(24)
+                IsPersistent = true
             };
 
             // Créer le cookie
@@ -166,8 +165,7 @@ public class ControleurAuthentification : ControllerBase
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var authProperties = new AuthenticationProperties
             {
-                IsPersistent = true,
-                ExpiresUtc = DateTimeOffset.UtcNow.AddHours(24)
+                IsPersistent = true
             };
 
             // Créer le cookie

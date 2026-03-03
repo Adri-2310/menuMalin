@@ -111,6 +111,16 @@ public class ControleurRecettesUtilisateur : ControllerBase
         if (recipe == null)
             return NotFound();
 
+        // Vérifier la visibilité : seul le propriétaire peut voir les recettes privées
+        if (!recipe.IsPublic)
+        {
+            var userId = ExtractUserId();
+            if (userId == null || userId != recipe.UserId)
+            {
+                return Forbid("Vous n'avez pas accès à cette recette privée");
+            }
+        }
+
         return Ok(recipe);
     }
 
