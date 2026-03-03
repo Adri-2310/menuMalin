@@ -7,6 +7,7 @@
 @inject ServiceEtatAuthentification AuthState
 @inject NavigationManager Nav
 @inject IServiceNotification NotifService
+@implements IAsyncDisposable
 
 <PageTitle>MenuMalin - Accueil</PageTitle>
 
@@ -161,6 +162,9 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        // S'abonner aux changements d'authentification (déconnexion, reconnexion, etc.)
+        AuthState.AuthenticationChanged += OnAuthenticationChanged;
+
         // Charger l'état d'authentification depuis localStorage avant de vérifier
         await AuthState.InitializeAuthStateAsync();
         await CheckAuthentication();
@@ -178,6 +182,21 @@ else
         {
             await LoadDefaultRecipes();
         }
+    }
+
+    private void OnAuthenticationChanged()
+    {
+        // Quand l'état d'authentification change (logout, login, etc.), mettre à jour et rafraîchir
+        currentUser = AuthState.CurrentUser;
+        isAuthenticated = AuthState.IsAuthenticated;
+
+        // Réinitialiser les recettes pour que le contenu se rafraîchisse
+        if (!isAuthenticated)
+        {
+            featuredRecipes = null;
+        }
+
+        StateHasChanged();
     }
 
     private async Task CheckAuthentication()
@@ -258,5 +277,11 @@ else
     private async Task Logout()
     {
         await AuthService.LogoutAsync();
+    }
+
+    ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        AuthState.AuthenticationChanged -= OnAuthenticationChanged;
+        return ValueTask.CompletedTask;
     }
 }
