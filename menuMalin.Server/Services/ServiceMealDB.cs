@@ -16,6 +16,11 @@ public class ServiceMealDB : IServiceMealDB
     private const int MaxRetries = 3;
     private const int InitialDelayMs = 200;
 
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     public ServiceMealDB(HttpClient httpClient, ILogger<ServiceMealDB> logger)
     {
         _httpClient = httpClient;
@@ -38,7 +43,7 @@ public class ServiceMealDB : IServiceMealDB
                 response.EnsureSuccessStatusCode();
 
                 var content = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<T>(content);
+                return JsonSerializer.Deserialize<T>(content, JsonOptions);
             }
             catch (HttpRequestException ex) when (attempt < MaxRetries)
             {
