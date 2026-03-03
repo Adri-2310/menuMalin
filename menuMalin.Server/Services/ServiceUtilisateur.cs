@@ -88,4 +88,35 @@ public class ServiceUtilisateur : IServiceUtilisateur
         // Backward compatibility: traiter comme UserId
         return await _userRepository.GetByUserIdAsync(userIdOrAuth0Id);
     }
+
+    public async Task<Utilisateur?> ModifierNomAsync(string userId, string nouveauNom)
+    {
+        var user = await _userRepository.GetByUserIdAsync(userId);
+        if (user == null)
+            return null;
+
+        user.Name = nouveauNom.Trim();
+        _logger.LogInformation("Updating name for user: {UserId}", userId);
+        return await _userRepository.UpdateAsync(user);
+    }
+
+    public async Task<(bool Succes, string? MessageErreur)> ModifierMotDePasseAsync(
+        string userId, string motDePasseActuel, string nouveauMotDePasse)
+    {
+        var user = await _userRepository.GetByUserIdAsync(userId);
+        if (user == null)
+            return (false, "Utilisateur introuvable");
+
+        // Vérifier que le mot de passe actuel est correct
+        if (string.IsNullOrEmpty(user.PasswordHash) ||
+            !BCrypt.Net.BCrypt.Verify(motDePasseActuel, user.PasswordHash))
+            return (false, "Mot de passe actuel incorrect");
+
+        // Hasher le nouveau mot de passe
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(nouveauMotDePasse, workFactor: 12);
+
+        _logger.LogInformation("Updating password for user: {UserId}", userId);
+        await _userRepository.UpdateAsync(user);
+        return (true, null);
+    }
 }

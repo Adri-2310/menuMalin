@@ -137,5 +137,66 @@ public class ServiceAuthentification : IServiceAuthentification
             // Silencieusement ignorer les erreurs - le nettoyage local sera fait par DispositionPrincipale
         }
     }
+
+    public async Task<(bool Succes, string? Erreur, string? NouveauNom)> ModifierNomAsync(string nouveauNom)
+    {
+        try
+        {
+            var payload = new { nouveauNom };
+            var request = new HttpRequestMessage(HttpMethod.Patch, "api/auth/nom");
+            request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+            request.Content = JsonContent.Create(payload);
+
+            var response = await _httpClient.SendAsync(request);
+            var json = await response.Content.ReadAsStringAsync();
+            var obj = JsonSerializer.Deserialize<JsonElement>(json,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (response.IsSuccessStatusCode)
+            {
+                var name = obj.TryGetProperty("name", out var nameProp)
+                    ? nameProp.GetString() : null;
+                return (true, null, name);
+            }
+
+            var erreur = obj.TryGetProperty("error", out var errorProp)
+                ? errorProp.GetString() : "Erreur lors de la mise à jour du nom";
+            return (false, erreur, null);
+        }
+        catch (Exception ex)
+        {
+            System.Console.WriteLine($"❌ Erreur lors de la modification du nom: {ex.Message}");
+            return (false, ex.Message, null);
+        }
+    }
+
+    public async Task<(bool Succes, string? Erreur)> ModifierMotDePasseAsync(
+        string motDePasseActuel, string nouveauMotDePasse, string confirmationMotDePasse)
+    {
+        try
+        {
+            var payload = new { motDePasseActuel, nouveauMotDePasse, confirmationMotDePasse };
+            var request = new HttpRequestMessage(HttpMethod.Patch, "api/auth/mot-de-passe");
+            request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+            request.Content = JsonContent.Create(payload);
+
+            var response = await _httpClient.SendAsync(request);
+            var json = await response.Content.ReadAsStringAsync();
+            var obj = JsonSerializer.Deserialize<JsonElement>(json,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (response.IsSuccessStatusCode)
+                return (true, null);
+
+            var erreur = obj.TryGetProperty("error", out var errorProp)
+                ? errorProp.GetString() : "Erreur lors de la mise à jour du mot de passe";
+            return (false, erreur);
+        }
+        catch (Exception ex)
+        {
+            System.Console.WriteLine($"❌ Erreur lors de la modification du mot de passe: {ex.Message}");
+            return (false, ex.Message);
+        }
+    }
 }
 

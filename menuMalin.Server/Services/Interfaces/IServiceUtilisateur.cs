@@ -30,4 +30,22 @@ public interface IServiceUtilisateur
     /// Récupère un utilisateur par son UserId (backward compatibility)
     /// </summary>
     Task<Utilisateur?> GetUserByAuth0IdAsync(string userIdOrAuth0Id);
+
+    /// <summary>
+    /// Met à jour le nom affiché d'un utilisateur
+    /// </summary>
+    /// <param name="userId">L'identifiant de l'utilisateur</param>
+    /// <param name="nouveauNom">Le nouveau nom</param>
+    /// <returns>L'utilisateur mis à jour, ou null si introuvable</returns>
+    Task<Utilisateur?> ModifierNomAsync(string userId, string nouveauNom);
+
+    /// <summary>
+    /// Vérifie le mot de passe actuel et met à jour le hash si valide
+    /// </summary>
+    /// <param name="userId">L'identifiant de l'utilisateur</param>
+    /// <param name="motDePasseActuel">Le mot de passe actuel (en clair)</param>
+    /// <param name="nouveauMotDePasse">Le nouveau mot de passe (en clair)</param>
+    /// <returns>Un tuple (Succès, MessageErreur) où MessageErreur est null si succès</returns>
+    Task<(bool Succes, string? MessageErreur)> ModifierMotDePasseAsync(
+        string userId, string motDePasseActuel, string nouveauMotDePasse);
 }
