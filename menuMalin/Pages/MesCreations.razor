@@ -1,0 +1,268 @@
+@page "/mes-creations"
+@using menuMalin.Services
+@using menuMalin.Shared.Modeles.DTOs
+@inject IServiceRecetteUtilisateur UserRecipeService
+@inject IServiceAuthentification AuthService
+@inject ServiceEtatAuthentification AuthState
+@inject NavigationManager Nav
+@inject IServiceNotification NotifService
+
+<PageTitle>MenuMalin - Mes Recettes Créées</PageTitle>
+
+<style>
+    .recipe-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .recipe-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .recipe-card-img-container {
+        height: 200px;
+        overflow: hidden;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        position: relative;
+    }
+
+    .recipe-card-img {
+        height: 100%;
+        width: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .recipe-card-img.loading {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .recipe-card-img.loaded {
+        opacity: 1;
+    }
+
+    .recipe-card-img-placeholder {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 3rem;
+    }
+
+    .recipe-card-body {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .recipe-card-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: auto;
+    }
+</style>
+
+@if (isCheckingAuth)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-success"></div>
+        <p class="mt-2 text-muted">Vérification de l'authentification...</p>
+    </div>
+}
+else if (!isAuthenticated)
+{
+    <div class="container mt-4 mb-5">
+        <div class="alert alert-warning text-center rounded-4 py-5" role="alert">
+            <i class="bi bi-lock-fill me-2" style="font-size: 2rem;"></i>
+            <h3 class="mt-3">Accès réservé</h3>
+            <p class="text-muted mb-4">Vous devez être connecté pour gérer vos recettes.</p>
+            <a href="/connexion" class="btn btn-success btn-lg rounded-pill px-5">Se connecter</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container mt-4 mb-5 animate-fade-in">
+        @* Bouton Retour *@
+        <button class="btn btn-link text-dark text-decoration-none mb-4 ps-0" @onclick="GoBack">
+            <i class="bi bi-arrow-left me-2"></i>Retour à l'accueil
+        </button>
+
+        @* Titre Section *@
+        <div class="d-flex align-items-center justify-content-between mb-5">
+            <div>
+                <h1 class="display-5 fw-bold mb-2">🍳 Mes Recettes Créées</h1>
+                <p class="text-muted lead">Gérez et partagez vos créations culinaires</p>
+            </div>
+            <a href="/creer-recette" class="btn btn-success btn-lg rounded-pill">
+                <i class="bi bi-plus-circle me-2"></i>Ajouter une recette
+            </a>
+        </div>
+
+        @if (recipes == null)
+        {
+            <div class="text-center py-5">
+                <div class="spinner-border text-success"></div>
+                <p class="mt-2 text-muted">Chargement de vos recettes...</p>
+            </div>
+        }
+        else if (!recipes.Any())
+        {
+            <div class="text-center py-5 bg-light rounded-4">
+                <i class="bi bi-collection display-1 text-muted opacity-50"></i>
+                <h3 class="mt-3 text-muted">Vous n'avez pas encore créé de recette</h3>
+                <p class="text-muted">Commencez par créer votre première recette!</p>
+                <a href="/creer-recette" class="btn btn-success rounded-pill px-4">
+                    <i class="bi bi-plus-circle me-2"></i>Créer une recette
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="row g-4">
+                @foreach (var recipe in recipes)
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card recipe-card shadow-sm">
+                            @* Image *@
+                            <div class="recipe-card-img-container">
+                                @if (!string.IsNullOrEmpty(recipe.ImageUrl))
+                                {
+                                    <img
+                                        src="@recipe.ImageUrl"
+                                        alt="@recipe.Title"
+                                        class="recipe-card-img loaded"
+                                        loading="lazy" />
+                                }
+                                else
+                                {
+                                    <div class="recipe-card-img-placeholder">
+                                        <i class="bi bi-image"></i>
+                                    </div>
+                                }
+                            </div>
+
+                            @* Contenu *@
+                            <div class="card-body recipe-card-body">
+                                @if (!string.IsNullOrEmpty(recipe.Title))
+                                {
+                                    <h5 class="card-title mb-2">@recipe.Title</h5>
+                                }
+                                else
+                                {
+                                    <h5 class="card-title mb-2 text-muted"><em>Sans titre</em></h5>
+                                }
+
+                                <div class="mb-3">
+                                    @if (!string.IsNullOrEmpty(recipe.Category))
+                                    {
+                                        <span class="badge bg-info me-2">@recipe.Category</span>
+                                    }
+                                    @if (!string.IsNullOrEmpty(recipe.Area))
+                                    {
+                                        <span class="badge bg-secondary">@recipe.Area</span>
+                                    }
+                                    @if (string.IsNullOrEmpty(recipe.Category) && string.IsNullOrEmpty(recipe.Area))
+                                    {
+                                        <span class="text-muted small"><em>Aucune information</em></span>
+                                    }
+                                </div>
+
+                                <div class="mb-3">
+                                    @if (recipe.IsPublic)
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-globe me-1"></i>Public
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">
+                                            <i class="bi bi-lock me-1"></i>Privé
+                                        </span>
+                                    }
+                                </div>
+
+                                <small class="text-muted d-block">Créée le: @recipe.CreatedAt.ToString("dd/MM/yyyy")</small>
+
+                                @* Actions *@
+                                <div class="recipe-card-actions mt-3">
+                                    <a href="/modifier-recette/@recipe.UserRecipeId" class="btn btn-sm btn-primary flex-grow-1">
+                                        <i class="bi bi-pencil-square me-1"></i>Modifier
+                                    </a>
+                                    <a href="/voir-recette/@recipe.UserRecipeId" class="btn btn-sm btn-outline-primary flex-grow-1">
+                                        <i class="bi bi-eye me-1"></i>Afficher
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<RecetteUtilisateurDTO>? recipes;
+    private bool isAuthenticated = false;
+    private bool isCheckingAuth = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Charger l'état d'authentification depuis localStorage avant de vérifier
+        await AuthState.InitializeAuthStateAsync();
+        await CheckAuthentication();
+        if (isAuthenticated)
+        {
+            await LoadRecipes();
+        }
+    }
+
+    private async Task CheckAuthentication()
+    {
+        try
+        {
+            // Vérifier d'abord l'état global (Singleton)
+            if (AuthState?.CurrentUser != null && AuthState.IsAuthenticated)
+            {
+                isAuthenticated = true;
+            }
+            else
+            {
+                // Sinon appeler l'API
+                var user = await AuthService.GetCurrentUserAsync();
+                isAuthenticated = user?.IsAuthenticated ?? false;
+            }
+        }
+        catch
+        {
+            isAuthenticated = false;
+        }
+        finally
+        {
+            isCheckingAuth = false;
+        }
+    }
+
+    private async Task LoadRecipes()
+    {
+        try
+        {
+            recipes = await UserRecipeService.GetMyRecipesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur lors du chargement des recettes: {ex.Message}");
+            NotifService.AfficherErreur("Impossible de charger vos recettes. Veuillez réessayer.");
+        }
+    }
+
+    private void GoBack() => Nav.NavigateTo("/");
+}

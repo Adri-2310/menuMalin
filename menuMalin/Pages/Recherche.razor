@@ -1,0 +1,394 @@
+@page "/recherche"
+@using menuMalin.Modeles
+@using menuMalin.Services
+@using menuMalin.Composants.Recette
+@using menuMalin.Shared.Modeles.DTOs
+@inject IServiceRecetteFrontend RecipeService
+@inject IServiceRecetteUtilisateur UserRecipeService
+@inject IServiceAuthentification AuthService
+@inject ServiceEtatAuthentification AuthState
+@inject NavigationManager Nav
+@inject IServiceNotification NotifService
+
+<PageTitle>MenuMalin - Recherche</PageTitle>
+
+@if (isCheckingAuth)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-success"></div>
+        <p class="mt-2 text-muted">Vérification de l'authentification...</p>
+    </div>
+}
+else if (!isAuthenticated)
+{
+    <div class="container mt-4 mb-5">
+        <div class="alert alert-warning text-center rounded-4 py-5" role="alert">
+            <i class="bi bi-lock-fill me-2" style="font-size: 2rem;"></i>
+            <h3 class="mt-3">Accès réservé</h3>
+            <p class="text-muted mb-4">Vous devez être connecté pour accéder à la recherche avancée.</p>
+            <a href="/connexion" class="btn btn-success btn-lg rounded-pill px-5">Se connecter</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container mt-4 mb-5 animate-fade-in">
+    @* Bouton Retour *@
+    <button class="btn btn-link text-dark text-decoration-none mb-4 ps-0" @onclick="GoBack">
+        <i class="bi bi-arrow-left me-2"></i>Retour à l'accueil
+    </button>
+
+    @* Titre Section *@
+    <div class="mb-4">
+        <h1 class="display-5 fw-bold mb-2">Explorer les recettes</h1>
+        <p class="text-muted">Utilisez les filtres ci-dessous pour trouver votre recette idéale</p>
+    </div>
+
+    @* SECTION FILTRES *@
+    <div class="row mb-5">
+        <div class="col-md-4 mb-3">
+            <label class="form-label fw-bold">Recherche texte</label>
+            <div class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden bg-white border">
+                <span class="input-group-text bg-white border-0 ps-4">
+                    <i class="bi bi-search text-success"></i>
+                </span>
+                <input type="text"
+                       class="form-control border-0 shadow-none py-3"
+                       placeholder="Taper un ingrédient..."
+                       @bind="searchTerm"
+                       @bind:event="oninput"
+                       @onkeyup="HandleKeyUp" />
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label class="form-label fw-bold">Catégorie</label>
+            <select class="form-select form-select-lg shadow-sm rounded-pill" @bind="selectedCategory" @bind:after="ClearSearchError">
+                <option value="">-- Toutes les catégories --</option>
+                @foreach (var cat in categories)
+                {
+                    <option value="@cat">@cat</option>
+                }
+            </select>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label class="form-label fw-bold">Zone/Cuisine</label>
+            <select class="form-select form-select-lg shadow-sm rounded-pill" @bind="selectedArea" @bind:after="ClearSearchError">
+                <option value="">-- Toutes les zones --</option>
+                @foreach (var area in areas)
+                {
+                    <option value="@area">@area</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    @* BOUTONS D'ACTION *@
+    <div class="d-flex gap-2 mb-5">
+        <button class="btn btn-success btn-lg rounded-pill px-5 fw-bold" @onclick="ApplyFilters">
+            <i class="bi bi-search me-2"></i>Rechercher
+        </button>
+        <button class="btn btn-outline-success btn-lg rounded-pill px-5 fw-bold" @onclick="ResetFilters">
+            <i class="bi bi-arrow-clockwise me-2"></i>Réinitialiser
+        </button>
+    </div>
+
+    @* GESTION D'ÉTAT *@
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-success"></div>
+            <p class="mt-2 text-muted">Chargement des recettes...</p>
+        </div>
+    }
+    else if (recipes == null)
+    {
+        <div class="alert alert-info text-center rounded-4 py-5" role="alert">
+            <i class="bi bi-search me-2"></i>
+            <h5>Prêt à explorer ?</h5>
+            <p class="text-muted mb-0">Entrez un terme de recherche ou choisissez un filtre pour commencer</p>
+        </div>
+    }
+    else if (recipes != null && recipes.Count == 0)
+    {
+        <div class="alert alert-warning text-center rounded-4 py-5" role="alert">
+            <i class="bi bi-inbox me-2"></i>
+            <h5>Aucun résultat trouvé</h5>
+            <p class="text-muted mb-0">Essayez d'ajuster vos critères de recherche</p>
+        </div>
+    }
+    else if (recipes != null && recipes.Count > 0)
+    {
+        <GrilleRecettes Recipes="recipes" ItemsPerPage="12" />
+    }
+
+    @* SECTION RECETTES DE LA COMMUNAUTÉ *@
+    <div class="mt-5 pt-5 border-top">
+        <div class="mb-4">
+            <h2 class="display-6 fw-bold mb-2">🌍 Recettes de la Communauté</h2>
+            <p class="text-muted">Découvrez les recettes créées par les utilisateurs MenuMalin</p>
+        </div>
+
+        @if (communityRecipes == null)
+        {
+            <div class="text-center py-5">
+                <div class="spinner-border text-success"></div>
+                <p class="mt-2 text-muted">Chargement des recettes de la communauté...</p>
+            </div>
+        }
+        else if (!FilteredCommunityRecipes().Any())
+        {
+            <div class="alert alert-info text-center rounded-4 py-5" role="alert">
+                <i class="bi bi-people me-2"></i>
+                <h5>Aucune recette de la communauté</h5>
+                <p class="text-muted mb-0">Soyez le premier à créer une recette!</p>
+                <a href="/creer-recette" class="btn btn-success btn-sm mt-3 rounded-pill">
+                    <i class="bi bi-plus-circle me-1"></i>Créer une recette
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                @foreach (var recipe in FilteredCommunityRecipes())
+                {
+                    <div class="col">
+                        <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+                            @if (!string.IsNullOrEmpty(recipe.ImageUrl))
+                            {
+                                <img src="@recipe.ImageUrl" class="card-img-top" alt="@recipe.Title" style="height: 200px; object-fit: cover;" />
+                            }
+                            else
+                            {
+                                <div class="bg-light" style="height: 200px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="bi bi-image text-muted" style="font-size: 2rem;"></i>
+                                </div>
+                            }
+                            <div class="card-body">
+                                <h5 class="card-title fw-bold">@recipe.Title</h5>
+                                @if (!string.IsNullOrEmpty(recipe.Category))
+                                {
+                                    <p class="card-text">
+                                        <span class="badge bg-info rounded-pill me-2">@recipe.Category</span>
+                                    </p>
+                                }
+                                @if (!string.IsNullOrEmpty(recipe.Area))
+                                {
+                                    <p class="card-text text-muted small">
+                                        <i class="bi bi-geo-alt me-1"></i>@recipe.Area
+                                    </p>
+                                }
+                                <p class="card-text text-muted small">
+                                    <i class="bi bi-calendar me-1"></i>@recipe.CreatedAt.ToString("dd/MM/yyyy")
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+    </div>
+}
+
+@code {
+    private string searchTerm = "";
+    private string selectedCategory = "";
+    private string selectedArea = "";
+    private List<string> categories = new();
+    private List<string> areas = new();
+    private List<Recette>? recipes;
+    private List<RecetteUtilisateurDTO>? communityRecipes;
+    private bool isLoading = false;
+    private bool isAuthenticated = false;
+    private bool isCheckingAuth = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Charger l'état d'authentification depuis localStorage avant de vérifier
+        await AuthState.InitializeAuthStateAsync();
+        await CheckAuthentication();
+        if (isAuthenticated)
+        {
+            await Task.WhenAll(LoadFilterOptions(), LoadCommunityRecipes());
+        }
+    }
+
+    private async Task CheckAuthentication()
+    {
+        try
+        {
+            // Vérifier d'abord l'état global (Singleton)
+            if (AuthState?.CurrentUser != null && AuthState.IsAuthenticated)
+            {
+                isAuthenticated = true;
+            }
+            else
+            {
+                // Sinon appeler l'API
+                var user = await AuthService.GetCurrentUserAsync();
+                isAuthenticated = user?.IsAuthenticated ?? false;
+            }
+        }
+        catch
+        {
+            isAuthenticated = false;
+        }
+        finally
+        {
+            isCheckingAuth = false;
+        }
+    }
+
+    private async Task LoadFilterOptions()
+    {
+        try
+        {
+            categories = await RecipeService.GetCategoriesAsync();
+            areas = await RecipeService.GetAreasAsync();
+        }
+        catch (ErreurReseauException)
+        {
+            NotifService.AfficherErreurReseau();
+        }
+        catch (ErreurApiException ex)
+        {
+            NotifService.AfficherErreurHttp(ex.StatusCode, "Filtres");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur lors du chargement des filtres: {ex.Message}");
+            NotifService.AfficherErreur("Impossible de charger les filtres. Veuillez réessayer.", "Erreur de chargement");
+        }
+    }
+
+    private async Task ApplyFilters()
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm) &&
+            string.IsNullOrWhiteSpace(selectedCategory) &&
+            string.IsNullOrWhiteSpace(selectedArea))
+        {
+            recipes = new List<Recette>();
+            return;
+        }
+
+        try
+        {
+            isLoading = true;
+            recipes = null;
+
+            @* Priorité: si recherche texte → chercher par texte
+                 Sinon: filtrer par catégorie ou zone *@
+            List<Recette>? recipeResults = null;
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                recipeResults = await RecipeService.SearchRecipesAsync(searchTerm);
+            }
+            else if (!string.IsNullOrWhiteSpace(selectedCategory))
+            {
+                recipeResults = await RecipeService.FilterByCategoryAsync(selectedCategory);
+            }
+            else if (!string.IsNullOrWhiteSpace(selectedArea))
+            {
+                recipeResults = await RecipeService.FilterByAreaAsync(selectedArea);
+            }
+
+            if (recipeResults == null || !recipeResults.Any())
+            {
+                recipes = new List<Recette>();
+                // Afficher un message informatif si aucun résultat
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    NotifService.AfficherInfo($"Aucune recette trouvée pour '{searchTerm}'", "Pas de résultats");
+                }
+            }
+            else
+            {
+                recipes = recipeResults;
+            }
+        }
+        catch (ErreurReseauException)
+        {
+            NotifService.AfficherErreurReseau();
+            recipes = null;
+        }
+        catch (ErreurApiException ex)
+        {
+            NotifService.AfficherErreurHttp(ex.StatusCode, "Recherche");
+            recipes = null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur lors de la recherche: {ex.Message}");
+            NotifService.AfficherErreur("Erreur lors de la recherche. Veuillez réessayer.", "Erreur de recherche");
+            recipes = null;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ResetFilters()
+    {
+        searchTerm = "";
+        selectedCategory = "";
+        selectedArea = "";
+        recipes = null;
+    }
+
+    private async Task HandleKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await ApplyFilters();
+        }
+    }
+
+    private void ClearSearchError()
+    {
+        // Réinitialiser les résultats quand l'utilisateur change un filtre
+        recipes = null;
+    }
+
+    private async Task LoadCommunityRecipes()
+    {
+        try
+        {
+            communityRecipes = await UserRecipeService.GetPublicRecipesAsync();
+        }
+        catch (ErreurReseauException)
+        {
+            // Silencieusement - les recettes de la communauté sont optionnelles
+            Console.WriteLine("Impossible de charger les recettes de la communauté (réseau)");
+            communityRecipes = new();
+        }
+        catch (ErreurApiException ex)
+        {
+            Console.WriteLine($"Impossible de charger les recettes de la communauté (HTTP {ex.StatusCode})");
+            communityRecipes = new();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur lors du chargement des recettes de la communauté: {ex.Message}");
+            communityRecipes = new();
+        }
+    }
+
+    private List<RecetteUtilisateurDTO> FilteredCommunityRecipes()
+    {
+        if (communityRecipes == null || !communityRecipes.Any())
+            return new();
+
+        if (string.IsNullOrWhiteSpace(searchTerm))
+            return communityRecipes;
+
+        return communityRecipes
+            .Where(r => r.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+    }
+
+    private void GoBack() => Nav.NavigateTo("/");
+}

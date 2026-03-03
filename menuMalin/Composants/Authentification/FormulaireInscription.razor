@@ -1,0 +1,209 @@
+@using System.ComponentModel.DataAnnotations
+@using menuMalin.Services
+@inject IServiceNotification NotifService
+
+<div class="register-form">
+    <div class="card">
+        <div class="card-body">
+            <h2 class="card-title mb-4">Créer un compte</h2>
+
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @ErrorMessage
+                    <button type="button" class="btn-close" @onclick="() => ErrorMessage = null"></button>
+                </div>
+            }
+
+            <form @onsubmit="HandleRegister">
+                <div class="mb-3">
+                    <label for="name" class="form-label">Nom</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="name"
+                        @bind="Name"
+                        placeholder="Votre nom"
+                        required />
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input
+                        type="email"
+                        class="form-control"
+                        id="email"
+                        @bind="Email"
+                        placeholder="votre@email.com"
+                        required />
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label">Mot de passe</label>
+                    <input
+                        type="password"
+                        class="form-control"
+                        id="password"
+                        @bind="Password"
+                        placeholder="Mot de passe"
+                        required />
+                    <small class="form-text text-muted">Au moins 8 caractères</small>
+                </div>
+
+                <div class="mb-3">
+                    <label for="confirmPassword" class="form-label">Confirmer le mot de passe</label>
+                    <input
+                        type="password"
+                        class="form-control"
+                        id="confirmPassword"
+                        @bind="ConfirmPassword"
+                        placeholder="Confirmer le mot de passe"
+                        required />
+                </div>
+
+                <button type="submit" class="btn btn-success w-100" disabled="@IsLoading">
+                    @if (IsLoading)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        <span>Création en cours...</span>
+                    }
+                    else
+                    {
+                        <span>Créer mon compte</span>
+                    }
+                </button>
+
+                <div class="text-center mt-3">
+                    <p>Vous avez déjà un compte? <a href="/connexion">Se connecter</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Inject]
+    private IServiceAuthentification? AuthService { get; set; }
+
+    [Inject]
+    private NavigationManager? NavigationManager { get; set; }
+
+    [Inject]
+    private ServiceEtatAuthentification? AuthState { get; set; }
+
+    private string Name { get; set; } = string.Empty;
+    private string Email { get; set; } = string.Empty;
+    private string Password { get; set; } = string.Empty;
+    private string ConfirmPassword { get; set; } = string.Empty;
+    private string? ErrorMessage { get; set; }
+    private bool IsLoading { get; set; }
+
+    private async Task HandleRegister()
+    {
+        // Validation
+        if (string.IsNullOrWhiteSpace(Name))
+        {
+            ErrorMessage = "Le nom est requis";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(Email) || !Email.Contains("@"))
+        {
+            ErrorMessage = "Email invalide";
+            return;
+        }
+
+        if (Email.Length > 254)
+        {
+            ErrorMessage = "Email trop long";
+            return;
+        }
+
+        if (Password.Length < 8)
+        {
+            ErrorMessage = "Le mot de passe doit contenir au moins 8 caractères";
+            return;
+        }
+
+        if (Password != ConfirmPassword)
+        {
+            ErrorMessage = "Les mots de passe ne correspondent pas";
+            return;
+        }
+
+        ErrorMessage = null;
+        IsLoading = true;
+
+        try
+        {
+            var result = await AuthService!.RegisterAsync(Email, Password, Name);
+
+            if (result?.IsAuthenticated == true)
+            {
+                // Mettre à jour l'état d'authentification global avec le result de l'inscription
+                AuthState!.CurrentUser = result;
+
+                NotifService.AfficherSucces("Bienvenue ! Votre compte a été créé avec succès.", "Inscription réussie");
+                NavigationManager!.NavigateTo("/");
+            }
+            else
+            {
+                ErrorMessage = result?.Error ?? "Erreur lors de la création du compte";
+            }
+        }
+        catch (Exception ex)
+        {
+            NotifService.AfficherErreur(ex.Message, "Erreur d'authentification");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+}
+
+<style>
+.register-form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
+}
+
+.register-form .card {
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.register-form .card-body {
+    padding: 2rem;
+}
+
+.register-form .card-title {
+    text-align: center;
+    color: #333;
+    font-weight: 600;
+}
+
+.register-form .btn-success {
+    background-color: #2d6a4f;
+    border-color: #2d6a4f;
+}
+
+.register-form .btn-success:hover {
+    background-color: #1b4332;
+    border-color: #1b4332;
+}
+
+.register-form a {
+    color: #667eea;
+    text-decoration: none;
+}
+
+.register-form a:hover {
+    text-decoration: underline;
+}
+</style>

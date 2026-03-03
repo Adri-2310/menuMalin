@@ -1,0 +1,529 @@
+@page "/creer-recette"
+@using menuMalin.Services
+@using menuMalin.DTOs
+@using menuMalin.Shared.Modeles.Requetes
+@using Microsoft.AspNetCore.Components.Forms
+@inject IServiceRecetteUtilisateur UserRecipeService
+@inject IServiceAuthentification AuthService
+@inject ServiceEtatAuthentification AuthState
+@inject IServiceTeleversement UploadService
+@inject IServiceRecette RecipeService
+@inject NavigationManager Nav
+@inject IServiceNotification NotifService
+
+<PageTitle>MenuMalin - Créer une Recette</PageTitle>
+
+@if (isCheckingAuth)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-success"></div>
+        <p class="mt-2 text-muted">Vérification de l'authentification...</p>
+    </div>
+}
+else if (!isAuthenticated)
+{
+    <div class="container mt-4 mb-5">
+        <div class="alert alert-warning text-center rounded-4 py-5" role="alert">
+            <i class="bi bi-lock-fill me-2" style="font-size: 2rem;"></i>
+            <h3 class="mt-3">Accès réservé</h3>
+            <p class="text-muted mb-4">Vous devez être connecté pour créer une recette.</p>
+            <a href="/connexion" class="btn btn-success btn-lg rounded-pill px-5">Se connecter</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container mt-4 mb-5 animate-fade-in">
+    @* Bouton Retour *@
+    <button class="btn btn-link text-dark text-decoration-none mb-4 ps-0" @onclick="GoBack">
+        <i class="bi bi-arrow-left me-2"></i>Retour à mes recettes
+    </button>
+
+    @* Titre Section *@
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold mb-2">🍳 Créer une Recette</h1>
+        <p class="text-muted lead">Partagez votre création avec la communauté</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            @if (isSubmitting)
+            {
+                <div class="text-center py-5">
+                    <div class="spinner-border text-success"></div>
+                    <p class="mt-2 text-muted">Création de la recette en cours...</p>
+                </div>
+            }
+            else
+            {
+                <form @onsubmit="HandleSubmit" class="card border-0 shadow-sm rounded-4 p-5">
+                    @* Titre (requis) *@
+                    <div class="mb-4">
+                        <label for="title" class="form-label fw-bold">Titre <span class="text-danger">*</span></label>
+                        <input
+                            type="text"
+                            class="form-control form-control-lg shadow-sm rounded-3"
+                            id="title"
+                            placeholder="Nom de votre recette"
+                            @bind="model.Title"
+                            required />
+                        <small class="text-muted">Ex: Coq au vin, Tarte aux pommes, etc.</small>
+                    </div>
+
+                    @* Catégorie *@
+                    <div class="mb-4">
+                        <label for="category" class="form-label fw-bold">Catégorie</label>
+                        <select
+                            class="form-select form-select-lg shadow-sm rounded-3"
+                            id="category"
+                            @bind="model.Category">
+                            <option value="">-- Sélectionnez une catégorie --</option>
+                            @foreach (var category in categories)
+                            {
+                                <option value="@category">@category</option>
+                            }
+                        </select>
+                        @if (isLoadingCategories)
+                        {
+                            <small class="text-muted d-block mt-1">
+                                <span class="spinner-border spinner-border-sm me-2"></span>Chargement...
+                            </small>
+                        }
+                    </div>
+
+                    @* Cuisine/Area *@
+                    <div class="mb-4">
+                        <label for="area" class="form-label fw-bold">Cuisine / Région</label>
+                        <select
+                            class="form-select form-select-lg shadow-sm rounded-3"
+                            id="area"
+                            @bind="model.Area">
+                            <option value="">-- Sélectionnez une cuisine --</option>
+                            @foreach (var area in areas)
+                            {
+                                <option value="@area">@area</option>
+                            }
+                        </select>
+                        @if (isLoadingAreas)
+                        {
+                            <small class="text-muted d-block mt-1">
+                                <span class="spinner-border spinner-border-sm me-2"></span>Chargement...
+                            </small>
+                        }
+                    </div>
+
+                    @* Instructions (requis) *@
+                    <div class="mb-4">
+                        <label for="instructions" class="form-label fw-bold">Instructions <span class="text-danger">*</span></label>
+                        <textarea
+                            class="form-control shadow-sm rounded-3"
+                            id="instructions"
+                            rows="6"
+                            placeholder="Décrivez les étapes de préparation..."
+                            @bind="model.Instructions"
+                            required></textarea>
+                        <small class="text-muted">Détaillez chaque étape pour que la recette soit facile à suivre</small>
+                    </div>
+
+                    @* Image *@
+                    <div class="mb-4">
+                        <label class="form-label fw-bold mb-3">Image de la recette</label>
+
+                        @* Upload d'image *@
+                        <div class="mb-3">
+                            <label for="imageFile" class="form-label">Choisir une image depuis votre ordinateur</label>
+                            <InputFile
+                                class="form-control form-control-lg shadow-sm rounded-3"
+                                id="imageFile"
+                                accept="image/*"
+                                OnChange="HandleImageUpload" />
+                            <small class="text-muted d-block">Formats supportés : JPG, PNG, GIF, WebP (max 5MB)</small>
+                        </div>
+
+                        @* Aperçu de l'image *@
+                        @if (!string.IsNullOrEmpty(model.ImageUrl))
+                        {
+                            <div class="card border-light bg-light rounded-3 p-3 mb-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div style="position: relative;">
+                                        <img
+                                            src="@model.ImageUrl"
+                                            alt="Aperçu"
+                                            style="max-height: 150px; max-width: 150px; object-fit: cover; border-radius: 8px;"
+                                            @onerror="HandleImageError" />
+                                        @if (imageLoadFailed)
+                                        {
+                                            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,0,0,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                                <small class="text-danger fw-bold">Image invalide</small>
+                                            </div>
+                                        }
+                                    </div>
+                                    <div>
+                                        <p class="mb-2"><strong>Aperçu :</strong></p>
+                                        @if (imageLoadFailed)
+                                        {
+                                            <p class="text-danger small mb-2"><i class="bi bi-exclamation-triangle me-1"></i>L'URL est invalide ou non accessible</p>
+                                        }
+                                        <button type="button" class="btn btn-sm btn-outline-danger" @onclick="ClearImage">
+                                            <i class="bi bi-x-circle me-1"></i>Supprimer l'image
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="card border-light bg-light rounded-3 p-5 text-center text-muted mb-3">
+                                <i class="bi bi-image" style="font-size: 2rem;"></i>
+                                <p class="mt-2">Aucune image sélectionnée</p>
+                            </div>
+                        }
+
+                        @* Option : URL alternative *@
+                        <div class="accordion mb-3" id="urlAccordion">
+                            <div class="accordion-item border-light">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#urlCollapse">
+                                        <i class="bi bi-link-45deg me-2"></i>Ou entrer une URL d'image
+                                    </button>
+                                </h2>
+                                <div id="urlCollapse" class="accordion-collapse collapse" data-bs-parent="#urlAccordion">
+                                    <div class="accordion-body">
+                                        <div class="input-group">
+                                            <input
+                                                type="url"
+                                                class="form-control form-control-lg shadow-sm rounded-start-3"
+                                                placeholder="https://example.com/image.jpg"
+                                                @bind="urlInput" />
+                                            <button
+                                                type="button"
+                                                class="btn btn-outline-primary rounded-end-3"
+                                                @onclick="() => SetImageFromUrl(urlInput)">
+                                                <i class="bi bi-check-lg me-1"></i>Appliquer
+                                            </button>
+                                        </div>
+                                        <small class="text-muted d-block mt-2">Collez l'URL d'une image publique</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Ingrédients dynamiques *@
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Ingrédients</label>
+                        <div class="card border-light bg-light rounded-3 p-3">
+                            @if (model.Ingredients == null || model.Ingredients.Count == 0)
+                            {
+                                <p class="text-muted mb-3"><i class="bi bi-info-circle me-2"></i>Aucun ingrédient ajouté. Cliquez sur "Ajouter" pour commencer.</p>
+                            }
+                            else
+                            {
+                                @foreach (var (ingredient, index) in model.Ingredients.Select((item, i) => (item, i)))
+                                {
+                                    <div class="input-group mb-2">
+                                        <input
+                                            type="text"
+                                            class="form-control shadow-sm rounded-start-3"
+                                            placeholder="Ex: 200g farine"
+                                            @bind="model.Ingredients[index]" />
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-danger rounded-end-3"
+                                            @onclick="() => RemoveIngredient(index)"
+                                            title="Supprimer cet ingrédient">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </div>
+                                }
+                            }
+                            <button
+                                type="button"
+                                class="btn btn-outline-success btn-sm rounded-pill mt-2"
+                                @onclick="AddIngredient">
+                                <i class="bi bi-plus-circle me-1"></i>Ajouter un ingrédient
+                            </button>
+                        </div>
+                    </div>
+
+                    @* Toggle Public/Privé *@
+                    <div class="mb-5">
+                        <div class="form-check form-switch">
+                            <input
+                                class="form-check-input"
+                                type="checkbox"
+                                id="isPublic"
+                                @bind="model.IsPublic" />
+                            <label class="form-check-label fw-bold" for="isPublic">
+                                <i class="bi bi-globe me-2"></i>Rendre ma recette publique (visible à tous)
+                            </label>
+                        </div>
+                        <small class="text-muted d-block mt-2">
+                            @if (model.IsPublic)
+                            {
+                                <span><i class="bi bi-check-circle text-success me-1"></i><strong>Public :</strong> Votre recette sera visible partout</span>
+                            }
+                            else
+                            {
+                                <span><i class="bi bi-lock text-secondary me-1"></i><strong>Privé :</strong> Vous seul pouvez la voir</span>
+                            }
+                        </small>
+                    </div>
+
+                    @* Buttons *@
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-outline-secondary btn-lg rounded-pill" @onclick="GoBack">
+                            <i class="bi bi-x-circle me-2"></i>Annuler
+                        </button>
+                        <button type="submit" class="btn btn-success btn-lg rounded-pill fw-bold shadow-sm">
+                            <i class="bi bi-plus-circle me-2"></i>Créer la recette
+                        </button>
+                    </div>
+                </form>
+            }
+        </div>
+    </div>
+    </div>
+}
+
+@code {
+    private RequeteCreationRecetteUtilisateur model = new();
+    private bool isSubmitting = false;
+    private bool isAuthenticated = false;
+    private bool isCheckingAuth = true;
+    private string? urlInput;
+    private List<string> categories = new();
+    private List<string> areas = new();
+    private bool isLoadingCategories = false;
+    private bool isLoadingAreas = false;
+    private bool imageLoadFailed = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Charger l'état d'authentification depuis localStorage avant de vérifier
+        await AuthState.InitializeAuthStateAsync();
+        await CheckAuthentication();
+        if (isAuthenticated)
+        {
+            await LoadCategories();
+            await LoadAreas();
+        }
+    }
+
+    private async Task LoadCategories()
+    {
+        try
+        {
+            isLoadingCategories = true;
+            categories = await RecipeService.GetCategoriesAsync();
+        }
+        catch (ErreurReseauException)
+        {
+            NotifService.AfficherErreurReseau();
+        }
+        catch
+        {
+            NotifService.AfficherErreur("Erreur lors du chargement des catégories");
+        }
+        finally
+        {
+            isLoadingCategories = false;
+        }
+    }
+
+    private async Task LoadAreas()
+    {
+        try
+        {
+            isLoadingAreas = true;
+            areas = await RecipeService.GetAreasAsync();
+        }
+        catch (ErreurReseauException)
+        {
+            NotifService.AfficherErreurReseau();
+        }
+        catch
+        {
+            NotifService.AfficherErreur("Erreur lors du chargement des régions");
+        }
+        finally
+        {
+            isLoadingAreas = false;
+        }
+    }
+
+    private async Task CheckAuthentication()
+    {
+        try
+        {
+            // Vérifier d'abord l'état global (Singleton)
+            if (AuthState?.CurrentUser != null && AuthState.IsAuthenticated)
+            {
+                isAuthenticated = true;
+            }
+            else
+            {
+                // Sinon appeler l'API
+                var user = await AuthService.GetCurrentUserAsync();
+                isAuthenticated = user?.IsAuthenticated ?? false;
+            }
+        }
+        catch
+        {
+            isAuthenticated = false;
+        }
+        finally
+        {
+            isCheckingAuth = false;
+        }
+    }
+
+    private void AddIngredient()
+    {
+        model.Ingredients.Add("");
+    }
+
+    private void RemoveIngredient(int index)
+    {
+        if (index >= 0 && index < model.Ingredients.Count)
+        {
+            model.Ingredients.RemoveAt(index);
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            // Validation basique
+            if (string.IsNullOrWhiteSpace(model.Title))
+            {
+                NotifService.AfficherAvertissement("Le titre est requis");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(model.Instructions))
+            {
+                NotifService.AfficherAvertissement("Les instructions sont requises");
+                return;
+            }
+
+            // Filtrer les ingrédients vides
+            model.Ingredients = model.Ingredients.Where(i => !string.IsNullOrWhiteSpace(i)).ToList();
+
+            isSubmitting = true;
+
+            var result = await UserRecipeService.CreateAsync(model);
+
+            if (result != null)
+            {
+                NotifService.AfficherSucces("Votre recette a été créée avec succès.", "Recette créée");
+                model = new RequeteCreationRecetteUtilisateur();
+                Nav.NavigateTo("/mes-creations");
+            }
+            else
+            {
+                NotifService.AfficherErreur("Erreur lors de la création de la recette. Veuillez réessayer.");
+            }
+        }
+        catch (ErreurApiException ex)
+        {
+            NotifService.AfficherErreurHttp(ex.StatusCode, "Création de recette");
+        }
+        catch (ErreurReseauException)
+        {
+            NotifService.AfficherErreurReseau();
+        }
+        catch (Exception ex)
+        {
+            NotifService.AfficherErreur($"Erreur: {ex.Message}");
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void GoBack() => Nav.NavigateTo("/mes-creations");
+
+    private async Task HandleImageUpload(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            var file = e.File;
+
+            if (file != null)
+            {
+                // Vérifier la taille du fichier (max 5MB)
+                const long maxFileSize = 5 * 1024 * 1024; // 5MB
+                if (file.Size > maxFileSize)
+                {
+                    NotifService.AfficherErreur("L'image est trop grande (max 5MB)");
+                    return;
+                }
+
+                // Vérifier le type MIME
+                var validTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
+                if (!validTypes.Contains(file.ContentType))
+                {
+                    NotifService.AfficherErreur("Format d'image non supporté");
+                    return;
+                }
+
+                // Upload le fichier vers le serveur
+                var imageUrl = await UploadService.UploadImageAsync(file);
+
+                if (!string.IsNullOrEmpty(imageUrl))
+                {
+                    model.ImageUrl = imageUrl;
+                }
+                else
+                {
+                    NotifService.AfficherErreur("Erreur lors de l'upload de l'image");
+                }
+            }
+        }
+        catch (ErreurApiException ex)
+        {
+            NotifService.AfficherErreurHttp(ex.StatusCode, "Upload d'image");
+        }
+        catch (ErreurReseauException)
+        {
+            NotifService.AfficherErreurReseau();
+        }
+        catch (Exception ex)
+        {
+            NotifService.AfficherErreur($"Erreur lors du chargement de l'image : {ex.Message}");
+        }
+    }
+
+    private void SetImageFromUrl(string? url)
+    {
+        if (!string.IsNullOrWhiteSpace(url))
+        {
+            // Valider que c'est une URL valide
+            if (Uri.TryCreate(url, UriKind.Absolute, out var uriResult) &&
+                (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
+            {
+                model.ImageUrl = url;
+                imageLoadFailed = false;
+            }
+            else
+            {
+                NotifService.AfficherErreur("L'URL n'est pas valide. Veuillez entrer une URL HTTP ou HTTPS complète");
+            }
+        }
+    }
+
+    private void HandleImageError()
+    {
+        imageLoadFailed = true;
+    }
+
+    private void ClearImage()
+    {
+        model.ImageUrl = null;
+        urlInput = null;
+        imageLoadFailed = false;
+    }
+}

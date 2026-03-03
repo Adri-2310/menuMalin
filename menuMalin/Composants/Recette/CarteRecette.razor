@@ -1,0 +1,161 @@
+@using menuMalin.Services
+@inject IServiceFavorisFrontend FavoriteService
+@inject IServiceAuthentification AuthService
+@inject ServiceEtatAuthentification AuthState
+@inject NavigationManager Nav
+@inject IServiceNotification NotifService
+
+<div class="card h-100 border-0 shadow-sm recipe-card transition-all">
+    @* Image de la recette *@
+    <div class="position-relative overflow-hidden rounded-4">
+        <img src="@ImageUrl" class="card-img-top hover-zoom" alt="@Title"
+             onerror="this.src='Images/logo.png'"
+             style="object-fit: cover; height: 200px;">
+
+        <div class="category-badge">
+            <span class="badge rounded-pill bg-success-blur px-3 py-2">
+                @Category
+            </span>
+        </div>
+    </div>
+
+    <div class="card-body px-2 py-3">
+        <h5 class="card-title fw-bold text-dark mb-3">@Title</h5>
+
+        <div class="d-flex justify-content-between align-items-center mt-auto">
+            <a href="/recette/@MealDBId" class="btn btn-sm btn-success rounded-pill px-4 fw-bold">
+                Voir plus
+            </a>
+
+            @* BOUTON COEUR ACTIF *@
+            <button class="btn btn-favorite rounded-circle shadow-sm" @onclick="ToggleFavorite" disabled="@isToggling">
+                @if (isFavorite)
+                {
+                    <i class="bi bi-heart-fill text-danger animate-pop"></i>
+                }
+                else
+                {
+                    <i class="bi bi-heart text-danger"></i>
+                }
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string RecipeId { get; set; } = string.Empty;
+
+    [Parameter]
+    public string MealDBId { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public string ImageUrl { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Category { get; set; } = string.Empty;
+
+    private bool isFavorite = false;
+    private bool isToggling = false;
+
+    // Au chargement du composant, on vérifie si c'est déjà un favori
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrEmpty(RecipeId))
+        {
+            isFavorite = await FavoriteService.IsFavoriteAsync(RecipeId);
+        }
+    }
+
+    private async Task ToggleFavorite()
+    {
+        try
+        {
+            isToggling = true;
+
+            // Vérifier l'authentification (utiliser l'état global d'abord, puis fallback à l'API)
+            bool isAuthenticated = false;
+
+            if (AuthState?.IsAuthenticated == true)
+            {
+                isAuthenticated = true;
+            }
+            else
+            {
+                var user = await AuthService.GetCurrentUserAsync();
+                isAuthenticated = user?.IsAuthenticated ?? false;
+            }
+
+            if (!isAuthenticated)
+            {
+                NotifService.AfficherAvertissement("Vous devez être connecté pour ajouter un favori", "Authentification requise");
+                Nav.NavigateTo("/");
+                return;
+            }
+
+            // Mémoriser l'état AVANT l'appel API
+            bool previousState = isFavorite;
+
+            try
+            {
+                if (isFavorite)
+                {
+                    // On retire
+                    bool success = await FavoriteService.RemoveFavoriteAsync(RecipeId);
+                    if (!success)
+                    {
+                        throw new InvalidOperationException("Impossible de retirer le favori");
+                    }
+                    isFavorite = false;
+                    NotifService.AfficherSucces("La recette a été retirée de vos favoris", "Favori supprimé");
+                }
+                else
+                {
+                    // On ajoute
+                    bool success = await FavoriteService.AddFavoriteAsync(RecipeId);
+                    if (!success)
+                    {
+                        throw new InvalidOperationException("Impossible d'ajouter le favori");
+                    }
+                    isFavorite = true;
+                    NotifService.AfficherSucces("La recette a été ajoutée à vos favoris", "Favori ajouté");
+                }
+            }
+            catch (ErreurApiException ex)
+            {
+                // Réverser l'état si l'appel a échoué
+                isFavorite = previousState;
+                Console.WriteLine($"❌ Erreur API lors du toggle favori: {ex.ContenuErreur}");
+                NotifService.AfficherErreurHttp(ex.StatusCode, "Favori");
+            }
+            catch (ErreurReseauException ex)
+            {
+                // Réverser l'état si l'appel a échoué
+                isFavorite = previousState;
+                Console.WriteLine($"❌ Erreur réseau lors du toggle favori: {ex.Message}");
+                NotifService.AfficherErreurReseau();
+            }
+            catch (Exception ex)
+            {
+                // Réverser l'état si l'appel a échoué
+                isFavorite = previousState;
+                Console.WriteLine($"❌ Erreur lors du toggle favori: {ex.Message}");
+                NotifService.AfficherErreur(ex.Message, "Erreur favori");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Erreur non gérée lors du toggle favori: {ex.Message}");
+            NotifService.AfficherErreur(ex.Message, "Erreur favori");
+        }
+        finally
+        {
+            isToggling = false;
+            // S'assurer que le composant se re-rend
+            StateHasChanged();
+        }
+    }
+}

@@ -1,0 +1,193 @@
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using menuMalin.Server.Donnees;
+using menuMalin.Server.Depots;
+using menuMalin.Server.Depots.Interfaces;
+using menuMalin.Server.Services;
+using menuMalin.Server.Services.Interfaces;
+using Polly;
+using Polly.Extensions.Http;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// ========================================
+// Configuration des Services
+// ========================================
+
+// Ajouter Entity Framework Core avec MySQL
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseMySql(
+        connectionString,
+        ServerVersion.AutoDetect(connectionString)
+    )
+);
+
+// BFF: Ajouter l'authentification par Cookies (au lieu de JWT Bearer)
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = "Cookies";
+    options.DefaultChallengeScheme = "Cookies";
+})
+.AddCookie("Cookies", options =>
+{
+    options.LoginPath = "/api/auth/login";
+    options.LogoutPath = "/api/auth/logout";
+    options.ExpireTimeSpan = TimeSpan.FromHours(24);
+    options.SlidingExpiration = true;
+    options.Cookie.Name = ".AspNetCore.Cookies";
+    options.Cookie.HttpOnly = true;
+    // En mode développement, frontend et backend sur ports différents - utiliser Lax pour permettre les cookies cross-site
+    options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.SameAsRequest;
+    options.Cookie.Path = "/";
+    options.Events.OnSignedIn += context =>
+    {
+        // Logs pour debug
+        System.Console.WriteLine($"✅ Utilisateur signed in: {context.Principal?.Identity?.Name}");
+        System.Console.WriteLine($"   Cookie created with SameSite=None; Secure; Path=/");
+        return System.Threading.Tasks.Task.CompletedTask;
+    };
+    options.Events.OnValidatePrincipal += context =>
+    {
+        System.Console.WriteLine($"🔐 Cookie validation: IsAuthenticated={context.Principal?.Identity?.IsAuthenticated}");
+        return System.Threading.Tasks.Task.CompletedTask;
+    };
+    // Gérer les redirects pour les endpoints API
+    // Au lieu de rediriger vers la page de login, retourner 401 JSON
+    options.Events.OnRedirectToLogin = context =>
+    {
+        // Si c'est une requête API (fetch depuis Blazor), retourner 401 au lieu de rediriger
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+            System.Console.WriteLine($"⚠️ API endpoint {context.Request.Path} accédé sans authentification - retour 401");
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            context.Response.ContentType = "application/json";
+            return context.Response.WriteAsync("{\"error\":\"Not authenticated\"}");
+        }
+        // Pour les autres requêtes (pages HTML du navigateur), garder le redirect
+        context.Response.Redirect(context.RedirectUri);
+        return System.Threading.Tasks.Task.CompletedTask;
+    };
+});
+
+// Ajouter OpenApi pour la documentation
+builder.Services.AddOpenApi();
+
+// Ajouter les contrôleurs
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
+
+// Enregistrer TheMealDB HttpClient avec timeout configuré
+// Note: Retry logic implémentée dans ServiceMealDB plutôt que dans HttpClientFactory
+builder.Services.AddHttpClient<IServiceMealDB, ServiceMealDB>()
+    .ConfigureHttpClient(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(15); // Timeout global (requête + retry)
+    });
+
+// Enregistrer les Dépôts (Scoped)
+builder.Services.AddScoped<IDepotUtilisateur, DepotUtilisateur>();
+builder.Services.AddScoped<IDepotRecette, DepotRecette>();
+builder.Services.AddScoped<IDepotFavori, DepotFavori>();
+builder.Services.AddScoped<IDepotRecetteUtilisateur, DepotRecetteUtilisateur>();
+builder.Services.AddScoped<IDepotMessage, DepotMessage>();
+
+// Enregistrer les Services (Scoped)
+builder.Services.AddScoped<IServiceUtilisateur, ServiceUtilisateur>();
+builder.Services.AddScoped<IServiceRecette, ServiceRecette>();
+builder.Services.AddScoped<IServiceFavoris, ServiceFavoris>();
+builder.Services.AddScoped<IServiceRecetteUtilisateur, ServiceRecetteUtilisateur>();
+
+// Enregistrer le Service Email (Scoped pour éviter les problèmes avec les dépendances Scoped)
+builder.Services.AddScoped<IServiceEmail, ServiceEmail>();
+
+// Configuration CORS (développement: frontend et backend peuvent être sur le même serveur ou ports différents)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("https://localhost:7777", "https://localhost:7057")
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials(); // IMPORTANT: permettre les cookies
+    });
+});
+
+// ========================================
+// Configuration du Pipeline HTTP
+// ========================================
+
+var app = builder.Build();
+
+// Appliquer les migrations automatiquement au démarrage (DEV seulement)
+if (app.Environment.IsDevelopment())
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        dbContext.Database.Migrate();
+    }
+
+    app.MapOpenApi();
+}
+
+// HTTPS redirection seulement en production
+if (app.Environment.IsProduction())
+{
+    app.UseHttpsRedirection();
+}
+
+// Middleware global d'error handling (doit être avant les autres middlewares)
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        var exceptionHandlerPathFeature = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerPathFeature>();
+        var exception = exceptionHandlerPathFeature?.Error;
+        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+
+        // Logger l'exception
+        if (exception != null)
+        {
+            logger.LogError(exception, "Une erreur non gérée s'est produite lors du traitement de la requête {Path}",
+                exceptionHandlerPathFeature?.Path ?? "unknown");
+        }
+
+        // Retourner une réponse JSON générique 500
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = "application/json";
+
+        await context.Response.WriteAsJsonAsync(new
+        {
+            message = "Une erreur serveur s'est produite. Veuillez réessayer plus tard.",
+            traceId = context.TraceIdentifier
+        });
+    });
+});
+
+// Servir les fichiers statiques du frontend Blazor WASM (doit être avant UseAuthentication)
+app.UseStaticFiles();
+
+// Appliquer CORS (avant l'authentification et l'autorisation)
+app.UseCors("AllowFrontend");
+
+// Ajouter l'authentification avant l'autorisation
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+
+// Fallback vers index.html pour les routes Blazor (SPA routing)
+app.MapFallbackToFile("index.html");
+
+app.Run();

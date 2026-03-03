@@ -1,0 +1,287 @@
+@page "/"
+@using menuMalin.Modeles
+@using menuMalin.Services
+@using menuMalin.Composants.Recette
+@inject IServiceRecette RecipeService
+@inject IServiceAuthentification AuthService
+@inject ServiceEtatAuthentification AuthState
+@inject NavigationManager Nav
+@inject IServiceNotification NotifService
+@implements IAsyncDisposable
+
+<PageTitle>MenuMalin - Accueil</PageTitle>
+
+@if (isLoading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-success"></div>
+        <p class="mt-2 text-muted">Chargement...</p>
+    </div>
+}
+else if (isAuthenticated)
+{
+    <div class="container mt-4 animate-fade-in">
+        <div class="welcome-card p-5 mb-5 rounded-4 shadow-sm position-relative overflow-hidden">
+            <div class="bg-pattern"></div>
+
+            <div class="row align-items-center position-relative">
+                <div class="col-md-8">
+                    <span class="badge bg-success-light text-success mb-2 px-3">Espace Membre</span>
+                    <h1 class="display-5 fw-bold text-dark">Ravi de vous revoir, <span class="text-success">@currentUser?.Name</span> ! 👋</h1>
+                    
+                </div>
+                <div class="col-md-4 text-center d-none d-md-block">
+                    <div class="icon-blob mx-auto">
+                        <img src="images/logo.png" alt="Logo MenuMalin" width="140" height="140" class="logo-circle" style="filter: drop-shadow(0 8px 20px rgba(45, 106, 79, 0.25)); border-radius: 20px; transition: all 0.3s ease;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="recipe-section">
+            @* ajout de la barre de recherche *@
+            <BarreRecherche OnSearch="HandleSearch"></BarreRecherche>
+
+            <div class="d-flex justify-content-between align-items-end mb-4">
+                <div>
+                    <h2 class="fw-bold mb-0">Inspirations du jour</h2>
+                    <p class="text-muted mb-0">Découvrez de nouvelles recettes basées sur vos goûts.</p>
+                </div>
+                @if (featuredRecipes != null)
+                {
+                    <button class="btn btn-sm btn-link text-success fw-bold text-decoration-none hover-underline" @onclick="ExploreAll">
+                        Tout explorer <i class="bi bi-arrow-right"></i>
+                    </button>
+                }
+            </div>
+
+            @* GESTION DE L'ÉTAT D'AFFICHAGE *@
+            @if (featuredRecipes == null)
+            {
+                @* SKELETON LOADING *@
+                <div class="row row-cols-1 row-cols-md-4 g-4">
+                    @for (int i = 0; i < 8; i++)
+                    {
+                        <div class="col">
+                            <div class="card border-0 shadow-sm rounded-4 h-100 skeleton-card">
+                                <div class="card-body text-center py-5">
+                                    <div class="spinner-border text-success opacity-50" role="status"></div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                @* VRAIES RECETTES *@
+                <GrilleRecettes Recipes="featuredRecipes" ItemsPerPage="8" ShowPagination="false" />
+            }
+        </div>
+    </div>
+}
+else
+{
+    @* --- SECTION VISITEUR --- *@
+    <div class="hero-gradient text-white py-5 mb-5 shadow-sm position-relative">
+        <div class="container py-5 text-center position-relative">
+            <div class="badge-float mb-3">
+                <span class="badge rounded-pill bg-white text-success px-4 py-2 fw-bold shadow">
+                    ✨ 100% GRATUIT
+                </span>
+            </div>
+            <h1 class="display-1 fw-black mb-3 floating">MenuMalin</h1>
+            <p class="lead mb-5 px-md-5 mx-auto text-light opacity-90" style="max-width: 800px;">
+                L'assistant culinaire intelligent qui transforme vos envies en listes de courses.
+            </p>
+            <div class="d-flex justify-content-center gap-3">
+                <button @onclick="Login" class="btn btn-light btn-lg text-success fw-bold px-5 rounded-pill shadow-lg hover-lift">
+                    C'est parti !
+                </button>
+            </div>
+        </div>
+        <div class="custom-shape-divider-bottom">
+            <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V0C0,0,10.79,12.09,47.19,23.58c31.1,9.81,67,10.51,96.5,10.51,33.1,0,67.5-6.5,102.3-15.51" fill="#ffffff"></path>
+            </svg>
+        </div>
+    </div>
+
+    <div class="container pt-4">
+        <div class="row g-5 py-5">
+            <div class="col-lg-4 text-center">
+                <div class="feature-box p-4 rounded-4 shadow-hover transition">
+                    <div class="icon-circle bg-success-soft text-success mb-4">
+                        <i class="bi bi-search"></i>
+                    </div>
+                    <h4 class="fw-bold">Recherche API</h4>
+                    <p class="text-muted">Explorez des milliers de recettes internationales via <strong>TheMealDB</strong>.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 text-center">
+                <div class="feature-box p-4 rounded-4 shadow-hover transition">
+                    <div class="icon-circle bg-danger-soft text-danger mb-4">
+                        <i class="bi bi-pencil-square"></i>
+                    </div>
+                    <h4 class="fw-bold">Modifs Locales</h4>
+                    <p class="text-muted">Ajustez les doses et les étapes. Vos secrets de cuisine restent les vôtres.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 text-center">
+                <div class="feature-box p-4 rounded-4 shadow-hover transition">
+                    <div class="icon-circle bg-primary-soft text-primary mb-4">
+                        <i class="bi bi-list-check"></i>
+                    </div>
+                    <h4 class="fw-bold">Courses Pro</h4>
+                    <p class="text-muted">Générez une liste claire pour ne plus rien oublier au supermarché.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container pb-5">
+        <div class="info-banner d-flex align-items-center p-4 rounded-4 bg-light border-0 shadow-sm">
+            <div class="fs-1 me-4">🔐</div>
+            <div>
+                <h5 class="fw-bold mb-1">Confidentialité totale</h5>
+                <p class="mb-0 text-muted small">
+                    Aucune donnée n'est revendue. Vos favoris sont stockés localement sur votre navigateur grâce au LocalStorage.
+                </p>
+            </div>
+        </div>
+    </div>
+}
+
+<ModaleRecette Recipe="selectedRecipe" OnClose="@(() => selectedRecipe = null)" />
+
+@code {
+    private List<Recette>? featuredRecipes;
+    private Recette? selectedRecipe;
+    private bool isLoading = true;
+    private bool isAuthenticated = false;
+    private UtilisateurAuth? currentUser;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // S'abonner aux changements d'authentification (déconnexion, reconnexion, etc.)
+        AuthState.AuthenticationChanged += OnAuthenticationChanged;
+
+        // Charger l'état d'authentification depuis localStorage avant de vérifier
+        await AuthState.InitializeAuthStateAsync();
+        await CheckAuthentication();
+        if (isAuthenticated)
+        {
+            await LoadDefaultRecipes();
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Recalculer l'authentification à chaque visite de la page (détecte la déconnexion)
+        await CheckAuthentication();
+        if (isAuthenticated && featuredRecipes == null)
+        {
+            await LoadDefaultRecipes();
+        }
+    }
+
+    private void OnAuthenticationChanged()
+    {
+        // Quand l'état d'authentification change (logout, login, etc.), mettre à jour et rafraîchir
+        currentUser = AuthState.CurrentUser;
+        isAuthenticated = AuthState.IsAuthenticated;
+
+        // Réinitialiser les recettes pour que le contenu se rafraîchisse
+        if (!isAuthenticated)
+        {
+            featuredRecipes = null;
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task CheckAuthentication()
+    {
+        try
+        {
+            // Vérifier d'abord l'état global (Singleton)
+            if (AuthState?.CurrentUser != null && AuthState.IsAuthenticated)
+            {
+                currentUser = AuthState.CurrentUser;
+                isAuthenticated = true;
+            }
+            else
+            {
+                // Sinon appeler l'API
+                currentUser = await AuthService.GetCurrentUserAsync();
+                isAuthenticated = currentUser?.IsAuthenticated ?? false;
+            }
+        }
+        catch
+        {
+            isAuthenticated = false;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadDefaultRecipes()
+    {
+        isLoading = true;
+        try
+        {
+            featuredRecipes = await RecipeService.GetRandomRecipesAsync(8);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur lors du chargement des recettes: {ex.Message}");
+            NotifService.AfficherInfo("Impossible de charger les recettes du moment. Réessayez plus tard.", "Chargement indisponible");
+            featuredRecipes = new List<Recette>();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleSearch(string query)
+    {
+        try
+        {
+            featuredRecipes = null;
+            featuredRecipes = await RecipeService.SearchRecipesAsync(query);
+            if (featuredRecipes == null || !featuredRecipes.Any())
+            {
+                NotifService.AfficherAvertissement($"Aucune recette trouvée pour '{query}'.", "Aucun résultat");
+                featuredRecipes = new List<Recette>();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur lors de la recherche: {ex.Message}");
+            NotifService.AfficherErreur("Erreur lors de la recherche. Veuillez réessayer.", "Erreur de recherche");
+        }
+    }
+
+    private void ExploreAll()
+    {
+        Nav.NavigateTo("/recherche");
+    }
+
+    private void Login()
+    {
+        Nav.NavigateTo("/connexion");
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+    }
+
+    ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        AuthState.AuthenticationChanged -= OnAuthenticationChanged;
+        return ValueTask.CompletedTask;
+    }
+}
