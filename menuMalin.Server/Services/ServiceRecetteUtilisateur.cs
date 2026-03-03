@@ -41,8 +41,8 @@ public class ServiceRecetteUtilisateur : IServiceRecetteUtilisateur
 
         if (string.IsNullOrWhiteSpace(request.Instructions))
             throw new ArgumentException("Les instructions sont requises");
-        if (request.Instructions.Length < 10)
-            throw new ArgumentException("Les instructions doivent contenir au moins 10 caractères");
+        if (request.Instructions.Length < 5)
+            throw new ArgumentException("Les instructions doivent contenir au moins 5 caractères");
 
         // Valider l'ImageUrl pour éviter les SSRF
         if (!string.IsNullOrEmpty(request.ImageUrl))
