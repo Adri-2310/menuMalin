@@ -28,14 +28,6 @@ else if (isAuthenticated)
                     <span class="badge bg-success-light text-success mb-2 px-3">Espace Membre</span>
                     <h1 class="display-5 fw-bold text-dark">Ravi de vous revoir, <span class="text-success">@currentUser?.Name</span> ! 👋</h1>
                     <p class="fs-5 text-muted mb-4">Vos menus personnalisés et vos listes de courses sont à jour.</p>
-                    <div class="d-flex flex-wrap gap-3">
-                        <a href="/mes-favoris" class="btn btn-success btn-lg px-4 rounded-pill shadow-sm hover-scale">
-                            <i class="bi bi-heart-fill me-2"></i>Mes Favoris
-                        </a>
-                        <button @onclick="Logout" class="btn btn-outline-danger btn-lg px-4 rounded-pill hover-scale">
-                            <i class="bi bi-box-arrow-right me-2"></i>Se déconnecter
-                        </button>
-                    </div>
                 </div>
                 <div class="col-md-4 text-center d-none d-md-block">
                     <div class="icon-blob mx-auto">
