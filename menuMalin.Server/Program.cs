@@ -8,6 +8,8 @@ using menuMalin.Server.Depots;
 using menuMalin.Server.Depots.Interfaces;
 using menuMalin.Server.Services;
 using menuMalin.Server.Services.Interfaces;
+using Polly;
+using Polly.Extensions.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -85,11 +87,12 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
     });
 
-// Enregistrer TheMealDB HttpClient
+// Enregistrer TheMealDB HttpClient avec timeout configuré
+// Note: Retry logic implémentée dans ServiceMealDB plutôt que dans HttpClientFactory
 builder.Services.AddHttpClient<IServiceMealDB, ServiceMealDB>()
     .ConfigureHttpClient(client =>
     {
-        client.Timeout = TimeSpan.FromSeconds(10);
+        client.Timeout = TimeSpan.FromSeconds(15); // Timeout global (requête + retry)
     });
 
 // Enregistrer les Dépôts (Scoped)
