@@ -139,8 +139,9 @@ public class ControleurFavoris : ControllerBase
         var userId = GetCurrentUserId();
         if (string.IsNullOrEmpty(userId))
         {
-            _logger.LogWarning("Impossible d'extraire l'ID utilisateur pour vérifier un favori");
-            return Unauthorized();
+            // Si l'utilisateur n'est pas connecté, ce n'est pas un favori
+            _logger.LogDebug("Utilisateur non authentifié - aucun favori possible");
+            return Ok(new { isFavorite = false });
         }
 
         try
