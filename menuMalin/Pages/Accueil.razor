@@ -170,6 +170,16 @@ else
         }
     }
 
+    protected override async Task OnParametersSetAsync()
+    {
+        // Recalculer l'authentification à chaque visite de la page (détecte la déconnexion)
+        await CheckAuthentication();
+        if (isAuthenticated && featuredRecipes == null)
+        {
+            await LoadDefaultRecipes();
+        }
+    }
+
     private async Task CheckAuthentication()
     {
         try
