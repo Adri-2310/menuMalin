@@ -80,6 +80,7 @@ else
 
     private int CurrentPage { get; set; } = 1;
     private int? lastRecipeCount;
+    private int lastItemsPerPage = 6;
 
     private int TotalPages => Recipes == null ? 0 : (int)Math.Ceiling((double)Recipes.Count / ItemsPerPage);
 
@@ -88,12 +89,20 @@ else
 
     protected override void OnParametersSet()
     {
-        // Reset pagination SEULEMENT si les recettes ont réellement changé
+        // Reset pagination si les recettes ou ItemsPerPage ont changé
         int currentCount = Recipes?.Count ?? 0;
+
         if (lastRecipeCount != currentCount && lastRecipeCount.HasValue)
         {
             CurrentPage = 1;
         }
+
+        if (ItemsPerPage != lastItemsPerPage)
+        {
+            CurrentPage = 1;
+            lastItemsPerPage = ItemsPerPage;
+        }
+
         lastRecipeCount = currentCount;
     }
 
