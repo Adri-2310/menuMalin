@@ -19,9 +19,9 @@ public class ServiceRecette : IServiceRecette
     {
         try
         {
-            // Appelle le backend proxy: GET /api/recipes/random
+            // Appelle le backend proxy: GET /api/recipes/random?count={count}
             // Le backend retourne directement un tableau JSON d'objets {IdMeal, StrMeal, StrMealThumb, ...}
-            var recipes = await _http.GetFromJsonAsync<List<Recette>>("recipes/random");
+            var recipes = await _http.GetFromJsonAsync<List<Recette>>($"recipes/random?count={count}");
             return recipes ?? new List<Recette>();
         }
         catch
