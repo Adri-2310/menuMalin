@@ -233,44 +233,46 @@ else
             </div>
 
             <div class="col-lg-4">
-                <div class="card shadow-sm sticky-top" style="top: 20px;">
-                    <div class="card-body">
-                        <h5 class="card-title">Aperçu</h5>
-                        @if (!string.IsNullOrEmpty(recipe.ImageUrl))
-                        {
-                            <img src="@recipe.ImageUrl" alt="@recipe.Title" class="img-fluid rounded mb-3" />
-                        }
-                        else
-                        {
-                            <div class="bg-light rounded p-4 text-center mb-3">
-                                <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
-                            </div>
-                        }
-                        <h6>@recipe.Title</h6>
-                        <p class="text-muted small">
-                            @if (!string.IsNullOrEmpty(recipe.Category))
+                <div style="position: sticky; top: 20px; max-height: calc(100vh - 40px); overflow-y: auto;">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">Aperçu</h5>
+                            @if (!string.IsNullOrEmpty(recipe.ImageUrl))
                             {
-                                <span class="badge bg-info">@recipe.Category</span>
+                                <img src="@recipe.ImageUrl" alt="@recipe.Title" class="img-fluid rounded mb-3" />
                             }
-                            @if (!string.IsNullOrEmpty(recipe.Area))
+                            else
                             {
-                                <span class="badge bg-secondary">@recipe.Area</span>
+                                <div class="bg-light rounded p-4 text-center mb-3">
+                                    <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                                </div>
                             }
-                        </p>
-                        <p class="text-muted small">Créée le: @recipe.CreatedAt.ToString("dd/MM/yyyy")</p>
-                    </div>
-                </div>
-
-                <div class="card border-2 border-danger mt-4 shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-3">
-                            <i class="bi bi-exclamation-diamond text-danger me-2" style="font-size: 1.5rem;"></i>
-                            <h5 class="card-title mb-0 text-danger fw-bold">Zone de danger</h5>
+                            <h6>@recipe.Title</h6>
+                            <p class="text-muted small">
+                                @if (!string.IsNullOrEmpty(recipe.Category))
+                                {
+                                    <span class="badge bg-info">@recipe.Category</span>
+                                }
+                                @if (!string.IsNullOrEmpty(recipe.Area))
+                                {
+                                    <span class="badge bg-secondary">@recipe.Area</span>
+                                }
+                            </p>
+                            <p class="text-muted small">Créée le: @recipe.CreatedAt.ToString("dd/MM/yyyy")</p>
                         </div>
-                        <p class="text-muted small mb-3">Supprimer cette recette est une action <strong>irréversible</strong>. L'image et toutes les données seront supprimées.</p>
-                        <button class="btn btn-danger btn-sm w-100 rounded-3" @onclick="ConfirmDelete" disabled="@isSaving">
-                            <i class="bi bi-trash-fill me-2"></i>Supprimer définitivement
-                        </button>
+                    </div>
+
+                    <div class="card border-2 border-danger mt-4 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="bi bi-exclamation-diamond text-danger me-2" style="font-size: 1.5rem;"></i>
+                                <h5 class="card-title mb-0 text-danger fw-bold">Zone de danger</h5>
+                            </div>
+                            <p class="text-muted small mb-3">Supprimer cette recette est une action <strong>irréversible</strong>. L'image et toutes les données seront supprimées.</p>
+                            <button class="btn btn-danger btn-sm w-100 rounded-3" @onclick="ConfirmDelete" disabled="@isSaving">
+                                <i class="bi bi-trash-fill me-2"></i>Supprimer définitivement
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
