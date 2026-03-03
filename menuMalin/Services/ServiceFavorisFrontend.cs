@@ -17,12 +17,15 @@ public class ServiceFavorisFrontend : IServiceFavorisFrontend
         _httpApiService = httpApiService;
     }
 
+    // Note: Les logs Console.WriteLine sont intentionnellement conservés pour le debug frontend
+    // car ce service s'exécute en Blazor WASM sans accès à ILogger structuré
+
     public async Task<List<Recette>> GetUserFavoritesAsync()
     {
         // Le backend retourne une liste de RecetteDTO (recipeId, title, imageUrl, ...)
         var dtos = await _httpApiService.GetAsync<List<RecetteDTO>>(BaseUrl);
-        var favorites = dtos.ToLocalRecettes();
-        if (favorites != null && favorites.Count > 0)
+        var favorites = dtos?.ToLocalRecettes() ?? new();
+        if (favorites.Count > 0)
         {
             Console.WriteLine($"✅ {favorites.Count} favoris chargés");
         }
@@ -30,7 +33,7 @@ public class ServiceFavorisFrontend : IServiceFavorisFrontend
         {
             Console.WriteLine("ℹ️ Aucun favori trouvé");
         }
-        return favorites ?? new();
+        return favorites;
     }
 
     public async Task<bool> AddFavoriteAsync(string recipeId)

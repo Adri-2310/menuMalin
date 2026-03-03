@@ -63,7 +63,7 @@ public class ServiceRecetteFrontend : IServiceRecetteFrontend
 
         // Le backend retourne une liste de RecetteDTO (recipeId, title, imageUrl, ...)
         var dtos = await _httpApiService.GetAsync<List<RecetteDTO>>($"{BaseUrl}/filter/category?category={Uri.EscapeDataString(category)}");
-        return dtos.ToLocalRecettes();
+        return dtos?.ToLocalRecettes() ?? new();
     }
 
     public async Task<List<Recette>> FilterByAreaAsync(string area)
@@ -73,6 +73,6 @@ public class ServiceRecetteFrontend : IServiceRecetteFrontend
 
         // Le backend retourne une liste de RecetteDTO (recipeId, title, imageUrl, ...)
         var dtos = await _httpApiService.GetAsync<List<RecetteDTO>>($"{BaseUrl}/filter/area?area={Uri.EscapeDataString(area)}");
-        return dtos.ToLocalRecettes();
+        return dtos?.ToLocalRecettes() ?? new();
     }
 }
