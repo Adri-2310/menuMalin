@@ -72,7 +72,8 @@ else
 }
 
 @code {
-    private const int ITEMS_PER_PAGE = 6;
+    [Parameter]
+    public int ItemsPerPage { get; set; } = 6;
 
     [Parameter]
     public List<Recette>? Recipes { get; set; }
@@ -80,10 +81,10 @@ else
     private int CurrentPage { get; set; } = 1;
     private int? lastRecipeCount;
 
-    private int TotalPages => Recipes == null ? 0 : (int)Math.Ceiling((double)Recipes.Count / ITEMS_PER_PAGE);
+    private int TotalPages => Recipes == null ? 0 : (int)Math.Ceiling((double)Recipes.Count / ItemsPerPage);
 
-    private int PageStart => (CurrentPage - 1) * ITEMS_PER_PAGE + 1;
-    private int PageEnd => Math.Min(CurrentPage * ITEMS_PER_PAGE, Recipes?.Count ?? 0);
+    private int PageStart => (CurrentPage - 1) * ItemsPerPage + 1;
+    private int PageEnd => Math.Min(CurrentPage * ItemsPerPage, Recipes?.Count ?? 0);
 
     protected override void OnParametersSet()
     {
@@ -100,8 +101,8 @@ else
     {
         if (Recipes == null) return new List<Recette>();
 
-        var startIndex = (CurrentPage - 1) * ITEMS_PER_PAGE;
-        return Recipes.Skip(startIndex).Take(ITEMS_PER_PAGE).ToList();
+        var startIndex = (CurrentPage - 1) * ItemsPerPage;
+        return Recipes.Skip(startIndex).Take(ItemsPerPage).ToList();
     }
 
     private List<int> GetPaginationPages()

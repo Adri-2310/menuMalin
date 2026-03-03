@@ -31,7 +31,7 @@ else if (isAuthenticated)
                 </div>
                 <div class="col-md-4 text-center d-none d-md-block">
                     <div class="icon-blob mx-auto">
-                        <img src="images/logo.png" alt="Logo MenuMalin" width="120" height="120" class="logo-circle" style="filter: drop-shadow(0 4px 12px rgba(45, 106, 79, 0.15));">
+                        <img src="images/logo.png" alt="Logo MenuMalin" width="140" height="140" class="logo-circle" style="filter: drop-shadow(0 8px 20px rgba(45, 106, 79, 0.25)); border-radius: 20px; transition: all 0.3s ease;">
                     </div>
                 </div>
             </div>
@@ -58,8 +58,8 @@ else if (isAuthenticated)
             @if (featuredRecipes == null)
             {
                 @* SKELETON LOADING *@
-                <div class="row row-cols-1 row-cols-md-3 g-4">
-                    @for (int i = 0; i < 3; i++)
+                <div class="row row-cols-1 row-cols-md-4 g-4">
+                    @for (int i = 0; i < 8; i++)
                     {
                         <div class="col">
                             <div class="card border-0 shadow-sm rounded-4 h-100 skeleton-card">
@@ -74,7 +74,7 @@ else if (isAuthenticated)
             else
             {
                 @* VRAIES RECETTES *@
-                <GrilleRecettes Recipes="featuredRecipes" />
+                <GrilleRecettes Recipes="featuredRecipes" ItemsPerPage="8" />
             }
         </div>
     </div>
@@ -202,7 +202,7 @@ else
         isLoading = true;
         try
         {
-            featuredRecipes = await RecipeService.GetRandomRecipesAsync(3);
+            featuredRecipes = await RecipeService.GetRandomRecipesAsync(8);
         }
         catch (Exception ex)
         {
