@@ -23,128 +23,74 @@ public class ServiceRecetteUtilisateur : IServiceRecetteUtilisateur
 
     public async Task<RecetteUtilisateurDTO?> CreateAsync(RequeteCreationRecetteUtilisateur request)
     {
-        try
-        {
-            if (request == null)
-                return null;
-
-            if (string.IsNullOrWhiteSpace(request.Title))
-                return null;
-
-            if (string.IsNullOrWhiteSpace(request.Instructions))
-                return null;
-
-            var result = await _httpApiService.PostAsync<RecetteUtilisateurDTO>(BaseUrl, request);
-            return result;
-        }
-        catch
-        {
+        if (request == null)
             return null;
-        }
+
+        if (string.IsNullOrWhiteSpace(request.Title))
+            return null;
+
+        if (string.IsNullOrWhiteSpace(request.Instructions))
+            return null;
+
+        var result = await _httpApiService.PostAsync<RecetteUtilisateurDTO>(BaseUrl, request);
+        return result;
     }
 
     public async Task<List<RecetteUtilisateurDTO>> GetMyRecipesAsync()
     {
-        try
-        {
-            var recipes = await _httpApiService.GetAsync<List<RecetteUtilisateurDTO>>($"{BaseUrl}/my");
-            return recipes ?? new();
-        }
-        catch
-        {
-            return new();
-        }
+        var recipes = await _httpApiService.GetAsync<List<RecetteUtilisateurDTO>>($"{BaseUrl}/my");
+        return recipes ?? new();
     }
 
     public async Task<List<RecetteUtilisateurDTO>> GetPublicRecipesAsync()
     {
-        try
-        {
-            var recipes = await _httpApiService.GetAsync<List<RecetteUtilisateurDTO>>($"{BaseUrl}/public");
-            return recipes ?? new();
-        }
-        catch
-        {
-            // Error handled silently
-            return new();
-        }
+        var recipes = await _httpApiService.GetAsync<List<RecetteUtilisateurDTO>>($"{BaseUrl}/public");
+        return recipes ?? new();
     }
 
     public async Task<RecetteUtilisateurDTO?> GetByIdAsync(string userRecipeId)
     {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(userRecipeId))
-                return null;
-
-            var recipe = await _httpApiService.GetAsync<RecetteUtilisateurDTO>($"{BaseUrl}/{userRecipeId}");
-            return recipe;
-        }
-        catch
-        {
-            // Error handled silently
+        if (string.IsNullOrWhiteSpace(userRecipeId))
             return null;
-        }
+
+        var recipe = await _httpApiService.GetAsync<RecetteUtilisateurDTO>($"{BaseUrl}/{userRecipeId}");
+        return recipe;
     }
 
     public async Task<RecetteUtilisateurDTO?> UpdateAsync(string userRecipeId, RequeteCreationRecetteUtilisateur request)
     {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(userRecipeId))
-                return null;
-
-            if (request == null)
-                return null;
-
-            if (string.IsNullOrWhiteSpace(request.Title))
-                return null;
-
-            if (string.IsNullOrWhiteSpace(request.Instructions))
-                return null;
-
-            var result = await _httpApiService.PatchAsync<RecetteUtilisateurDTO>($"{BaseUrl}/{userRecipeId}", request);
-            return result;
-        }
-        catch
-        {
-            // Error handled silently
+        if (string.IsNullOrWhiteSpace(userRecipeId))
             return null;
-        }
+
+        if (request == null)
+            return null;
+
+        if (string.IsNullOrWhiteSpace(request.Title))
+            return null;
+
+        if (string.IsNullOrWhiteSpace(request.Instructions))
+            return null;
+
+        var result = await _httpApiService.PatchAsync<RecetteUtilisateurDTO>($"{BaseUrl}/{userRecipeId}", request);
+        return result;
     }
 
     public async Task<bool> DeleteAsync(string userRecipeId)
     {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(userRecipeId))
-                return false;
-
-            return await _httpApiService.DeleteAsync($"{BaseUrl}/{userRecipeId}");
-        }
-        catch
-        {
-            // Error handled silently
+        if (string.IsNullOrWhiteSpace(userRecipeId))
             return false;
-        }
+
+        return await _httpApiService.DeleteAsync($"{BaseUrl}/{userRecipeId}");
     }
 
     public async Task<bool> UpdateVisibilityAsync(string userRecipeId, bool isPublic)
     {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(userRecipeId))
-                return false;
-
-            var request = new RequeteMajVisibilite { IsPublic = isPublic };
-            var result = await _httpApiService.PatchAsync<object>($"{BaseUrl}/{userRecipeId}/visibility", request);
-            return result != null;
-        }
-        catch
-        {
-            // Error handled silently
+        if (string.IsNullOrWhiteSpace(userRecipeId))
             return false;
-        }
+
+        var request = new RequeteMajVisibilite { IsPublic = isPublic };
+        var result = await _httpApiService.PatchAsync<object>($"{BaseUrl}/{userRecipeId}/visibility", request);
+        return result != null;
     }
 }
 

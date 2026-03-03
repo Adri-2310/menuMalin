@@ -53,14 +53,14 @@
                 @if (isAuthenticated)
                 {
                     <div class="dropdown">
-                        <button class="btn btn-sm btn-light dropdown-toggle border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <button class="btn btn-sm btn-light dropdown-toggle border-0" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">
                             <i class="bi bi-person-circle me-1"></i> @currentUser?.Name
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 text-center text-lg-start">
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 text-center text-lg-start" aria-labelledby="userDropdown">
                             <li>
-                                <button class="dropdown-item text-danger" @onclick="Logout">
+                                <a class="dropdown-item text-danger" href="#" @onclick="Logout" @onclick:preventDefault>
                                     <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
-                                </button>
+                                </a>
                             </li>
                         </ul>
                     </div>

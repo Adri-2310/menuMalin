@@ -131,15 +131,10 @@ public class ServiceAuthentification : IServiceAuthentification
             request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
             request.Content = new StringContent("");
             await _httpClient.SendAsync(request);
-
-            // Force un vrai rechargement complet du navigateur
-            // window.location.reload() recharge la page depuis le serveur, réinitialisant complètement Blazor
-            await _jsRuntime.InvokeVoidAsync("window.location.reload");
         }
         catch
         {
-            // En cas d'erreur, forcer quand même le rechargement
-            await _jsRuntime.InvokeVoidAsync("window.location.reload");
+            // Silencieusement ignorer les erreurs - le nettoyage local sera fait par DispositionPrincipale
         }
     }
 }

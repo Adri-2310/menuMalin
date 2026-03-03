@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components.WebAssembly.Http;
 
 namespace menuMalin.Services;
 
@@ -16,29 +17,25 @@ public class ServiceTeleversement : IServiceTeleversement
 
     public async Task<string?> UploadImageAsync(IBrowserFile file)
     {
-        try
+        using var content = new MultipartFormDataContent();
+        using var stream = file.OpenReadStream(5 * 1024 * 1024);
+        content.Add(new StreamContent(stream), "file", file.Name);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, "upload/recipe-image");
+        request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+        request.Content = content;
+
+        var response = await _httpClient.SendAsync(request);
+
+        if (response.IsSuccessStatusCode)
         {
-            using var content = new MultipartFormDataContent();
-            using var stream = file.OpenReadStream(5 * 1024 * 1024);
-            content.Add(new StreamContent(stream), "file", file.Name);
-
-            var response = await _httpClient.PostAsync("upload/recipe-image", content);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var json = await response.Content.ReadAsStringAsync();
-                var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var result = System.Text.Json.JsonSerializer.Deserialize<ReponseTeleversement>(json, options);
-                return result?.ImageUrl;
-            }
-
-            return null;
+            var json = await response.Content.ReadAsStringAsync();
+            var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var result = System.Text.Json.JsonSerializer.Deserialize<ReponseTeleversement>(json, options);
+            return result?.ImageUrl;
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Erreur lors de l'upload: {ex.Message}");
-            return null;
-        }
+
+        return null;
     }
 }
 
