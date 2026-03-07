@@ -135,6 +135,7 @@ public class ControleurFavoris : ControllerBase
     /// <param name="recipeId">L'ID de la recette à vérifier</param>
     /// <returns>Objet JSON contenant le booléen 'isFavorite'</returns>
     [HttpGet("{recipeId}/exists")]
+    [AllowAnonymous]
     public async Task<IActionResult> IsFavorite(string recipeId)
     {
         var userId = GetCurrentUserId();
