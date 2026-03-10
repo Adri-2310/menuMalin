@@ -12,8 +12,7 @@ public class ServiceApiHttp : IServiceApiHttp
     private readonly HttpClient _httpClient;
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
-        PropertyNameCaseInsensitive = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase  // Convertir camelCase → PascalCase
+        PropertyNameCaseInsensitive = true
     };
 
     public ServiceApiHttp(HttpClient httpClient)
@@ -49,6 +48,10 @@ public class ServiceApiHttp : IServiceApiHttp
         catch (TaskCanceledException ex)
         {
             throw new ErreurReseauException(ex);
+        }
+        catch (JsonException ex)
+        {
+            throw new ErreurApiException(System.Net.HttpStatusCode.BadRequest, $"Erreur de désérialisation JSON: {ex.Message}");
         }
     }
 
@@ -90,6 +93,10 @@ public class ServiceApiHttp : IServiceApiHttp
         {
             throw new ErreurReseauException(ex);
         }
+        catch (JsonException ex)
+        {
+            throw new ErreurApiException(System.Net.HttpStatusCode.BadRequest, $"Erreur de désérialisation JSON: {ex.Message}");
+        }
     }
 
     public async Task<bool> DeleteAsync(string url)
@@ -119,6 +126,10 @@ public class ServiceApiHttp : IServiceApiHttp
         catch (TaskCanceledException ex)
         {
             throw new ErreurReseauException(ex);
+        }
+        catch (JsonException ex)
+        {
+            throw new ErreurApiException(System.Net.HttpStatusCode.BadRequest, $"Erreur de désérialisation JSON: {ex.Message}");
         }
     }
 
@@ -157,6 +168,10 @@ public class ServiceApiHttp : IServiceApiHttp
         catch (TaskCanceledException ex)
         {
             throw new ErreurReseauException(ex);
+        }
+        catch (JsonException ex)
+        {
+            throw new ErreurApiException(System.Net.HttpStatusCode.BadRequest, $"Erreur de désérialisation JSON: {ex.Message}");
         }
     }
 

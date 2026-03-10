@@ -48,7 +48,7 @@
     /* Cache le trait de séparation du dropdown sur mobile si nécessaire */
     .dropdown-menu {
         border: none;
-        background-color: #f8f9fa;
+        background-color: #D6D3D1;
         margin-top: 10px;
     }
 }

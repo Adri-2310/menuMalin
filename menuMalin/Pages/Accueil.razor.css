@@ -28,7 +28,7 @@
 
 /* --- Welcome Card (Connecté) --- */
 .welcome-card {
-    background: white;
+    background: #D6D3D1;
     border: 1px solid rgba(0,0,0,0.05);
 }
 
@@ -62,7 +62,7 @@
 }
 
 .feature-box:hover {
-    background: white;
+    background: #D6D3D1;
     border-color: #d8f3dc;
     box-shadow: 0 15px 30px rgba(0,0,0,0.05) !important;
     transform: translateY(-10px);

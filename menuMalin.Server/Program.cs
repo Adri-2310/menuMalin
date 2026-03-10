@@ -48,14 +48,10 @@ builder.Services.AddAuthentication(options =>
     options.Cookie.Path = "/";
     options.Events.OnSignedIn += context =>
     {
-        // Logs pour debug
-        System.Console.WriteLine($"✅ Utilisateur signed in: {context.Principal?.Identity?.Name}");
-        System.Console.WriteLine($"   Cookie created with SameSite=None; Secure; Path=/");
         return System.Threading.Tasks.Task.CompletedTask;
     };
     options.Events.OnValidatePrincipal += context =>
     {
-        System.Console.WriteLine($"🔐 Cookie validation: IsAuthenticated={context.Principal?.Identity?.IsAuthenticated}");
         return System.Threading.Tasks.Task.CompletedTask;
     };
     // Gérer les redirects pour les endpoints API
@@ -65,7 +61,6 @@ builder.Services.AddAuthentication(options =>
         // Si c'est une requête API (fetch depuis Blazor), retourner 401 au lieu de rediriger
         if (context.Request.Path.StartsWithSegments("/api"))
         {
-            System.Console.WriteLine($"⚠️ API endpoint {context.Request.Path} accédé sans authentification - retour 401");
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             context.Response.ContentType = "application/json";
             return context.Response.WriteAsync("{\"error\":\"Not authenticated\"}");
@@ -129,13 +124,34 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Appliquer les migrations automatiquement au démarrage (DEV seulement)
+// Migrations - auto si MySQL est accessible, sinon afficher un message
 if (app.Environment.IsDevelopment())
 {
-    using (var scope = app.Services.CreateScope())
+    try
     {
-        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        dbContext.Database.Migrate();
+        using (var scope = app.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            dbContext.Database.SetCommandTimeout(TimeSpan.FromSeconds(5));
+
+            // Test de connexion rapide
+            if (dbContext.Database.CanConnect())
+            {
+                // MySQL est accessible - faire les migrations auto
+                dbContext.Database.Migrate();
+                System.Console.WriteLine("✅ Migrations appliquées avec succès");
+            }
+            else
+            {
+                System.Console.WriteLine("⚠️  MySQL pas accessible - migrations ignorées. Exécutez: dotnet ef database update");
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        System.Console.WriteLine("⚠️  MySQL pas accessible - migrations ignorées");
+        System.Console.WriteLine($"   Exécutez: dotnet ef database update");
+        System.Console.WriteLine($"   Erreur: {ex.Message.Split('\n').First()}");
     }
 
     app.MapOpenApi();

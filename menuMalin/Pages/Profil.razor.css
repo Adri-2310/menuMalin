@@ -1,0 +1,83 @@
+/* Boutons de modification du profil */
+.btn-modify {
+    background: linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%);
+    color: white !important;
+    border: none;
+    font-weight: 600;
+    padding: 0.5rem 1.25rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(45, 106, 79, 0.2);
+}
+
+.btn-modify:hover {
+    background: linear-gradient(135deg, #1b4332 0%, #0d3620 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(45, 106, 79, 0.35);
+    color: white !important;
+}
+
+.btn-modify:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(45, 106, 79, 0.2);
+}
+
+/* Icons dans les boutons */
+.btn-modify i {
+    margin-right: 0.5rem;
+}
+
+/* Formulaires de modification */
+.modification-form {
+    background: #f9faf8;
+    padding: 1.25rem;
+    border-radius: 1rem;
+    border: 1px solid #e5e7eb;
+    margin-top: 1rem;
+}
+
+.modification-form label {
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.modification-form input {
+    border: 1px solid #d1d5db;
+    transition: all 0.2s ease;
+}
+
+.modification-form input:focus {
+    border-color: #2d6a4f;
+    box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.1);
+}
+
+/* Boutons d'action dans le formulaire */
+.btn-form-action {
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+/* Input group pour les mots de passe */
+.input-group .btn-outline-secondary {
+    border: 1px solid #d1d5db;
+    color: #6b7280;
+}
+
+.input-group .btn-outline-secondary:hover {
+    background-color: #f9faf8;
+    border-color: #2d6a4f;
+    color: #2d6a4f;
+}
+
+/* Aide et messages */
+small.text-muted {
+    display: block;
+    margin-top: 0.35rem;
+    color: #9ca3af !important;
+}
+
+small.text-danger {
+    display: block;
+    margin-top: 0.35rem;
+    color: #dc2626 !important;
+    font-weight: 500;
+}

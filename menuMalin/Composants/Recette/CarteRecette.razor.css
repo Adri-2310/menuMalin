@@ -1,0 +1,66 @@
+/* Carte de recette avec fond beige */
+.recipe-card {
+    background-color: #D6D3D1;
+}
+
+/* Animation et transitions */
+.transition-all {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Zoom au survol de l'image */
+.hover-zoom {
+    transition: transform 0.3s ease;
+}
+
+.hover-zoom:hover {
+    transform: scale(1.08);
+}
+
+/* Bouton favori */
+.btn-favorite {
+    background-color: transparent;
+    border: 1px solid #dee2e6;
+    padding: 0.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.btn-favorite:hover:not(:disabled) {
+    background-color: #ffe5e5;
+    border-color: #dc3545;
+}
+
+/* Animation du cœur */
+.animate-pop {
+    animation: popAnimation 0.3s ease-out;
+}
+
+@keyframes popAnimation {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.3);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Badge catégorie */
+.category-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 10;
+}
+
+.bg-success-blur {
+    background-color: rgba(45, 106, 79, 0.85) !important;
+    backdrop-filter: blur(4px);
+}

@@ -1,0 +1,348 @@
+@page "/profil"
+@using menuMalin.Services
+@using menuMalin.Modeles
+@inject ServiceEtatAuthentification AuthState
+@inject IServiceAuthentification AuthService
+@inject IServiceNotification NotifService
+@inject NavigationManager Nav
+
+<PageTitle>MenuMalin - Mon Profil</PageTitle>
+
+@if (isCheckingAuth)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-success"></div>
+        <p class="mt-2 text-muted">Chargement...</p>
+    </div>
+}
+else if (!isAuthenticated)
+{
+    <div class="container mt-4 mb-5">
+        <div class="alert alert-warning text-center rounded-4 py-5" role="alert">
+            <i class="bi bi-lock-fill me-2" style="font-size: 2rem;"></i>
+            <h3 class="mt-3">Accès réservé</h3>
+            <p class="text-muted mb-4">Vous devez être connecté pour voir votre profil.</p>
+            <a href="/connexion" class="btn btn-success btn-lg rounded-pill px-5">Se connecter</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container mt-4 mb-5">
+        <button class="btn btn-link text-dark text-decoration-none mb-4 ps-0" @onclick="GoBack">
+            <i class="bi bi-arrow-left me-2"></i>Retour à l'accueil
+        </button>
+
+        <div class="mb-5">
+            <h1 class="display-5 fw-bold mb-2">Mon Profil</h1>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow-sm rounded-4 border-0 p-4">
+
+                    @* Avatar *@
+                    <div class="text-center mb-4">
+                        @if (!string.IsNullOrEmpty(currentUser?.Picture))
+                        {
+                            <img src="@currentUser.Picture" alt="Avatar"
+                                 class="rounded-circle" width="96" height="96"
+                                 style="object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <div class="rounded-circle bg-success d-inline-flex align-items-center justify-content-center"
+                                 style="width:96px;height:96px;">
+                                <i class="bi bi-person-fill text-white" style="font-size:2.5rem;"></i>
+                            </div>
+                        }
+                    </div>
+
+                    @* Informations actuelles *@
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">NOM</label>
+                        <p class="fs-5 fw-semibold mb-0">@currentUser?.Name</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label text-muted small fw-bold">EMAIL</label>
+                        <p class="fs-6 mb-0">@currentUser?.Email</p>
+                    </div>
+
+                    <hr />
+
+                    @* Section Modifier le nom *@
+                    <div class="mb-3">
+                        @if (!afficherFormNom)
+                        {
+                            <button class="btn btn-modify btn-sm rounded-pill"
+                                    @onclick="OuvrirFormNom">
+                                <i class="bi bi-pencil-fill"></i>Modifier mon nom
+                            </button>
+                        }
+                        else
+                        {
+                            <div class="mt-2">
+                                <label class="form-label fw-semibold">Nouveau nom</label>
+                                <input type="text" class="form-control rounded-3"
+                                       @bind="nouveauNom" maxlength="50"
+                                       placeholder="Votre nouveau nom" />
+                                <div class="d-flex gap-2 mt-2">
+                                    <button class="btn btn-success btn-sm rounded-pill"
+                                            @onclick="SauvegarderNom"
+                                            disabled="@enCoursModificationNom">
+                                        @if (enCoursModificationNom)
+                                        { <span class="spinner-border spinner-border-sm me-1"></span> }
+                                        Sauvegarder
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm rounded-pill"
+                                            @onclick="() => afficherFormNom = false">
+                                        Annuler
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    @* Section Modifier le mot de passe *@
+                    <div class="mb-4">
+                        @if (!afficherFormMotDePasse)
+                        {
+                            <button class="btn btn-modify btn-sm rounded-pill"
+                                    @onclick="OuvrirFormMotDePasse">
+                                <i class="bi bi-shield-lock-fill"></i>Modifier mon mot de passe
+                            </button>
+                        }
+                        else
+                        {
+                            <div class="mt-2">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Mot de passe actuel</label>
+                                    <div class="input-group">
+                                        <input type="@(afficherMotDePasseActuel ? "text" : "password")"
+                                               class="form-control rounded-start-3"
+                                               @bind="motDePasseActuel" />
+                                        <button class="btn btn-outline-secondary"
+                                                type="button"
+                                                @onclick="() => afficherMotDePasseActuel = !afficherMotDePasseActuel">
+                                            <i class="bi @(afficherMotDePasseActuel ? "bi-eye-slash" : "bi-eye")"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Nouveau mot de passe</label>
+                                    <div class="input-group">
+                                        <input type="@(afficherNouveauMotDePasse ? "text" : "password")"
+                                               class="form-control rounded-start-3"
+                                               @bind="nouveauMotDePasse" />
+                                        <button class="btn btn-outline-secondary"
+                                                type="button"
+                                                @onclick="() => afficherNouveauMotDePasse = !afficherNouveauMotDePasse">
+                                            <i class="bi @(afficherNouveauMotDePasse ? "bi-eye-slash" : "bi-eye")"></i>
+                                        </button>
+                                    </div>
+                                    <small class="text-muted">Minimum 8 caractères</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Confirmer le nouveau mot de passe</label>
+                                    <input type="password" class="form-control rounded-3"
+                                           @bind="confirmationMotDePasse" />
+                                    @if (!string.IsNullOrEmpty(confirmationMotDePasse) &&
+                                         confirmationMotDePasse != nouveauMotDePasse)
+                                    {
+                                        <small class="text-danger">Les mots de passe ne correspondent pas</small>
+                                    }
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-success btn-sm rounded-pill"
+                                            @onclick="SauvegarderMotDePasse"
+                                            disabled="@enCoursModificationMotDePasse">
+                                        @if (enCoursModificationMotDePasse)
+                                        { <span class="spinner-border spinner-border-sm me-1"></span> }
+                                        Sauvegarder
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm rounded-pill"
+                                            @onclick="AnnulerMotDePasse">
+                                        Annuler
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <hr />
+
+                    @* Liens rapides *@
+                    <div class="d-grid gap-2 mt-3">
+                        <a href="/mes-favoris" class="btn btn-outline-success rounded-pill">
+                            <i class="bi bi-heart me-2"></i>Mes Favoris
+                        </a>
+                        <a href="/mes-creations" class="btn btn-outline-success rounded-pill">
+                            <i class="bi bi-journal-text me-2"></i>Mes Recettes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    // --- État authentification ---
+    private bool isCheckingAuth = true;
+    private bool isAuthenticated = false;
+    private UtilisateurAuth? currentUser;
+
+    // --- Section Nom ---
+    private bool afficherFormNom = false;
+    private string nouveauNom = "";
+    private bool enCoursModificationNom = false;
+
+    // --- Section Mot de Passe ---
+    private bool afficherFormMotDePasse = false;
+    private string motDePasseActuel = "";
+    private string nouveauMotDePasse = "";
+    private string confirmationMotDePasse = "";
+    private bool enCoursModificationMotDePasse = false;
+    private bool afficherMotDePasseActuel = false;
+    private bool afficherNouveauMotDePasse = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthState.InitializeAuthStateAsync();
+        await CheckAuthentication();
+    }
+
+    private async Task CheckAuthentication()
+    {
+        try
+        {
+            if (AuthState?.CurrentUser != null && AuthState.IsAuthenticated)
+            {
+                isAuthenticated = true;
+                currentUser = AuthState.CurrentUser;
+            }
+            else
+            {
+                var user = await AuthService.GetCurrentUserAsync();
+                isAuthenticated = user?.IsAuthenticated ?? false;
+                currentUser = user;
+            }
+        }
+        catch
+        {
+            isAuthenticated = false;
+        }
+        finally
+        {
+            isCheckingAuth = false;
+        }
+    }
+
+    private void OuvrirFormNom()
+    {
+        nouveauNom = currentUser?.Name ?? "";
+        afficherFormNom = true;
+        afficherFormMotDePasse = false;
+    }
+
+    private async Task SauvegarderNom()
+    {
+        if (string.IsNullOrWhiteSpace(nouveauNom) || nouveauNom.Trim().Length < 2)
+        {
+            NotifService.AfficherAvertissement("Le nom doit contenir au moins 2 caractères");
+            return;
+        }
+
+        enCoursModificationNom = true;
+        try
+        {
+            var (succes, erreur, nomMisAJour) = await AuthService.ModifierNomAsync(nouveauNom.Trim());
+            if (succes && nomMisAJour != null)
+            {
+                // Mettre à jour l'état global (déclenche localStorage + événement navbar)
+                var utilisateurMisAJour = new UtilisateurAuth
+                {
+                    UserId = currentUser!.UserId,
+                    Email = currentUser.Email,
+                    Name = nomMisAJour,
+                    IsAuthenticated = true
+                };
+                AuthState.CurrentUser = utilisateurMisAJour;
+                currentUser = utilisateurMisAJour;
+
+                afficherFormNom = false;
+                NotifService.AfficherSucces("Votre nom a été mis à jour avec succès");
+            }
+            else
+            {
+                NotifService.AfficherErreur(erreur ?? "Erreur lors de la mise à jour");
+            }
+        }
+        finally
+        {
+            enCoursModificationNom = false;
+        }
+    }
+
+    private void OuvrirFormMotDePasse()
+    {
+        afficherFormMotDePasse = true;
+        afficherFormNom = false;
+        motDePasseActuel = "";
+        nouveauMotDePasse = "";
+        confirmationMotDePasse = "";
+    }
+
+    private async Task SauvegarderMotDePasse()
+    {
+        if (string.IsNullOrWhiteSpace(motDePasseActuel))
+        {
+            NotifService.AfficherAvertissement("Veuillez saisir votre mot de passe actuel");
+            return;
+        }
+        if (nouveauMotDePasse.Length < 8)
+        {
+            NotifService.AfficherAvertissement("Le nouveau mot de passe doit contenir au moins 8 caractères");
+            return;
+        }
+        if (nouveauMotDePasse != confirmationMotDePasse)
+        {
+            NotifService.AfficherAvertissement("Les mots de passe ne correspondent pas");
+            return;
+        }
+
+        enCoursModificationMotDePasse = true;
+        try
+        {
+            var (succes, erreur) = await AuthService.ModifierMotDePasseAsync(
+                motDePasseActuel, nouveauMotDePasse, confirmationMotDePasse);
+
+            if (succes)
+            {
+                AnnulerMotDePasse();
+                NotifService.AfficherSucces("Votre mot de passe a été mis à jour avec succès");
+            }
+            else
+            {
+                NotifService.AfficherErreur(erreur ?? "Erreur lors de la mise à jour");
+            }
+        }
+        finally
+        {
+            enCoursModificationMotDePasse = false;
+        }
+    }
+
+    private void AnnulerMotDePasse()
+    {
+        afficherFormMotDePasse = false;
+        motDePasseActuel = "";
+        nouveauMotDePasse = "";
+        confirmationMotDePasse = "";
+        afficherMotDePasseActuel = false;
+        afficherNouveauMotDePasse = false;
+    }
+
+    private void GoBack() => Nav.NavigateTo("/");
+}

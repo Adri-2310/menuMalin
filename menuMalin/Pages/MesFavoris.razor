@@ -132,16 +132,20 @@ else
     {
         try
         {
-            // Vérifier d'abord l'état global (Singleton)
-            if (AuthState?.CurrentUser != null && AuthState.IsAuthenticated)
+            // TOUJOURS vérifier avec l'API pour s'assurer que le cookie d'authentification est valide
+            // (Ne pas faire confiance aveuglément au localStorage qui peut être désynchronisé du serveur)
+            var user = await AuthService.GetCurrentUserAsync();
+            isAuthenticated = user?.IsAuthenticated ?? false;
+
+            // Si l'API dit que l'utilisateur est authentifié, mettre à jour l'état
+            if (isAuthenticated)
             {
-                isAuthenticated = true;
+                AuthState.CurrentUser = user;
             }
             else
             {
-                // Sinon appeler l'API
-                var user = await AuthService.GetCurrentUserAsync();
-                isAuthenticated = user?.IsAuthenticated ?? false;
+                // Si l'API dit qu'il n'est pas authentifié, nettoyer l'état local
+                await AuthState.ClearAuthStateAsync();
             }
         }
         catch
@@ -169,7 +173,6 @@ else
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erreur lors du chargement des favoris: {ex.Message}");
             NotifService.AfficherErreur("Impossible de charger vos favoris. Veuillez réessayer.");
             favorites = null;
         }

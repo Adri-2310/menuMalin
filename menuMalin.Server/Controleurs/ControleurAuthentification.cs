@@ -263,4 +263,94 @@ public class ControleurAuthentification : ControllerBase
     {
         return Ok(new { status = "ok", timestamp = DateTime.UtcNow });
     }
+
+    /// <summary>
+    /// PATCH /api/auth/nom - Modifier le nom de l'utilisateur connecté
+    /// </summary>
+    [HttpPatch("nom")]
+    [Authorize]
+    public async Task<IActionResult> ModifierNom([FromBody] RequeteModificationNom request)
+    {
+        if (string.IsNullOrWhiteSpace(request?.NouveauNom) || request.NouveauNom.Trim().Length < 2)
+            return BadRequest(new { error = "Le nom doit contenir au moins 2 caractères" });
+
+        if (request.NouveauNom.Trim().Length > 50)
+            return BadRequest(new { error = "Le nom ne peut pas dépasser 50 caractères" });
+
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized(new { error = "Non authentifié" });
+
+        try
+        {
+            var user = await _serviceUtilisateur.ModifierNomAsync(userId, request.NouveauNom);
+            if (user == null)
+                return NotFound(new { error = "Utilisateur introuvable" });
+
+            // Régénérer le cookie avec le nouveau nom dans le claim
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.UserId),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Name, user.Name ?? user.Email),
+            };
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var authProperties = new AuthenticationProperties { IsPersistent = true };
+
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(claimsIdentity),
+                authProperties);
+
+            _logger.LogInformation("Nom modifié pour UserId: {UserId}", userId);
+
+            return Ok(new { name = user.Name, message = "Nom mis à jour avec succès" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la modification du nom pour UserId: {UserId}", userId);
+            return StatusCode(500, new { error = "Erreur serveur lors de la mise à jour du nom" });
+        }
+    }
+
+    /// <summary>
+    /// PATCH /api/auth/mot-de-passe - Modifier le mot de passe de l'utilisateur connecté
+    /// </summary>
+    [HttpPatch("mot-de-passe")]
+    [Authorize]
+    public async Task<IActionResult> ModifierMotDePasse([FromBody] RequeteModificationMotDePasse request)
+    {
+        if (string.IsNullOrWhiteSpace(request?.MotDePasseActuel) ||
+            string.IsNullOrWhiteSpace(request?.NouveauMotDePasse) ||
+            string.IsNullOrWhiteSpace(request?.ConfirmationMotDePasse))
+            return BadRequest(new { error = "Tous les champs sont requis" });
+
+        if (request.NouveauMotDePasse.Length < 8)
+            return BadRequest(new { error = "Le nouveau mot de passe doit contenir au moins 8 caractères" });
+
+        if (request.NouveauMotDePasse != request.ConfirmationMotDePasse)
+            return BadRequest(new { error = "Les mots de passe ne correspondent pas" });
+
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized(new { error = "Non authentifié" });
+
+        try
+        {
+            var (succes, messageErreur) = await _serviceUtilisateur.ModifierMotDePasseAsync(
+                userId, request.MotDePasseActuel, request.NouveauMotDePasse);
+
+            if (!succes)
+                return BadRequest(new { error = messageErreur });
+
+            _logger.LogInformation("Mot de passe modifié pour UserId: {UserId}", userId);
+
+            return Ok(new { message = "Mot de passe mis à jour avec succès" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la modification du mot de passe pour UserId: {UserId}", userId);
+            return StatusCode(500, new { error = "Erreur serveur lors de la mise à jour du mot de passe" });
+        }
+    }
 }
