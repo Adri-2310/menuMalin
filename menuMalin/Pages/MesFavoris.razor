@@ -173,11 +173,6 @@ else
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Erreur lors du chargement des favoris: {ex.GetType().Name}");
-            Console.WriteLine($"   Message: {ex.Message}");
-            if (ex.InnerException != null)
-                Console.WriteLine($"   InnerException: {ex.InnerException.Message}");
-            Console.WriteLine($"   StackTrace: {ex.StackTrace}");
             NotifService.AfficherErreur("Impossible de charger vos favoris. Veuillez réessayer.");
             favorites = null;
         }

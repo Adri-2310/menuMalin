@@ -67,9 +67,8 @@ public class ServiceAuthentification : IServiceAuthentification
             }
             return null;
         }
-        catch (Exception ex)
+        catch
         {
-            System.Console.WriteLine($"❌ Erreur lors du login: {ex.Message}");
             return null;
         }
     }
@@ -117,7 +116,6 @@ public class ServiceAuthentification : IServiceAuthentification
         }
         catch (Exception ex)
         {
-            System.Console.WriteLine($"❌ Erreur lors de l'enregistrement: {ex.Message}");
             return new UtilisateurAuth { Error = ex.Message };
         }
     }
@@ -165,7 +163,6 @@ public class ServiceAuthentification : IServiceAuthentification
         }
         catch (Exception ex)
         {
-            System.Console.WriteLine($"❌ Erreur lors de la modification du nom: {ex.Message}");
             return (false, ex.Message, null);
         }
     }
@@ -194,7 +191,6 @@ public class ServiceAuthentification : IServiceAuthentification
         }
         catch (Exception ex)
         {
-            System.Console.WriteLine($"❌ Erreur lors de la modification du mot de passe: {ex.Message}");
             return (false, ex.Message);
         }
     }

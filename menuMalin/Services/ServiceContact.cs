@@ -25,22 +25,15 @@ public class ServiceContact : IServiceContact
                 subscribeNewsletter
             };
 
-            Console.WriteLine($"[ServiceContact] Envoi message de contact - Email: {email}, Sujet: {subject}");
-
             var result = await _httpApiService.PostAsync<ReponseContact>("contact", request);
 
             if (result?.Id != null)
-            {
-                Console.WriteLine($"[ServiceContact] Message envoyé avec succès - ID: {result.Id}");
                 return true;
-            }
 
-            Console.WriteLine("[ServiceContact] Echec: réponse null ou ID null (voir logs du serveur pour la cause)");
             return false;
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"[ServiceContact] Exception lors de l'envoi du message: {ex.GetType().Name} - {ex.Message}");
             return false;
         }
     }
