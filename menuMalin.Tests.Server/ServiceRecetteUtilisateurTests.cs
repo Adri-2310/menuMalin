@@ -356,7 +356,7 @@ public class ServiceRecetteUtilisateurTests
             DateMaj = DateTime.UtcNow
         };
 
-        _mockRepository.GetByIdAsync(recipeId).Returns(Task.FromResult(recipe));
+        _mockRepository.GetByIdAsync(recipeId).Returns(Task.FromResult<RecetteUtilisateur?>(recipe));
         _mockRepository.DeleteAsync(recipeId).Returns(Task.FromResult(true));
 
         // ACT
@@ -393,7 +393,7 @@ public class ServiceRecetteUtilisateurTests
             DateMaj = DateTime.UtcNow
         };
 
-        _mockRepository.GetByIdAsync(recipeId).Returns(Task.FromResult(recipe));
+        _mockRepository.GetByIdAsync(recipeId).Returns(Task.FromResult<RecetteUtilisateur?>(recipe));
 
         // ACT & ASSERT
         var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _service.DeleteAsync(recipeId, userId));
@@ -474,8 +474,8 @@ public class ServiceRecetteUtilisateurTests
             DateMaj = DateTime.UtcNow
         };
 
-        _mockRepository.GetByIdAsync(recipeId).Returns(Task.FromResult((RecetteUtilisateur?)existingRecipe));
-        _mockRepository.UpdateAsync(Arg.Any<RecetteUtilisateur>()).Returns(Task.FromResult((RecetteUtilisateur?)updatedRecipe));
+        _mockRepository.GetByIdAsync(recipeId).Returns(Task.FromResult<RecetteUtilisateur?>(existingRecipe));
+        _mockRepository.UpdateAsync(Arg.Any<RecetteUtilisateur>()).Returns(Task.FromResult<RecetteUtilisateur?>(updatedRecipe));
 
         // ACT
         var result = await _service.UpdateAsync(recipeId, userId, updateRequest);
@@ -524,7 +524,7 @@ public class ServiceRecetteUtilisateurTests
             IsPublic = true
         };
 
-        _mockRepository.GetByIdAsync(recipeId).Returns(Task.FromResult((RecetteUtilisateur?)existingRecipe));
+        _mockRepository.GetByIdAsync(recipeId).Returns(Task.FromResult<RecetteUtilisateur?>(existingRecipe));
 
         // ACT & ASSERT
         var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(

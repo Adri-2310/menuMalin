@@ -5,7 +5,6 @@ using menuMalin.Modeles;
 using menuMalin.Services;
 using menuMalin.Services.Interfaces;
 using menuMalin.Pages;
-using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace menuMalin.Tests.Client;
@@ -19,7 +18,6 @@ public class MesFavorisTests : TestContext
     private readonly IServiceFavorisFrontend _mockFavoritesService;
     private readonly IServiceNotification _mockNotifService;
     private readonly IServiceAuthentification _mockAuthService;
-    private readonly NavigationManager _mockNavManager;
 
     public MesFavorisTests()
     {
@@ -27,7 +25,6 @@ public class MesFavorisTests : TestContext
         _mockFavoritesService = Substitute.For<IServiceFavorisFrontend>();
         _mockNotifService = Substitute.For<IServiceNotification>();
         _mockAuthService = Substitute.For<IServiceAuthentification>();
-        _mockNavManager = Substitute.For<NavigationManager>();
 
         // Configurer le mock pour retourner un utilisateur authentifié
         _mockAuthService.GetCurrentUserAsync().Returns(Task.FromResult((UtilisateurAuth?)new UtilisateurAuth
@@ -43,7 +40,6 @@ public class MesFavorisTests : TestContext
         Services.AddScoped<IServiceNotification>(_ => _mockNotifService);
         Services.AddScoped<IServiceEtatAuthentification>(_ => new TestServiceEtatAuthentification());
         Services.AddScoped<IServiceAuthentification>(_ => _mockAuthService);
-        Services.AddScoped<NavigationManager>(_ => _mockNavManager);
     }
 
     /// <summary>

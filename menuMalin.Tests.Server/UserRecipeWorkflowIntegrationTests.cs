@@ -110,6 +110,7 @@ public class UserRecipeWorkflowIntegrationTests : IAsyncLifetime
         Assert.NotNull(retrievedRecipe);
         Assert.Equal("Pâtes Carbonara", retrievedRecipe.Title);
         Assert.Equal("Pasta", retrievedRecipe.Category);
+        Assert.NotNull(retrievedRecipe.Ingredients);
         Assert.Contains("Bacon", retrievedRecipe.Ingredients);
 
         // ACT 3: Modifier la recette
@@ -130,6 +131,7 @@ public class UserRecipeWorkflowIntegrationTests : IAsyncLifetime
         Assert.NotNull(updatedRecipe);
         Assert.Equal("Pâtes Carbonara Premium", updatedRecipe.Title);
         Assert.False(updatedRecipe.IsPublic);
+        Assert.NotNull(updatedRecipe.Ingredients);
         Assert.Contains("Fromage de Brebis", updatedRecipe.Ingredients);
 
         // ACT 4: Supprimer la recette
@@ -203,7 +205,7 @@ public class UserRecipeWorkflowIntegrationTests : IAsyncLifetime
 
         // ASSERT: Isolation correcte
         Assert.Equal(2, user1Recipes.Count());
-        Assert.Equal(1, user2Recipes.Count());
+        Assert.Single(user2Recipes);
 
         Assert.Contains(user1Recipes, r => r.Title == "Pasta User 1");
         Assert.Contains(user1Recipes, r => r.Title == "Pizza User 1");

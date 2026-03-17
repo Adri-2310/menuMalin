@@ -6,7 +6,6 @@ using menuMalin.Services;
 using menuMalin.Services.Interfaces;
 using menuMalin.Pages;
 using menuMalin.Shared.Modeles.Requetes;
-using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace menuMalin.Tests.Client;
@@ -19,14 +18,12 @@ public class CreerRecetteTests : TestContext
 {
     private readonly IServiceRecetteUtilisateur _mockRecipeService;
     private readonly IServiceNotification _mockNotifService;
-    private readonly NavigationManager _mockNavManager;
 
     public CreerRecetteTests()
     {
         // Créer les mocks
         _mockRecipeService = Substitute.For<IServiceRecetteUtilisateur>();
         _mockNotifService = Substitute.For<IServiceNotification>();
-        _mockNavManager = Substitute.For<NavigationManager>();
 
         // Configurer le mock d'authentification
         var mockAuthService = Substitute.For<IServiceAuthentification>();
@@ -38,14 +35,19 @@ public class CreerRecetteTests : TestContext
             IsAuthenticated = true
         }));
 
+        // Configurer le mock IServiceRecette avec des listes non-nulles
+        // (utilisé pour charger categories et areas dans CreerRecette)
+        var mockRecipeApiService = Substitute.For<IServiceRecette>();
+        mockRecipeApiService.GetCategoriesAsync().Returns(Task.FromResult(new List<string> { "Pasta", "Meat", "Dessert" }));
+        mockRecipeApiService.GetAreasAsync().Returns(Task.FromResult(new List<string> { "Italian", "American", "French" }));
+
         // Enregistrer dans le DI
         Services.AddScoped<IServiceRecetteUtilisateur>(_ => _mockRecipeService);
         Services.AddScoped<IServiceNotification>(_ => _mockNotifService);
-        Services.AddScoped<NavigationManager>(_ => _mockNavManager);
         Services.AddScoped<IServiceEtatAuthentification>(_ => new TestServiceEtatAuthentification());
         Services.AddScoped<IServiceAuthentification>(_ => mockAuthService);
         Services.AddScoped<IServiceTeleversement>(_ => Substitute.For<IServiceTeleversement>());
-        Services.AddScoped<IServiceRecette>(_ => Substitute.For<IServiceRecette>());
+        Services.AddScoped<IServiceRecette>(_ => mockRecipeApiService);
     }
 
     /// <summary>

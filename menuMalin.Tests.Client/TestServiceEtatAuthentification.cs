@@ -11,16 +11,25 @@ public class TestServiceEtatAuthentification : IServiceEtatAuthentification
 {
     private UtilisateurAuth? _currentUser;
 
-    public TestServiceEtatAuthentification()
+    /// <param name="isAuthenticated">Si false, le service simule un visiteur non-authentifié</param>
+    public TestServiceEtatAuthentification(bool isAuthenticated = true)
     {
-        // Par défaut, l'utilisateur est authentifié pour les tests
-        _currentUser = new UtilisateurAuth
+        if (isAuthenticated)
         {
-            UserId = "test-user-123",
-            Email = "test@example.com",
-            Name = "Test User",
-            IsAuthenticated = true
-        };
+            // Par défaut, l'utilisateur est authentifié pour les tests
+            _currentUser = new UtilisateurAuth
+            {
+                UserId = "test-user-123",
+                Email = "test@example.com",
+                Name = "Test User",
+                IsAuthenticated = true
+            };
+        }
+        else
+        {
+            // Simuler un visiteur non-authentifié
+            _currentUser = null;
+        }
     }
 
     public UtilisateurAuth? CurrentUser

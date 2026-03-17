@@ -56,8 +56,8 @@ public class RechercheTests : TestContext
         // ARRANGE
         var categories = new List<string> { "Pasta", "Meat" };
         var areas = new List<string> { "Italian", "American" };
-        _mockRecipeService.GetCategoriesAsync().Returns(Task.FromResult(categories));
-        _mockRecipeService.GetAreasAsync().Returns(Task.FromResult(areas));
+        _mockRecetteFrontendService.GetCategoriesAsync().Returns(Task.FromResult(categories));
+        _mockRecetteFrontendService.GetAreasAsync().Returns(Task.FromResult(areas));
 
         // ACT
         var cut = Render<Recherche>();
@@ -66,7 +66,8 @@ public class RechercheTests : TestContext
         // ASSERT
         var title = cut.FindAll("h1").FirstOrDefault();
         Assert.NotNull(title);
-        Assert.Contains("Recherche", title?.TextContent ?? "");
+        // Le titre de la page Recherche est "Explorer les recettes"
+        Assert.Contains("Explorer", title?.TextContent ?? "");
     }
 
     /// <summary>
@@ -81,8 +82,8 @@ public class RechercheTests : TestContext
         var categories = new List<string> { "Pasta", "Pizza", "Meat" };
         var areas = new List<string> { "Italian", "American", "French" };
 
-        _mockRecipeService.GetCategoriesAsync().Returns(Task.FromResult(categories));
-        _mockRecipeService.GetAreasAsync().Returns(Task.FromResult(areas));
+        _mockRecetteFrontendService.GetCategoriesAsync().Returns(Task.FromResult(categories));
+        _mockRecetteFrontendService.GetAreasAsync().Returns(Task.FromResult(areas));
 
         // ACT
         var cut = Render<Recherche>();
@@ -90,8 +91,8 @@ public class RechercheTests : TestContext
 
         // ASSERT
         // Vérifier que les services ont été appelés
-        await _mockRecipeService.Received(1).GetCategoriesAsync();
-        await _mockRecipeService.Received(1).GetAreasAsync();
+        await _mockRecetteFrontendService.Received(1).GetCategoriesAsync();
+        await _mockRecetteFrontendService.Received(1).GetAreasAsync();
 
         // Vérifier que les options sont dans le DOM (dans les select)
         var selects = cut.FindAll("select");
@@ -115,9 +116,9 @@ public class RechercheTests : TestContext
             new Recette { IdMeal = "2", StrMeal = "Pasta Primavera", StrMealThumb = "https://example.com/2.jpg", StrCategory = "Pasta" }
         };
 
-        _mockRecipeService.GetCategoriesAsync().Returns(Task.FromResult(categories));
-        _mockRecipeService.GetAreasAsync().Returns(Task.FromResult(areas));
-        _mockRecipeService.SearchRecipesAsync("Pasta").Returns(Task.FromResult(searchResults));
+        _mockRecetteFrontendService.GetCategoriesAsync().Returns(Task.FromResult(categories));
+        _mockRecetteFrontendService.GetAreasAsync().Returns(Task.FromResult(areas));
+        _mockRecetteFrontendService.SearchRecipesAsync("Pasta").Returns(Task.FromResult(searchResults));
 
         // ACT
         var cut = Render<Recherche>();
@@ -125,12 +126,13 @@ public class RechercheTests : TestContext
 
         // Simuler la saisie du texte de recherche
         var searchInputs = cut.FindAll("input");
-        var searchInput = searchInputs.FirstOrDefault(i => i.GetAttribute("placeholder")?.Contains("Rechercher") ?? false);
+        // Le placeholder de l'input de recherche est "Taper un ingrédient..."
+        var searchInput = searchInputs.FirstOrDefault(i => i.GetAttribute("placeholder")?.Contains("Taper") ?? false);
 
         if (searchInput != null)
         {
+            // L'input utilise @bind:event="oninput" — utiliser Input() et non Change()
             searchInput.Input("Pasta");
-            await cut.InvokeAsync(() => searchInput.Change("Pasta"));
         }
 
         // ASSERT
@@ -155,8 +157,8 @@ public class RechercheTests : TestContext
             new Recette { IdMeal = "1", StrMeal = "Spaghetti", StrMealThumb = "https://example.com/1.jpg", StrCategory = "Pasta" }
         };
 
-        _mockRecipeService.GetCategoriesAsync().Returns(Task.FromResult(categories));
-        _mockRecipeService.GetAreasAsync().Returns(Task.FromResult(areas));
+        _mockRecetteFrontendService.GetCategoriesAsync().Returns(Task.FromResult(categories));
+        _mockRecetteFrontendService.GetAreasAsync().Returns(Task.FromResult(areas));
 
         // ACT
         var cut = Render<Recherche>();
@@ -187,8 +189,8 @@ public class RechercheTests : TestContext
             new Recette { IdMeal = "1", StrMeal = "Risotto", StrMealThumb = "https://example.com/1.jpg", StrCategory = "Rice" }
         };
 
-        _mockRecipeService.GetCategoriesAsync().Returns(Task.FromResult(categories));
-        _mockRecipeService.GetAreasAsync().Returns(Task.FromResult(areas));
+        _mockRecetteFrontendService.GetCategoriesAsync().Returns(Task.FromResult(categories));
+        _mockRecetteFrontendService.GetAreasAsync().Returns(Task.FromResult(areas));
 
         // ACT
         var cut = Render<Recherche>();
@@ -214,9 +216,9 @@ public class RechercheTests : TestContext
         var categories = new List<string> { "Pasta" };
         var areas = new List<string> { "Italian" };
 
-        _mockRecipeService.GetCategoriesAsync().Returns(Task.FromResult(categories));
-        _mockRecipeService.GetAreasAsync().Returns(Task.FromResult(areas));
-        _mockRecipeService.SearchRecipesAsync("XyZzyNonExistent").Returns(Task.FromResult(new List<Recette>()));
+        _mockRecetteFrontendService.GetCategoriesAsync().Returns(Task.FromResult(categories));
+        _mockRecetteFrontendService.GetAreasAsync().Returns(Task.FromResult(areas));
+        _mockRecetteFrontendService.SearchRecipesAsync("XyZzyNonExistent").Returns(Task.FromResult(new List<Recette>()));
 
         // ACT
         var cut = Render<Recherche>();
@@ -240,8 +242,8 @@ public class RechercheTests : TestContext
         var categories = new List<string> { "Pasta" };
         var areas = new List<string> { "Italian" };
 
-        _mockRecipeService.GetCategoriesAsync().Returns(Task.FromResult(categories));
-        _mockRecipeService.GetAreasAsync().Returns(Task.FromResult(areas));
+        _mockRecetteFrontendService.GetCategoriesAsync().Returns(Task.FromResult(categories));
+        _mockRecetteFrontendService.GetAreasAsync().Returns(Task.FromResult(areas));
 
         // ACT
         var cut = Render<Recherche>();
@@ -269,8 +271,8 @@ public class RechercheTests : TestContext
             new Recette { IdMeal = "c1", StrMeal = "Community Recipe", StrMealThumb = "https://example.com/c1.jpg", StrCategory = "Pasta" }
         };
 
-        _mockRecipeService.GetCategoriesAsync().Returns(Task.FromResult(categories));
-        _mockRecipeService.GetAreasAsync().Returns(Task.FromResult(areas));
+        _mockRecetteFrontendService.GetCategoriesAsync().Returns(Task.FromResult(categories));
+        _mockRecetteFrontendService.GetAreasAsync().Returns(Task.FromResult(areas));
 
         // ACT
         var cut = Render<Recherche>();

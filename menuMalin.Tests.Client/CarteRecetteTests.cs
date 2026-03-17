@@ -6,7 +6,6 @@ using menuMalin.Services;
 using menuMalin.Services.Interfaces;
 using menuMalin.Modeles;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Components;
 
 namespace menuMalin.Tests.Client;
 
@@ -41,7 +40,6 @@ public class CarteRecetteTests : TestContext
         Services.AddScoped<IServiceNotification>(_ => _mockNotifService);
         Services.AddScoped<IServiceAuthentification>(_ => mockAuthService);
         Services.AddScoped<IServiceEtatAuthentification>(_ => new TestServiceEtatAuthentification());
-        Services.AddScoped<NavigationManager>(_ => Substitute.For<NavigationManager>());
     }
 
     /// <summary>

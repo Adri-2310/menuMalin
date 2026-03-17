@@ -120,7 +120,7 @@ public class ServiceRecetteUtilisateurPerformanceTests
 
         var result = await _service.CreateAsync(TestUserId, request);
 
-        if (result?.Ingredients.Count != 50)
+        if (result?.Ingredients?.Count != 50)
             throw new Exception("Ingredient serialization failed");
     }
 
