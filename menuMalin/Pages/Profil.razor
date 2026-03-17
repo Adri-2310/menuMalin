@@ -1,7 +1,8 @@
 @page "/profil"
 @using menuMalin.Services
+@using menuMalin.Services.Interfaces
 @using menuMalin.Modeles
-@inject ServiceEtatAuthentification AuthState
+@inject IServiceEtatAuthentification AuthState
 @inject IServiceAuthentification AuthService
 @inject IServiceNotification NotifService
 @inject NavigationManager Nav

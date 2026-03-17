@@ -1,9 +1,10 @@
 @page "/recettes-publiques"
 @using menuMalin.Services
+@using menuMalin.Services.Interfaces
 @using menuMalin.Shared.Modeles.DTOs
 @inject IServiceRecetteUtilisateur UserRecipeService
 @inject IServiceAuthentification AuthService
-@inject ServiceEtatAuthentification AuthState
+@inject IServiceEtatAuthentification AuthState
 @inject NavigationManager Nav
 
 <PageTitle>MenuMalin - Recettes Partagées</PageTitle>

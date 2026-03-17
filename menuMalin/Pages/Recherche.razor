@@ -1,11 +1,12 @@
 @page "/recherche"
 @using menuMalin.Modeles
 @using menuMalin.Services
+@using menuMalin.Services.Interfaces
 @using menuMalin.Composants.Recette
 @using menuMalin.Shared.Modeles.DTOs
 @inject IServiceRecetteFrontend RecipeService
 @inject IServiceAuthentification AuthService
-@inject ServiceEtatAuthentification AuthState
+@inject IServiceEtatAuthentification AuthState
 @inject NavigationManager Nav
 @inject IServiceNotification NotifService
 

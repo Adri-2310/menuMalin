@@ -1,6 +1,7 @@
 using Xunit;
 using Bunit;
 using NSubstitute;
+using menuMalin.Modeles;
 using menuMalin.Services;
 using menuMalin.Services.Interfaces;
 using menuMalin.Pages;
@@ -27,12 +28,22 @@ public class CreerRecetteTests : TestContext
         _mockNotifService = Substitute.For<IServiceNotification>();
         _mockNavManager = Substitute.For<NavigationManager>();
 
+        // Configurer le mock d'authentification
+        var mockAuthService = Substitute.For<IServiceAuthentification>();
+        mockAuthService.GetCurrentUserAsync().Returns(Task.FromResult((UtilisateurAuth?)new UtilisateurAuth
+        {
+            UserId = "test-user-123",
+            Email = "test@example.com",
+            Name = "Test User",
+            IsAuthenticated = true
+        }));
+
         // Enregistrer dans le DI
         Services.AddScoped<IServiceRecetteUtilisateur>(_ => _mockRecipeService);
         Services.AddScoped<IServiceNotification>(_ => _mockNotifService);
         Services.AddScoped<NavigationManager>(_ => _mockNavManager);
         Services.AddScoped<IServiceEtatAuthentification>(_ => new TestServiceEtatAuthentification());
-        Services.AddScoped<IServiceAuthentification>(_ => Substitute.For<IServiceAuthentification>());
+        Services.AddScoped<IServiceAuthentification>(_ => mockAuthService);
         Services.AddScoped<IServiceTeleversement>(_ => Substitute.For<IServiceTeleversement>());
         Services.AddScoped<IServiceRecette>(_ => Substitute.For<IServiceRecette>());
     }

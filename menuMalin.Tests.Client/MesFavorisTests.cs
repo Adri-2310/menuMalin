@@ -29,6 +29,15 @@ public class MesFavorisTests : TestContext
         _mockAuthService = Substitute.For<IServiceAuthentification>();
         _mockNavManager = Substitute.For<NavigationManager>();
 
+        // Configurer le mock pour retourner un utilisateur authentifié
+        _mockAuthService.GetCurrentUserAsync().Returns(Task.FromResult((UtilisateurAuth?)new UtilisateurAuth
+        {
+            UserId = "test-user-123",
+            Email = "test@example.com",
+            Name = "Test User",
+            IsAuthenticated = true
+        }));
+
         // Enregistrer dans le DI
         Services.AddScoped<IServiceFavorisFrontend>(_ => _mockFavoritesService);
         Services.AddScoped<IServiceNotification>(_ => _mockNotifService);

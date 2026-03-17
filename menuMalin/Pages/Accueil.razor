@@ -1,10 +1,11 @@
 @page "/"
 @using menuMalin.Modeles
 @using menuMalin.Services
+@using menuMalin.Services.Interfaces
 @using menuMalin.Composants.Recette
 @inject IServiceRecette RecipeService
 @inject IServiceAuthentification AuthService
-@inject ServiceEtatAuthentification AuthState
+@inject IServiceEtatAuthentification AuthState
 @inject NavigationManager Nav
 @inject IServiceNotification NotifService
 @implements IAsyncDisposable

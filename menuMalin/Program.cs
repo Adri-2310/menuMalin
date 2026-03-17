@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using menuMalin;
 using menuMalin.Services;
+using menuMalin.Services.Interfaces;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -48,7 +49,7 @@ builder.Services.AddScoped<ServiceStockageLocal>();
 builder.Services.AddScoped<IServiceTheme, ServiceTheme>();
 
 // État partagé d'authentification (Singleton pour cohérence globale)
-builder.Services.AddSingleton<ServiceEtatAuthentification>();
+builder.Services.AddSingleton<IServiceEtatAuthentification, ServiceEtatAuthentification>();
 
 // Services d'authentification (BFF) - avec HttpClient dédié
 builder.Services.AddHttpClient<IServiceAuthentification, ServiceAuthentification>(client =>

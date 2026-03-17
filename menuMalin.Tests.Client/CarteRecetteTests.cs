@@ -26,10 +26,20 @@ public class CarteRecetteTests : TestContext
         _mockFavoriteService = Substitute.For<IServiceFavorisFrontend>();
         _mockNotifService = Substitute.For<IServiceNotification>();
 
+        // Configurer le mock d'authentification
+        var mockAuthService = Substitute.For<IServiceAuthentification>();
+        mockAuthService.GetCurrentUserAsync().Returns(Task.FromResult((UtilisateurAuth?)new UtilisateurAuth
+        {
+            UserId = "test-user-123",
+            Email = "test@example.com",
+            Name = "Test User",
+            IsAuthenticated = true
+        }));
+
         // Enregistrer dans le DI de bUnit
         Services.AddScoped<IServiceFavorisFrontend>(_ => _mockFavoriteService);
         Services.AddScoped<IServiceNotification>(_ => _mockNotifService);
-        Services.AddScoped<IServiceAuthentification>(_ => Substitute.For<IServiceAuthentification>());
+        Services.AddScoped<IServiceAuthentification>(_ => mockAuthService);
         Services.AddScoped<IServiceEtatAuthentification>(_ => new TestServiceEtatAuthentification());
         Services.AddScoped<NavigationManager>(_ => Substitute.For<NavigationManager>());
     }

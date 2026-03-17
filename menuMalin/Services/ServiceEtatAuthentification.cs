@@ -1,5 +1,6 @@
 using Blazored.LocalStorage;
 using menuMalin.Modeles;
+using menuMalin.Services.Interfaces;
 
 namespace menuMalin.Services;
 
@@ -7,7 +8,7 @@ namespace menuMalin.Services;
 /// Service partagé pour gérer l'état d'authentification avec événements
 /// Persiste l'authentification dans localStorage pour survivre aux F5
 /// </summary>
-public class ServiceEtatAuthentification
+public class ServiceEtatAuthentification : IServiceEtatAuthentification
 {
     private UtilisateurAuth? _currentUser;
     private readonly ILocalStorageService _localStorage;

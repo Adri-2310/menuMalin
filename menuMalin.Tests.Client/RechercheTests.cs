@@ -28,6 +28,15 @@ public class RechercheTests : TestContext
         _mockRecetteFrontendService = Substitute.For<IServiceRecetteFrontend>();
         _mockAuthService = Substitute.For<IServiceAuthentification>();
 
+        // Configurer le mock pour retourner un utilisateur authentifié
+        _mockAuthService.GetCurrentUserAsync().Returns(Task.FromResult((UtilisateurAuth?)new UtilisateurAuth
+        {
+            UserId = "test-user-123",
+            Email = "test@example.com",
+            Name = "Test User",
+            IsAuthenticated = true
+        }));
+
         // Enregistrer dans le DI
         Services.AddScoped<IServiceRecette>(_ => _mockRecipeService);
         Services.AddScoped<IServiceNotification>(_ => _mockNotifService);

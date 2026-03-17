@@ -1,10 +1,11 @@
 ﻿@page "/favoris"
 @using menuMalin.Modeles
 @using menuMalin.Services
+@using menuMalin.Services.Interfaces
 @using menuMalin.Composants.Recette
 @inject IServiceFavorisFrontend FavoriteService
 @inject IServiceAuthentification AuthService
-@inject ServiceEtatAuthentification AuthState
+@inject IServiceEtatAuthentification AuthState
 @inject NavigationManager Nav
 
 <PageTitle>Mes Favoris - MenuMalin</PageTitle>

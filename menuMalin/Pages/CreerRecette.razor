@@ -1,11 +1,12 @@
 @page "/creer-recette"
 @using menuMalin.Services
+@using menuMalin.Services.Interfaces
 @using menuMalin.DTOs
 @using menuMalin.Shared.Modeles.Requetes
 @using Microsoft.AspNetCore.Components.Forms
 @inject IServiceRecetteUtilisateur UserRecipeService
 @inject IServiceAuthentification AuthService
-@inject ServiceEtatAuthentification AuthState
+@inject IServiceEtatAuthentification AuthState
 @inject IServiceTeleversement UploadService
 @inject IServiceRecette RecipeService
 @inject NavigationManager Nav
