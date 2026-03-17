@@ -3,6 +3,7 @@ using Bunit;
 using NSubstitute;
 using menuMalin.Composants.Recette;
 using menuMalin.Services;
+using menuMalin.Services.Interfaces;
 using menuMalin.Modeles;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Components;
@@ -29,7 +30,7 @@ public class CarteRecetteTests : TestContext
         Services.AddScoped<IServiceFavorisFrontend>(_ => _mockFavoriteService);
         Services.AddScoped<IServiceNotification>(_ => _mockNotifService);
         Services.AddScoped<IServiceAuthentification>(_ => Substitute.For<IServiceAuthentification>());
-        Services.AddScoped<ServiceEtatAuthentification>(_ => Substitute.For<ServiceEtatAuthentification>());
+        Services.AddScoped<IServiceEtatAuthentification>(_ => new TestServiceEtatAuthentification());
         Services.AddScoped<NavigationManager>(_ => Substitute.For<NavigationManager>());
     }
 

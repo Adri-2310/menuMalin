@@ -3,7 +3,9 @@ using Bunit;
 using NSubstitute;
 using menuMalin.Modeles;
 using menuMalin.Services;
+using menuMalin.Services.Interfaces;
 using menuMalin.Pages;
+using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace menuMalin.Tests.Client;
@@ -16,17 +18,23 @@ public class MesFavorisTests : TestContext
 {
     private readonly IServiceFavorisFrontend _mockFavoritesService;
     private readonly IServiceNotification _mockNotifService;
+    private readonly IServiceAuthentification _mockAuthService;
+    private readonly NavigationManager _mockNavManager;
 
     public MesFavorisTests()
     {
         // Créer les mocks
         _mockFavoritesService = Substitute.For<IServiceFavorisFrontend>();
         _mockNotifService = Substitute.For<IServiceNotification>();
+        _mockAuthService = Substitute.For<IServiceAuthentification>();
+        _mockNavManager = Substitute.For<NavigationManager>();
 
         // Enregistrer dans le DI
         Services.AddScoped<IServiceFavorisFrontend>(_ => _mockFavoritesService);
         Services.AddScoped<IServiceNotification>(_ => _mockNotifService);
-        Services.AddScoped<ServiceEtatAuthentification>(_ => Substitute.For<ServiceEtatAuthentification>());
+        Services.AddScoped<IServiceEtatAuthentification>(_ => new TestServiceEtatAuthentification());
+        Services.AddScoped<IServiceAuthentification>(_ => _mockAuthService);
+        Services.AddScoped<NavigationManager>(_ => _mockNavManager);
     }
 
     /// <summary>

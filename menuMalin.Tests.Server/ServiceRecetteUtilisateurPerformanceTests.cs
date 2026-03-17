@@ -5,6 +5,7 @@ using menuMalin.Server.Depots.Interfaces;
 using menuMalin.Server.Modeles.Entites;
 using menuMalin.Shared.Modeles.Requetes;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Hosting;
 
 namespace menuMalin.Tests.Server;
 
@@ -15,7 +16,7 @@ namespace menuMalin.Tests.Server;
 /// Exécuter avec: dotnet run -c Release -- --filter ServiceRecetteUtilisateurPerformanceTests
 /// </summary>
 [MemoryDiagnoser]
-[SimpleJob(warmupCount: 3, targetCount: 5)]
+[SimpleJob(warmupCount: 3, invocationCount: 5)]
 public class ServiceRecetteUtilisateurPerformanceTests
 {
     private ServiceRecetteUtilisateur _service = null!;

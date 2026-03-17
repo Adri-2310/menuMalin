@@ -3,6 +3,7 @@ using Bunit;
 using NSubstitute;
 using menuMalin.Modeles;
 using menuMalin.Services;
+using menuMalin.Services.Interfaces;
 using menuMalin.Pages;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,19 +17,23 @@ public class RechercheTests : TestContext
 {
     private readonly IServiceRecette _mockRecipeService;
     private readonly IServiceNotification _mockNotifService;
-    private readonly ServiceEtatAuthentification _authState;
+    private readonly IServiceRecetteFrontend _mockRecetteFrontendService;
+    private readonly IServiceAuthentification _mockAuthService;
 
     public RechercheTests()
     {
         // Créer les mocks
         _mockRecipeService = Substitute.For<IServiceRecette>();
         _mockNotifService = Substitute.For<IServiceNotification>();
-        _authState = Substitute.For<ServiceEtatAuthentification>();
+        _mockRecetteFrontendService = Substitute.For<IServiceRecetteFrontend>();
+        _mockAuthService = Substitute.For<IServiceAuthentification>();
 
         // Enregistrer dans le DI
         Services.AddScoped<IServiceRecette>(_ => _mockRecipeService);
         Services.AddScoped<IServiceNotification>(_ => _mockNotifService);
-        Services.AddScoped<ServiceEtatAuthentification>(_ => _authState);
+        Services.AddScoped<IServiceRecetteFrontend>(_ => _mockRecetteFrontendService);
+        Services.AddScoped<IServiceAuthentification>(_ => _mockAuthService);
+        Services.AddScoped<IServiceEtatAuthentification>(_ => new TestServiceEtatAuthentification());
     }
 
     /// <summary>

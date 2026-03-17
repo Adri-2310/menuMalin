@@ -3,6 +3,7 @@ using Bunit;
 using NSubstitute;
 using menuMalin.Modeles;
 using menuMalin.Services;
+using menuMalin.Services.Interfaces;
 using menuMalin.Pages;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,7 +18,6 @@ public class AccueilTests : TestContext
 {
     private readonly IServiceRecette _mockRecipeService;
     private readonly IServiceAuthentification _mockAuthService;
-    private readonly ServiceEtatAuthentification _authState;
     private readonly IServiceNotification _mockNotifService;
     private readonly NavigationManager _mockNavManager;
 
@@ -26,14 +26,13 @@ public class AccueilTests : TestContext
         // Créer les mocks
         _mockRecipeService = Substitute.For<IServiceRecette>();
         _mockAuthService = Substitute.For<IServiceAuthentification>();
-        _authState = Substitute.For<ServiceEtatAuthentification>();
         _mockNotifService = Substitute.For<IServiceNotification>();
         _mockNavManager = Substitute.For<NavigationManager>();
 
         // Enregistrer dans le DI
         Services.AddScoped<IServiceRecette>(_ => _mockRecipeService);
         Services.AddScoped<IServiceAuthentification>(_ => _mockAuthService);
-        Services.AddScoped<ServiceEtatAuthentification>(_ => _authState);
+        Services.AddScoped<IServiceEtatAuthentification>(_ => new TestServiceEtatAuthentification());
         Services.AddScoped<IServiceNotification>(_ => _mockNotifService);
         Services.AddScoped<NavigationManager>(_ => _mockNavManager);
     }

@@ -2,6 +2,7 @@ using Xunit;
 using Bunit;
 using NSubstitute;
 using menuMalin.Services;
+using menuMalin.Services.Interfaces;
 using menuMalin.Pages;
 using menuMalin.Shared.Modeles.Requetes;
 using Microsoft.AspNetCore.Components;
@@ -30,6 +31,10 @@ public class CreerRecetteTests : TestContext
         Services.AddScoped<IServiceRecetteUtilisateur>(_ => _mockRecipeService);
         Services.AddScoped<IServiceNotification>(_ => _mockNotifService);
         Services.AddScoped<NavigationManager>(_ => _mockNavManager);
+        Services.AddScoped<IServiceEtatAuthentification>(_ => new TestServiceEtatAuthentification());
+        Services.AddScoped<IServiceAuthentification>(_ => Substitute.For<IServiceAuthentification>());
+        Services.AddScoped<IServiceTeleversement>(_ => Substitute.For<IServiceTeleversement>());
+        Services.AddScoped<IServiceRecette>(_ => Substitute.For<IServiceRecette>());
     }
 
     /// <summary>
