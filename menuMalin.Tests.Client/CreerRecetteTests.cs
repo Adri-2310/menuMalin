@@ -151,7 +151,7 @@ public class CreerRecetteTests : TestContext
         };
 
         _mockRecipeService.CreateAsync(Arg.Any<RequeteCreationRecetteUtilisateur>())
-            .Returns(Task.FromResult(createdRecipe));
+            .Returns(Task.FromResult<RecetteUtilisateurDTO?>(createdRecipe));
 
         // ACT
         var cut = Render<CreerRecette>();
@@ -230,7 +230,7 @@ public class CreerRecetteTests : TestContext
         };
 
         _mockRecipeService.CreateAsync(Arg.Any<RequeteCreationRecetteUtilisateur>())
-            .Returns(Task.FromResult(recipeDto));
+            .Returns(Task.FromResult<RecetteUtilisateurDTO?>(recipeDto));
 
         // ACT
         var cut = Render<CreerRecette>();
@@ -294,7 +294,7 @@ public class CreerRecetteTests : TestContext
         };
 
         _mockRecipeService.CreateAsync(Arg.Any<RequeteCreationRecetteUtilisateur>())
-            .Returns(Task.FromResult(recipeDto));
+            .Returns(Task.FromResult<RecetteUtilisateurDTO?>(recipeDto));
 
         // ACT
         var cut = Render<CreerRecette>();

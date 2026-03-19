@@ -51,7 +51,7 @@ public class ServiceMealDB : IServiceMealDB
                 _logger.LogWarning($"🔄 {operationName} - Tentative {attempt}/{MaxRetries} échouée. Retry après {delayMs}ms: {ex.Message}");
                 await Task.Delay(delayMs);
             }
-            catch (TaskCanceledException _) when (attempt < MaxRetries)
+            catch (TaskCanceledException) when (attempt < MaxRetries)
             {
                 int delayMs = InitialDelayMs * (int)Math.Pow(2, attempt - 1);
                 _logger.LogWarning($"🔄 {operationName} - Timeout à la tentative {attempt}/{MaxRetries}. Retry après {delayMs}ms");

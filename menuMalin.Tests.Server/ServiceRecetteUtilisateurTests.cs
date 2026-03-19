@@ -412,7 +412,7 @@ public class ServiceRecetteUtilisateurTests
         var userId = "user-123";
         var recipeId = "nonexistent-recipe";
 
-        _mockRepository.GetByIdAsync(recipeId).Returns(Task.FromResult((RecetteUtilisateur?)null));
+        _mockRepository.GetByIdAsync(recipeId).Returns(Task.FromResult<RecetteUtilisateur?>(null));
 
         // ACT
         var result = await _service.DeleteAsync(recipeId, userId);

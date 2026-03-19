@@ -184,7 +184,7 @@ else
                                 }
                                 else
                                 {
-                                    @foreach (var (ingredient, index) in recipe.Ingredients.Select((item, i) => (item, i)))
+                                    @foreach (var (ingredient, index) in recipe!.Ingredients.Select((item, i) => (item, i)))
                                     {
                                         <div class="input-group mb-2">
                                             <input
@@ -212,7 +212,7 @@ else
                         </div>
 
                         <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" @bind="recipe.IsPublic" id="isPublic">
+                            <input class="form-check-input" type="checkbox" @bind="recipe!.IsPublic" id="isPublic">
                             <label class="form-check-label" for="isPublic">
                                 Rendre cette recette publique (visible à la communauté)
                             </label>
@@ -530,10 +530,11 @@ else
         if (recipe == null)
             return;
 
-        modaleConfirmation.Titre = "Supprimer cette recette ?";
-        modaleConfirmation.Message = "Cette action est irréversible. L'image et toutes les données seront supprimées.";
-        modaleConfirmation.TexteBoutonConfirmer = "Supprimer";
-        modaleConfirmation.Ouvrir();
+        modaleConfirmation.OuvrirAvec(
+            "Supprimer cette recette ?",
+            "Cette action est irréversible. L'image et toutes les données seront supprimées.",
+            "Supprimer"
+        );
     }
 
     private async Task DeleteRecipe()

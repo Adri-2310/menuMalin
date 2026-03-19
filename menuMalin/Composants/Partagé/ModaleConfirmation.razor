@@ -46,6 +46,14 @@
         estVisible = true;
     }
 
+    public void OuvrirAvec(string titre, string message, string texteBouton)
+    {
+        Titre = titre;
+        Message = message;
+        TexteBoutonConfirmer = texteBouton;
+        Ouvrir();
+    }
+
     private async Task Confirmer()
     {
         estVisible = false;
