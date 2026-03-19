@@ -6,6 +6,7 @@ using menuMalin.Services;
 using menuMalin.Services.Interfaces;
 using menuMalin.Pages;
 using menuMalin.Shared.Modeles.Requetes;
+using menuMalin.Shared.Modeles.DTOs;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace menuMalin.Tests.Client;
@@ -138,7 +139,7 @@ public class CreerRecetteTests : TestContext
     public async Task CreerRecette_AllowsSubmission_WhenDataIsValid()
     {
         // ARRANGE
-        var createdRecipe = new menuMalin.Shared.Modeles.DTOs.RecetteUtilisateurDTO
+        var createdRecipe = new RecetteUtilisateurDTO
         {
             UserRecipeId = "new-recipe-1",
             Title = "Ma Nouvelle Recette",
@@ -217,7 +218,7 @@ public class CreerRecetteTests : TestContext
     public async Task CreerRecette_ShowsSuccessNotification_AfterCreation()
     {
         // ARRANGE
-        var recipeDto = new menuMalin.Shared.Modeles.DTOs.RecetteUtilisateurDTO
+        var recipeDto = new RecetteUtilisateurDTO
         {
             UserRecipeId = "created-recipe",
             Title = "Nouvelle Recette",
@@ -281,7 +282,7 @@ public class CreerRecetteTests : TestContext
     public async Task CreerRecette_NavigatesToRecipeAfterCreation()
     {
         // ARRANGE
-        var recipeDto = new menuMalin.Shared.Modeles.DTOs.RecetteUtilisateurDTO
+        var recipeDto = new RecetteUtilisateurDTO
         {
             UserRecipeId = "new-recipe-123",
             Title = "Created Recipe",
